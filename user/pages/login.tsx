@@ -1,10 +1,13 @@
 import { useState } from 'react';
 import Head from 'next/head';
 import Image from 'next/image';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { User, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
+import { useRouter } from 'next/router';
+import { authService } from '../src/services';
 
 interface LoginFormData {
   username: string;
@@ -19,9 +22,11 @@ interface RegisterFormData {
 }
 
 export default function LoginPage() {
+  const router = useRouter();
   const [isLoginMode, setIsLoginMode] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const {
     register: registerLogin,
@@ -38,18 +43,70 @@ export default function LoginPage() {
 
   const password = watch('password');
 
-  const onLoginSubmit = (data: LoginFormData) => {
-    console.log('Login data:', data);
-    toast.success('Login successful!');
+  const onLoginSubmit = async (data: LoginFormData) => {
+    setIsLoading(true);
+    try {
+      const response = await authService.login({
+        username: data.username,
+        password: data.password,
+        remember: false,
+      });
+      toast.success('Login successful!');
+      // Redirect to home page or dashboard
+      router.push('/');
+    } catch (error: any) {
+      // Backend trả về lỗi dạng { statusCode: number, message: string | string[] }
+      let errorMessage = 'Login failed. Please try again.';
+      if (error?.message) {
+        errorMessage = Array.isArray(error.message) ? error.message[0] : error.message;
+      } else if (error?.data?.message) {
+        errorMessage = Array.isArray(error.data.message) ? error.data.message[0] : error.data.message;
+      }
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const onRegisterSubmit = (data: RegisterFormData) => {
+  const onRegisterSubmit = async (data: RegisterFormData) => {
     if (data.password !== data.confirmPassword) {
       toast.error('Passwords do not match!');
       return;
     }
-    console.log('Register data:', data);
-    toast.success('Registration successful!');
+    
+    setIsLoading(true);
+    try {
+      const response = await authService.register({
+        username: data.username,
+        email: data.email,
+        password: data.password,
+      });
+      toast.success('Registration successful!');
+      // Auto login after registration
+      setIsLoginMode(true);
+      // Optionally auto-login
+      try {
+        await authService.login({
+          username: data.username,
+          password: data.password,
+        });
+        router.push('/');
+      } catch (loginError: any) {
+        // If auto-login fails, just show success message
+        toast.success('Please login with your new account');
+      }
+    } catch (error: any) {
+      // Backend trả về lỗi dạng { statusCode: number, message: string | string[] }
+      let errorMessage = 'Registration failed. Please try again.';
+      if (error?.message) {
+        errorMessage = Array.isArray(error.message) ? error.message[0] : error.message;
+      } else if (error?.data?.message) {
+        errorMessage = Array.isArray(error.data.message) ? error.data.message[0] : error.data.message;
+      }
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const toggleMode = () => {
@@ -74,7 +131,10 @@ export default function LoginPage() {
         <div
           className="fixed inset-0 bg-cover bg-center brightness-[0.7]"
           style={{
-            backgroundImage: "url('/background_login.webp')"
+            backgroundImage: "url('/gitduck-vs-code-extensions-animation-opt.gif')",
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat'
           }}
         />
         <div className="fixed inset-0 bg-[hsl(220,20%,8%)] opacity-60" />
@@ -150,8 +210,8 @@ export default function LoginPage() {
                         {...registerRegister('password', {
                           required: 'Password is required',
                           minLength: {
-                            value: 6,
-                            message: 'Password must be at least 6 characters'
+                            value: 8,
+                            message: 'Password must be at least 8 characters'
                           }
                         })}
                         className="w-full h-12 pl-12 pr-12 rounded-lg bg-[hsla(220,20%,18%,0.5)] border border-[hsl(220,15%,25%,0.5)] text-white text-sm placeholder:text-[hsl(220,10%,60%)] focus:outline-none focus:border-[hsl(16,85%,60%)] focus:shadow-[0_0_0_2px_hsla(16,85%,60%,0.2)] transition-all hover:bg-[hsla(220,20%,18%,0.7)]"
@@ -206,9 +266,10 @@ export default function LoginPage() {
 
                     <button
                       type="submit"
-                      className="w-full h-12 rounded-lg bg-[hsl(16,85%,60%)] text-white text-base font-semibold transition-all hover:shadow-[0_0_20px_hsla(16,85%,60%,0.4),0_0_40px_hsla(16,85%,60%,0.2)] hover:scale-[1.02] active:scale-[0.98]"
+                      disabled={isLoading}
+                      className="w-full h-12 rounded-lg bg-[hsl(16,85%,60%)] text-white text-base font-semibold transition-all hover:shadow-[0_0_20px_hsla(16,85%,60%,0.4),0_0_40px_hsla(16,85%,60%,0.2)] hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      Register
+                      {isLoading ? 'Registering...' : 'Register'}
                     </button>
                   </form>
 
@@ -345,18 +406,19 @@ export default function LoginPage() {
                       )}
                     </div>
 
-                    <button
-                      type="button"
+                    <Link
+                      href="/forgot-password"
                       className="block text-right text-sm text-[hsl(220,10%,60%)] mb-4 hover:text-[hsl(16,85%,60%)] transition-colors"
                     >
                       Forgot Password?
-                    </button>
+                    </Link>
 
                     <button
                       type="submit"
-                      className="w-full h-12 rounded-lg bg-[hsl(16,85%,60%)] text-white text-base font-semibold transition-all hover:shadow-[0_0_20px_hsla(16,85%,60%,0.4),0_0_40px_hsla(16,85%,60%,0.2)] hover:scale-[1.02] active:scale-[0.98]"
+                      disabled={isLoading}
+                      className="w-full h-12 rounded-lg bg-[hsl(16,85%,60%)] text-white text-base font-semibold transition-all hover:shadow-[0_0_20px_hsla(16,85%,60%,0.4),0_0_40px_hsla(16,85%,60%,0.2)] hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      Login
+                      {isLoading ? 'Logging in...' : 'Login'}
                     </button>
                   </form>
 
