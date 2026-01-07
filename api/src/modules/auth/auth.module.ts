@@ -11,9 +11,15 @@ import {
 } from "./controllers";
 import { AuthGuard, LoadUser, RoleGuard } from "./guards";
 import { authProviders } from "./providers";
+import { SendgridModule } from "../sendgrid/sendgrid.module";
 
 @Module({
-  imports: [MongoDBModule, forwardRef(() => UserModule), EmailModule],
+  imports: [
+    MongoDBModule,
+    forwardRef(() => UserModule),
+    EmailModule,
+    SendgridModule,
+  ],
   controllers: [
     LoginController,
     UserRegisterController,
