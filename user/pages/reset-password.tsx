@@ -32,14 +32,29 @@ export default function ResetPasswordPage() {
   const password = watch('password');
 
   useEffect(() => {
+    // Check if router is ready
+    if (!router.isReady) return;
+
+    // Get token from query params
     const { token: queryToken } = router.query;
+    
     if (queryToken && typeof queryToken === 'string') {
       setToken(queryToken);
-    } else if (!queryToken) {
-      toast.error('Invalid reset link');
-      router.push('/forgot-password');
+    } else {
+      // Also check URL hash or search params directly
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlToken = urlParams.get('token');
+      
+      if (urlToken) {
+        setToken(urlToken);
+      } else {
+        toast.error('Link đặt lại mật khẩu không hợp lệ hoặc đã hết hạn');
+        setTimeout(() => {
+          router.push('/forgot-password');
+        }, 2000);
+      }
     }
-  }, [router.query]);
+  }, [router.isReady, router.query]);
 
   const onSubmit = async (data: ResetPasswordFormData) => {
     if (data.password !== data.confirmPassword) {
@@ -56,12 +71,12 @@ export default function ResetPasswordPage() {
     try {
       await authService.resetPassword(token, data.password);
       setIsSuccess(true);
-      toast.success('Password has been reset successfully!');
+      toast.success('Đặt lại mật khẩu thành công!');
       
-      // Redirect to login after 2 seconds
+      // Redirect to login after 3 seconds
       setTimeout(() => {
         router.push('/login');
-      }, 2000);
+      }, 3000);
     } catch (error: any) {
       let errorMessage = 'Failed to reset password. Please try again.';
       if (error?.message) {
@@ -75,8 +90,28 @@ export default function ResetPasswordPage() {
     }
   };
 
+  if (!router.isReady) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-white">Đang tải...</div>
+      </div>
+    );
+  }
+
   if (!token && !isSuccess) {
-    return null;
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="text-white text-center">
+          <p className="mb-4">Link đặt lại mật khẩu không hợp lệ</p>
+          <Link
+            href="/forgot-password"
+            className="text-pink-400 hover:text-pink-300 underline"
+          >
+            Yêu cầu link mới
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -110,9 +145,9 @@ export default function ResetPasswordPage() {
             {!isSuccess ? (
               <>
                 <div className="text-center mb-6">
-                  <h1 className="text-3xl font-bold text-white mb-2">Reset Password</h1>
+                  <h1 className="text-3xl font-bold text-white mb-2">Đặt lại mật khẩu</h1>
                   <p className="text-white/80 text-sm">
-                    Enter your new password below.
+                    Vui lòng nhập mật khẩu mới của bạn bên dưới.
                   </p>
                 </div>
 
@@ -121,12 +156,12 @@ export default function ResetPasswordPage() {
                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[hsl(220,10%,60%)] transition-colors" />
                     <input
                       type={showPassword ? 'text' : 'password'}
-                      placeholder="New Password"
+                      placeholder="Mật khẩu mới"
                       {...register('password', {
-                        required: 'Password is required',
+                        required: 'Vui lòng nhập mật khẩu mới',
                         minLength: {
                           value: 8,
-                          message: 'Password must be at least 8 characters'
+                          message: 'Mật khẩu phải có ít nhất 8 ký tự'
                         }
                       })}
                       className="w-full h-12 pl-12 pr-12 rounded-lg bg-[hsla(220,20%,18%,0.5)] border border-[hsl(220,15%,25%,0.5)] text-white text-sm placeholder:text-[hsl(220,10%,60%)] focus:outline-none focus:border-[hsl(16,85%,60%)] focus:shadow-[0_0_0_2px_hsla(16,85%,60%,0.2)] transition-all hover:bg-[hsla(220,20%,18%,0.7)]"
@@ -153,11 +188,11 @@ export default function ResetPasswordPage() {
                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[hsl(220,10%,60%)] transition-colors" />
                     <input
                       type={showConfirmPassword ? 'text' : 'password'}
-                      placeholder="Confirm New Password"
+                      placeholder="Xác nhận mật khẩu mới"
                       {...register('confirmPassword', {
-                        required: 'Please confirm your password',
+                        required: 'Vui lòng xác nhận mật khẩu',
                         validate: (value) =>
-                          value === password || 'Passwords do not match'
+                          value === password || 'Mật khẩu không khớp'
                       })}
                       className="w-full h-12 pl-12 pr-12 rounded-lg bg-[hsla(220,20%,18%,0.5)] border border-[hsl(220,15%,25%,0.5)] text-white text-sm placeholder:text-[hsl(220,10%,60%)] focus:outline-none focus:border-[hsl(16,85%,60%)] focus:shadow-[0_0_0_2px_hsla(16,85%,60%,0.2)] transition-all hover:bg-[hsla(220,20%,18%,0.7)]"
                     />
@@ -184,7 +219,7 @@ export default function ResetPasswordPage() {
                     disabled={isLoading}
                     className="w-full h-12 rounded-lg bg-[hsl(16,85%,60%)] text-white text-base font-semibold transition-all hover:shadow-[0_0_20px_hsla(16,85%,60%,0.4),0_0_40px_hsla(16,85%,60%,0.2)] hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {isLoading ? 'Resetting...' : 'Reset Password'}
+                    {isLoading ? 'Đang xử lý...' : 'Đặt lại mật khẩu'}
                   </button>
                 </form>
               </>
@@ -194,9 +229,9 @@ export default function ResetPasswordPage() {
                   <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
                     <CheckCircle className="w-8 h-8 text-green-400" />
                   </div>
-                  <h2 className="text-2xl font-bold text-white mb-2">Password Reset!</h2>
+                  <h2 className="text-2xl font-bold text-white mb-2">Đặt lại mật khẩu thành công!</h2>
                   <p className="text-white/80 text-sm">
-                    Your password has been reset successfully. Redirecting to login...
+                    Mật khẩu của bạn đã được đặt lại thành công. Đang chuyển đến trang đăng nhập...
                   </p>
                 </div>
               </div>

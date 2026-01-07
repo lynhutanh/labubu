@@ -9,6 +9,7 @@ import {
   ForgotPasswordController,
   ResetPasswordController,
   GoogleLoginController,
+  FacebookLoginController,
 } from "./controllers";
 import { AuthGuard, LoadUser, RoleGuard } from "./guards";
 import { authProviders } from "./providers";
@@ -27,6 +28,7 @@ import { SendgridModule } from "../sendgrid/sendgrid.module";
     ForgotPasswordController,
     ResetPasswordController,
     GoogleLoginController,
+    FacebookLoginController,
   ],
   providers: [AuthService, AuthGuard, RoleGuard, LoadUser, ...authProviders],
   exports: [AuthService, AuthGuard, RoleGuard, LoadUser],

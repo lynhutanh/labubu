@@ -6,6 +6,7 @@ import type {
   RegisterResponse,
   ApiResponse,
   GoogleLoginPayload,
+  FacebookLoginPayload,
 } from "../interfaces";
 import { storage } from "../utils/storage";
 import { TOKEN } from "./api-request";
@@ -70,6 +71,26 @@ export class AuthService extends APIRequest {
     }
 
     throw new Error(response?.message || "Google login failed");
+  }
+
+  async loginWithFacebook(
+    payload: FacebookLoginPayload,
+  ): Promise<LoginResponse> {
+    const response: ApiResponse<LoginResponse> = await this.post(
+      "/auth/facebook/login",
+      payload,
+    );
+
+    if (response && response.data) {
+      const { token, user } = response.data;
+      if (typeof window !== "undefined") {
+        localStorage.setItem(TOKEN, token);
+        storage.setUser(user);
+      }
+      return { token, user };
+    }
+
+    throw new Error(response?.message || "Facebook login failed");
   }
 
   logout(): void {

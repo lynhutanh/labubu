@@ -19,7 +19,11 @@ const nextConfig: NextConfig = {
   },
   publicRuntimeConfig: {
     SITE_URL: process.env.SITE_URL,
-    API_ENDPOINT: process.env.API_ENDPOINT || 'http://localhost:5001'
+    API_ENDPOINT: process.env.API_ENDPOINT || 'http://localhost:5001',
+    FACEBOOK_APP_ID: process.env.FACEBOOK_APP_ID
+  },
+  env: {
+    FACEBOOK_APP_ID: process.env.FACEBOOK_APP_ID
   }
 };
 

@@ -9,6 +9,7 @@ import toast from "react-hot-toast";
 import { useRouter } from "next/router";
 import { authService } from "../src/services";
 import { CredentialResponse, GoogleLogin } from "@react-oauth/google";
+import FacebookLogin from "react-facebook-login";
 
 interface LoginFormData {
   username: string;
@@ -30,6 +31,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? "";
+  const facebookAppId = process.env.FACEBOOK_APP_ID ?? "";
 
   const {
     register: registerLogin,
@@ -154,6 +156,63 @@ export default function LoginPage() {
 
   const handleGoogleLoginError = () => {
     toast.error("Google login failed. Please try again.");
+  };
+
+  const handleFacebookLogin = async (response: any) => {
+    if (!response.accessToken) {
+      toast.error("Facebook login failed. Please try again.");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await authService.loginWithFacebook({
+        accessToken: response.accessToken,
+        userID: response.userID,
+      });
+      toast.success("Login successful!");
+      router.push("/");
+    } catch (error: any) {
+      const errorMessage =
+        error?.message ||
+        error?.data?.message ||
+        "Facebook login failed. Please try again.";
+      toast.error(Array.isArray(errorMessage) ? errorMessage[0] : errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleFacebookLoginFailure = () => {
+    toast.error("Facebook login failed. Please try again.");
+  };
+
+  const handleFacebookIconClick = () => {
+    if (typeof window !== "undefined" && (window as any).FB) {
+      (window as any).FB.login(
+        (response: any) => {
+          if (response.authResponse) {
+            handleFacebookLogin({
+              accessToken: response.authResponse.accessToken,
+              userID: response.authResponse.userID,
+            });
+          } else {
+            toast.error("Facebook login was cancelled.");
+          }
+        },
+        { scope: "email,public_profile" }
+      );
+    } else {
+      // Fallback: trigger hidden button if FB SDK not ready
+      const hiddenButton = document.querySelector(
+        'button[aria-hidden="true"]'
+      ) as HTMLButtonElement;
+      if (hiddenButton) {
+        hiddenButton.click();
+      } else {
+        toast.error("Facebook SDK is not loaded. Please refresh the page.");
+      }
+    }
   };
 
   if (!isClient) {
@@ -358,8 +417,8 @@ export default function LoginPage() {
                     <p className="text-sm text-[hsl(220,10%,60%)] mb-4">
                       or register with social platforms
                     </p>
-                    {googleClientId ? (
-                      <div className="flex justify-center">
+                    <div className="flex justify-center gap-3">
+                      {googleClientId && (
                         <GoogleLogin
                           onSuccess={handleGoogleLoginSuccess}
                           onError={handleGoogleLoginError}
@@ -368,10 +427,49 @@ export default function LoginPage() {
                           size="large"
                           theme="outline"
                         />
-                      </div>
-                    ) : (
+                      )}
+                      {facebookAppId && (
+                        <>
+                          <FacebookLogin
+                            appId={facebookAppId}
+                            autoLoad={false}
+                            fields="name,email,picture"
+                            callback={handleFacebookLogin}
+                            onFailure={handleFacebookLoginFailure}
+                            buttonText=""
+                            cssClass="hidden"
+                            render={(renderProps: any) => (
+                              <button
+                                onClick={renderProps.onClick}
+                                disabled={renderProps.isDisabled || isLoading}
+                                className="hidden"
+                                type="button"
+                                aria-hidden="true"
+                              />
+                            )}
+                          />
+                          <button
+                            onClick={handleFacebookIconClick}
+                            disabled={isLoading}
+                            className="flex items-center justify-center w-10 h-10 rounded-full bg-white border border-gray-300 hover:shadow-md transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                            type="button"
+                            aria-label="Login with Facebook"
+                          >
+                            <svg
+                              className="w-5 h-5"
+                              fill="#1877F2"
+                              viewBox="0 0 24 24"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                            </svg>
+                          </button>
+                        </>
+                      )}
+                    </div>
+                    {!googleClientId && !facebookAppId && (
                       <p className="text-xs text-red-300">
-                        Missing NEXT_PUBLIC_GOOGLE_CLIENT_ID
+                        Missing social login configuration
                       </p>
                     )}
                   </div>
@@ -476,8 +574,8 @@ export default function LoginPage() {
                     <p className="text-sm text-[hsl(220,10%,60%)] mb-4">
                       or login with social platforms
                     </p>
-                    {googleClientId ? (
-                      <div className="flex justify-center">
+                    <div className="flex justify-center gap-3">
+                      {googleClientId && (
                         <GoogleLogin
                           onSuccess={handleGoogleLoginSuccess}
                           onError={handleGoogleLoginError}
@@ -486,10 +584,49 @@ export default function LoginPage() {
                           size="large"
                           theme="outline"
                         />
-                      </div>
-                    ) : (
+                      )}
+                      {facebookAppId && (
+                        <>
+                          <FacebookLogin
+                            appId={facebookAppId}
+                            autoLoad={false}
+                            fields="name,email,picture"
+                            callback={handleFacebookLogin}
+                            onFailure={handleFacebookLoginFailure}
+                            buttonText=""
+                            cssClass="hidden"
+                            render={(renderProps: any) => (
+                              <button
+                                onClick={renderProps.onClick}
+                                disabled={renderProps.isDisabled || isLoading}
+                                className="hidden"
+                                type="button"
+                                aria-hidden="true"
+                              />
+                            )}
+                          />
+                          <button
+                            onClick={handleFacebookIconClick}
+                            disabled={isLoading}
+                            className="flex items-center justify-center w-10 h-10 rounded-full bg-white border border-gray-300 hover:shadow-md transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                            type="button"
+                            aria-label="Login with Facebook"
+                          >
+                            <svg
+                              className="w-5 h-5"
+                              fill="#1877F2"
+                              viewBox="0 0 24 24"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                            </svg>
+                          </button>
+                        </>
+                      )}
+                    </div>
+                    {!googleClientId && !facebookAppId && (
                       <p className="text-xs text-red-300">
-                        Missing NEXT_PUBLIC_GOOGLE_CLIENT_ID
+                        Missing social login configuration
                       </p>
                     )}
                   </div>

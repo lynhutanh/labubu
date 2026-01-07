@@ -34,6 +34,11 @@ export interface GoogleLoginPayload {
   credential: string;
 }
 
+export interface FacebookLoginPayload {
+  accessToken: string;
+  userID: string;
+}
+
 export interface RegisterResponse {
   message: string;
   token: string;

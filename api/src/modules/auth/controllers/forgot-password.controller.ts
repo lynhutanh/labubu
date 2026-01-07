@@ -89,7 +89,7 @@ export class ForgotPasswordController {
       "";
     const frontendUrlClean = frontendUrl.endsWith("/")
       ? frontendUrl.slice(0, -1)
-      : frontendUrl || "http://localhost:3000";
+      : frontendUrl || "http://localhost:5002";
     const resetLink = `${frontendUrlClean}/reset-password?token=${token}`;
 
     // Gửi email bằng Sendgrid
