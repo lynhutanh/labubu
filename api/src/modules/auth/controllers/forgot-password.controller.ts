@@ -19,7 +19,6 @@ import { ForgotPasswordPayload } from "../payloads";
 import { AuthService } from "../services";
 import { SOURCE_TYPE } from "../constants";
 import { SendgridService } from "src/modules/sendgrid/services/sendgrid.service";
-import { SendgridTemplatePurpose } from "src/modules/sendgrid/interfaces/sendgrid.interface";
 import { logError } from "src/lib/utils";
 import { STATUS } from "src/kernel/constants";
 
@@ -33,7 +32,7 @@ export class ForgotPasswordController {
     private readonly authService: AuthService,
     private readonly sendgridService: SendgridService,
     private readonly configService: ConfigService,
-  ) { }
+  ) {}
 
   @Post("/forgot-password")
   @HttpCode(HttpStatus.OK)
@@ -42,13 +41,11 @@ export class ForgotPasswordController {
   async forgotPassword(
     @Body() payload: ForgotPasswordPayload,
   ): Promise<DataResponse<{ message: string }>> {
-    this.logger.error("forgot-password request", { email: payload.email });
+    this.logger.log("forgot-password request", { email: payload.email });
 
     const user = await this.userService.findByEmail(payload.email);
-    console.log("user", user)
     if (!user) {
-      this.logger.error("user not found", { email: payload.email });
-      // Không tiết lộ email có tồn tại hay không để tăng bảo mật
+      this.logger.warn("user not found", { email: payload.email });
       return DataResponse.ok({
         message:
           "Nếu tài khoản tồn tại, bạn sẽ nhận được email hướng dẫn đặt lại mật khẩu",
@@ -68,7 +65,7 @@ export class ForgotPasswordController {
     });
 
     if (!authPassword) {
-      this.logger.error("authPassword not found", {
+      this.logger.warn("authPassword not found", {
         userId: user._id,
         source: SOURCE_TYPE.USER,
       });
@@ -94,37 +91,49 @@ export class ForgotPasswordController {
       ? frontendUrl.slice(0, -1)
       : frontendUrl || "http://localhost:3000";
     const resetLink = `${frontendUrlClean}/reset-password?token=${token}`;
-    this.logger.error("sending reset email", {
-      userId: user._id,
-      email: user.email,
-      resetLink,
-    });
 
-    // Gửi email bằng Sendgrid (template động)
+    // Gửi email bằng Sendgrid
     try {
-      const resetTemplateId = await this.sendgridService.getTemplateIdByPurpose(
-        SendgridTemplatePurpose.PASSWORD_RESET,
-      );
+      const resetTemplateId = this.sendgridService.getPasswordResetTemplateId();
 
-      if (resetTemplateId && resetTemplateId.trim() !== "") {
-        const logoUrl = `${frontendUrlClean}/logo.png`;
-        const currentYear = new Date().getFullYear().toString();
-
-        await this.sendgridService.sendEmail({
-          to: user.email,
-          templateId: resetTemplateId,
-          dynamicTemplateData: {
-            logo_url: logoUrl,
-            reset_link: resetLink,
-            year: currentYear,
-            // thêm nếu template có dùng tên người dùng
-            user_name: user.name || user.username,
-          },
-        });
+      if (!resetTemplateId) {
+        this.logger.warn(
+          "SENDGRID_PASSWORD_RESET_TEMPLATE_ID chưa được cấu hình trong .env",
+        );
+        throw new Error("SENDGRID_PASSWORD_RESET_TEMPLATE_ID not configured");
       }
+
+      const logoUrl = `${frontendUrlClean}/logo.png`;
+      const currentYear = new Date().getFullYear().toString();
+
+      this.logger.log("Sending password reset email", {
+        to: user.email,
+        templateId: resetTemplateId,
+        resetLink,
+      });
+
+      await this.sendgridService.sendEmail({
+        to: user.email,
+        templateId: resetTemplateId,
+        dynamicTemplateData: {
+          logo_url: logoUrl,
+          reset_link: resetLink,
+          year: currentYear,
+          user_name: user.name || user.username,
+        },
+      });
+
+      this.logger.log("Password reset email sent successfully", {
+        userId: user._id,
+        email: user.email,
+      });
     } catch (error: any) {
+      this.logger.error("Failed to send password reset email", {
+        userId: user._id,
+        email: user.email,
+        error: error?.message || error,
+      });
       await logError("Failed to send password reset email", error);
-      // Không throw để tránh lộ thông tin, vẫn trả về message chung
     }
 
     return DataResponse.ok({
@@ -133,4 +142,3 @@ export class ForgotPasswordController {
     });
   }
 }
-
