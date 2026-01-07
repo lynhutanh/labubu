@@ -41,7 +41,7 @@ export class AuthService {
 
     @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
-  ) {}
+  ) { }
 
   public async createAuthPassword(data: AuthCreateDto): Promise<AuthDto> {
     const salt = generateSalt();
@@ -72,6 +72,31 @@ export class AuthService {
   ): Promise<AuthDto | null> {
     const item = await this.AuthModel.findOne(options);
     return AuthDto.fromModel(item);
+  }
+
+  public async createOrUpdateAuth(data: {
+    source: string;
+    sourceId: string | ObjectId;
+    type: string;
+    key: string;
+    value?: string;
+  }): Promise<AuthDto> {
+    const query = {
+      source: data.source,
+      sourceId: data.sourceId,
+      type: data.type,
+    };
+
+    let auth = await this.AuthModel.findOne(query);
+    if (!auth) {
+      auth = new this.AuthModel(query);
+    }
+
+    auth.key = data.key;
+    auth.value = data.value;
+
+    await auth.save();
+    return AuthDto.fromModel(auth);
   }
 
   public verifyPassword(pw: string, auth: AuthDto): boolean {

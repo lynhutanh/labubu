@@ -6,6 +6,7 @@ export type {
   RegisterResponse,
   UserProfile,
   ApiResponse,
+  GoogleLoginPayload,
 } from "./auth.interface";
 
 // Product interfaces (placeholder for future)

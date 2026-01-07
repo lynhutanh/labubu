@@ -8,6 +8,7 @@ import {
   UserRegisterController,
   ForgotPasswordController,
   ResetPasswordController,
+  GoogleLoginController,
 } from "./controllers";
 import { AuthGuard, LoadUser, RoleGuard } from "./guards";
 import { authProviders } from "./providers";
@@ -25,8 +26,9 @@ import { SendgridModule } from "../sendgrid/sendgrid.module";
     UserRegisterController,
     ForgotPasswordController,
     ResetPasswordController,
+    GoogleLoginController,
   ],
   providers: [AuthService, AuthGuard, RoleGuard, LoadUser, ...authProviders],
   exports: [AuthService, AuthGuard, RoleGuard, LoadUser],
 })
-export class AuthModule {}
+export class AuthModule { }

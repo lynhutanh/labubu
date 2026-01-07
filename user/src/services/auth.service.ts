@@ -5,6 +5,7 @@ import type {
   LoginResponse,
   RegisterResponse,
   ApiResponse,
+  GoogleLoginPayload,
 } from "../interfaces";
 import { storage } from "../utils/storage";
 import { TOKEN } from "./api-request";
@@ -46,6 +47,29 @@ export class AuthService extends APIRequest {
     }
 
     throw new Error(response?.message || "Registration failed");
+  }
+
+  async loginWithGoogle(
+    payload: GoogleLoginPayload | string,
+  ): Promise<LoginResponse> {
+    const credential =
+      typeof payload === "string" ? payload : payload.credential;
+
+    const response: ApiResponse<LoginResponse> = await this.post(
+      "/auth/google/login",
+      { credential },
+    );
+
+    if (response && response.data) {
+      const { token, user } = response.data;
+      if (typeof window !== "undefined") {
+        localStorage.setItem(TOKEN, token);
+        storage.setUser(user);
+      }
+      return { token, user };
+    }
+
+    throw new Error(response?.message || "Google login failed");
   }
 
   logout(): void {

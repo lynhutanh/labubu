@@ -1,13 +1,14 @@
-import { useState } from 'react';
-import Head from 'next/head';
-import Image from 'next/image';
-import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { User, Mail, Lock, Eye, EyeOff } from 'lucide-react';
-import { useForm } from 'react-hook-form';
-import toast from 'react-hot-toast';
-import { useRouter } from 'next/router';
-import { authService } from '../src/services';
+import { useEffect, useState } from "react";
+import Head from "next/head";
+import Image from "next/image";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { User, Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { useForm } from "react-hook-form";
+import toast from "react-hot-toast";
+import { useRouter } from "next/router";
+import { authService } from "../src/services";
+import { CredentialResponse, GoogleLogin } from "@react-oauth/google";
 
 interface LoginFormData {
   username: string;
@@ -27,40 +28,50 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+  const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? "";
 
   const {
     register: registerLogin,
     handleSubmit: handleSubmitLogin,
-    formState: { errors: loginErrors }
+    formState: { errors: loginErrors },
   } = useForm<LoginFormData>();
 
   const {
     register: registerRegister,
     handleSubmit: handleSubmitRegister,
     formState: { errors: registerErrors },
-    watch
+    watch,
   } = useForm<RegisterFormData>();
 
-  const password = watch('password');
+  const password = watch("password");
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const onLoginSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
     try {
-      const response = await authService.login({
+      await authService.login({
         username: data.username,
         password: data.password,
         remember: false,
       });
-      toast.success('Login successful!');
+      toast.success("Login successful!");
       // Redirect to home page or dashboard
-      router.push('/');
+      router.push("/");
     } catch (error: any) {
       // Backend trả về lỗi dạng { statusCode: number, message: string | string[] }
-      let errorMessage = 'Login failed. Please try again.';
+      let errorMessage = "Login failed. Please try again.";
       if (error?.message) {
-        errorMessage = Array.isArray(error.message) ? error.message[0] : error.message;
+        errorMessage = Array.isArray(error.message)
+          ? error.message[0]
+          : error.message;
       } else if (error?.data?.message) {
-        errorMessage = Array.isArray(error.data.message) ? error.data.message[0] : error.data.message;
+        errorMessage = Array.isArray(error.data.message)
+          ? error.data.message[0]
+          : error.data.message;
       }
       toast.error(errorMessage);
     } finally {
@@ -70,18 +81,18 @@ export default function LoginPage() {
 
   const onRegisterSubmit = async (data: RegisterFormData) => {
     if (data.password !== data.confirmPassword) {
-      toast.error('Passwords do not match!');
+      toast.error("Passwords do not match!");
       return;
     }
-    
+
     setIsLoading(true);
     try {
-      const response = await authService.register({
+      await authService.register({
         username: data.username,
         email: data.email,
         password: data.password,
       });
-      toast.success('Registration successful!');
+      toast.success("Registration successful!");
       // Auto login after registration
       setIsLoginMode(true);
       // Optionally auto-login
@@ -90,18 +101,22 @@ export default function LoginPage() {
           username: data.username,
           password: data.password,
         });
-        router.push('/');
-      } catch (loginError: any) {
+        router.push("/");
+      } catch {
         // If auto-login fails, just show success message
-        toast.success('Please login with your new account');
+        toast.success("Please login with your new account");
       }
     } catch (error: any) {
       // Backend trả về lỗi dạng { statusCode: number, message: string | string[] }
-      let errorMessage = 'Registration failed. Please try again.';
+      let errorMessage = "Registration failed. Please try again.";
       if (error?.message) {
-        errorMessage = Array.isArray(error.message) ? error.message[0] : error.message;
+        errorMessage = Array.isArray(error.message)
+          ? error.message[0]
+          : error.message;
       } else if (error?.data?.message) {
-        errorMessage = Array.isArray(error.data.message) ? error.data.message[0] : error.data.message;
+        errorMessage = Array.isArray(error.data.message)
+          ? error.data.message[0]
+          : error.data.message;
       }
       toast.error(errorMessage);
     } finally {
@@ -113,13 +128,72 @@ export default function LoginPage() {
     setIsLoginMode(!isLoginMode);
   };
 
-  return (
+  const handleGoogleLoginSuccess = async (
+    credentialResponse: CredentialResponse | { credential?: string },
+  ) => {
+    if (!credentialResponse?.credential) {
+      toast.error("Google login failed. Please try again.");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await authService.loginWithGoogle(credentialResponse.credential);
+      toast.success("Login successful!");
+      router.push("/");
+    } catch (error: any) {
+      const errorMessage =
+        error?.message ||
+        error?.data?.message ||
+        "Google login failed. Please try again.";
+      toast.error(Array.isArray(errorMessage) ? errorMessage[0] : errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleLoginError = () => {
+    toast.error("Google login failed. Please try again.");
+  };
+
+  if (!isClient) {
+    return (
+      <>
+        <Head>
+          <title>Login & Register - Alagatracker</title>
+          <meta
+            name="description"
+            content="Login or register to Alagatracker"
+          />
+          <link rel="preconnect" href="https://fonts.googleapis.com" />
+          <link
+            rel="preconnect"
+            href="https://fonts.gstatic.com"
+            crossOrigin="anonymous"
+          />
+          <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+            rel="stylesheet"
+          />
+        </Head>
+        <div className="min-h-screen flex items-center justify-center bg-[hsl(220,20%,8%)] text-white">
+          Loading...
+        </div>
+      </>
+    );
+  }
+
+  const pageContent = (
     <>
       <Head>
         <title>Login & Register - Alagatracker</title>
         <meta name="description" content="Login or register to Alagatracker" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
         <link
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
           rel="stylesheet"
@@ -131,10 +205,11 @@ export default function LoginPage() {
         <div
           className="fixed inset-0 bg-cover bg-center brightness-[0.7]"
           style={{
-            backgroundImage: "url('/gitduck-vs-code-extensions-animation-opt.gif')",
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat'
+            backgroundImage:
+              "url('/gitduck-vs-code-extensions-animation-opt.gif')",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
           }}
         />
         <div className="fixed inset-0 bg-[hsl(220,20%,8%)] opacity-60" />
@@ -148,20 +223,24 @@ export default function LoginPage() {
             {/* Forms Wrapper */}
             <div className="relative md:absolute inset-0 flex md:flex-row flex-col w-full">
               {/* Left Side - Register Form */}
-              <div className={`w-full md:w-1/2 h-auto md:h-full flex items-start md:items-center justify-start md:justify-center pt-8 pb-8 px-6 md:p-8 ${isLoginMode ? 'hidden md:flex' : 'flex'}`}>
+              <div
+                className={`w-full md:w-1/2 h-auto md:h-full flex items-start md:items-center justify-start md:justify-center pt-8 pb-8 px-6 md:p-8 ${isLoginMode ? "hidden md:flex" : "flex"}`}
+              >
                 <motion.div
                   className="w-full max-w-[320px] relative z-10"
                   initial={{ opacity: 0, x: -20 }}
                   animate={{
                     opacity: isLoginMode ? 0 : 1,
-                    x: isLoginMode ? -20 : 0
+                    x: isLoginMode ? -20 : 0,
                   }}
                   transition={{ duration: 0.5, delay: 0.3 }}
-                  style={{ 
-                    pointerEvents: isLoginMode ? 'none' : 'auto'
+                  style={{
+                    pointerEvents: isLoginMode ? "none" : "auto",
                   }}
                 >
-                  <h2 className="text-3xl font-bold text-center mb-2 text-white">Register</h2>
+                  <h2 className="text-3xl font-bold text-center mb-2 text-white">
+                    Register
+                  </h2>
 
                   <form onSubmit={handleSubmitRegister(onRegisterSubmit)}>
                     <div className="relative mb-4">
@@ -169,8 +248,8 @@ export default function LoginPage() {
                       <input
                         type="text"
                         placeholder="Username"
-                        {...registerRegister('username', {
-                          required: 'Username is required'
+                        {...registerRegister("username", {
+                          required: "Username is required",
                         })}
                         className="w-full h-12 pl-12 pr-4 rounded-lg bg-[hsla(220,20%,18%,0.5)] border border-[hsla(220,15%,25%,0.5)] text-white text-sm placeholder:text-[hsl(220,10%,60%)] focus:outline-none focus:border-[hsl(16,85%,60%)] focus:shadow-[0_0_0_2px_hsla(16,85%,60%,0.2)] transition-all hover:bg-[hsla(220,20%,18%,0.7)]"
                       />
@@ -186,12 +265,12 @@ export default function LoginPage() {
                       <input
                         type="email"
                         placeholder="Email"
-                        {...registerRegister('email', {
-                          required: 'Email is required',
+                        {...registerRegister("email", {
+                          required: "Email is required",
                           pattern: {
                             value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                            message: 'Invalid email address'
-                          }
+                            message: "Invalid email address",
+                          },
                         })}
                         className="w-full h-12 pl-12 pr-4 rounded-lg bg-[hsla(220,20%,18%,0.5)] border border-[hsl(220,15%,25%,0.5)] text-white text-sm placeholder:text-[hsl(220,10%,60%)] focus:outline-none focus:border-[hsl(16,85%,60%)] focus:shadow-[0_0_0_2px_hsla(16,85%,60%,0.2)] transition-all hover:bg-[hsla(220,20%,18%,0.7)]"
                       />
@@ -205,14 +284,14 @@ export default function LoginPage() {
                     <div className="relative mb-4">
                       <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[hsl(220,10%,60%)] transition-colors" />
                       <input
-                        type={showPassword ? 'text' : 'password'}
+                        type={showPassword ? "text" : "password"}
                         placeholder="Password"
-                        {...registerRegister('password', {
-                          required: 'Password is required',
+                        {...registerRegister("password", {
+                          required: "Password is required",
                           minLength: {
                             value: 8,
-                            message: 'Password must be at least 8 characters'
-                          }
+                            message: "Password must be at least 8 characters",
+                          },
                         })}
                         className="w-full h-12 pl-12 pr-12 rounded-lg bg-[hsla(220,20%,18%,0.5)] border border-[hsl(220,15%,25%,0.5)] text-white text-sm placeholder:text-[hsl(220,10%,60%)] focus:outline-none focus:border-[hsl(16,85%,60%)] focus:shadow-[0_0_0_2px_hsla(16,85%,60%,0.2)] transition-all hover:bg-[hsla(220,20%,18%,0.7)]"
                       />
@@ -237,18 +316,20 @@ export default function LoginPage() {
                     <div className="relative mb-4">
                       <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[hsl(220,10%,60%)] transition-colors" />
                       <input
-                        type={showConfirmPassword ? 'text' : 'password'}
+                        type={showConfirmPassword ? "text" : "password"}
                         placeholder="Confirm Password"
-                        {...registerRegister('confirmPassword', {
-                          required: 'Please confirm your password',
+                        {...registerRegister("confirmPassword", {
+                          required: "Please confirm your password",
                           validate: (value) =>
-                            value === password || 'Passwords do not match'
+                            value === password || "Passwords do not match",
                         })}
                         className="w-full h-12 pl-12 pr-12 rounded-lg bg-[hsla(220,20%,18%,0.5)] border border-[hsl(220,15%,25%,0.5)] text-white text-sm placeholder:text-[hsl(220,10%,60%)] focus:outline-none focus:border-[hsl(16,85%,60%)] focus:shadow-[0_0_0_2px_hsla(16,85%,60%,0.2)] transition-all hover:bg-[hsla(220,20%,18%,0.7)]"
                       />
                       <button
                         type="button"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        onClick={() =>
+                          setShowConfirmPassword(!showConfirmPassword)
+                        }
                         className="absolute right-4 top-1/2 -translate-y-1/2 text-[hsl(220,10%,60%)] hover:text-white transition-colors"
                       >
                         {showConfirmPassword ? (
@@ -269,7 +350,7 @@ export default function LoginPage() {
                       disabled={isLoading}
                       className="w-full h-12 rounded-lg bg-[hsl(16,85%,60%)] text-white text-base font-semibold transition-all hover:shadow-[0_0_20px_hsla(16,85%,60%,0.4),0_0_40px_hsla(16,85%,60%,0.2)] hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {isLoading ? 'Registering...' : 'Register'}
+                      {isLoading ? "Registering..." : "Register"}
                     </button>
                   </form>
 
@@ -277,57 +358,22 @@ export default function LoginPage() {
                     <p className="text-sm text-[hsl(220,10%,60%)] mb-4">
                       or register with social platforms
                     </p>
-                    <div className="flex justify-center gap-4">
-                      {[
-                        { 
-                          name: 'Google', 
-                          bg: 'bg-[#ea4335]', 
-                          icon: (
-                            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                            </svg>
-                          )
-                        },
-                        { 
-                          name: 'Facebook', 
-                          bg: 'bg-[#1877f2]', 
-                          icon: (
-                            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                            </svg>
-                          )
-                        },
-                        { 
-                          name: 'Zalo', 
-                          bg: 'bg-[#0068FF]', 
-                          icon: (
-                            <Image
-                              src="/zalo.png"
-                              alt="Zalo"
-                              width={20}
-                              height={20}
-                              className="object-contain"
-                            />
-                          )
-                        },
-                        { 
-                          name: 'Mail', 
-                          bg: 'bg-[#34A853]', 
-                          icon: <Mail className="w-5 h-5" />
-                        }
-                      ].map((social, index) => (
-                        <button
-                          key={index}
-                          className={`w-10 h-10 rounded-full ${social.bg} text-white flex items-center justify-center transition-all hover:scale-110 hover:shadow-[0_0_20px_hsla(16,85%,60%,0.4),0_0_40px_hsla(16,85%,60%,0.2)]`}
-                          title={social.name}
-                        >
-                          {social.icon}
-                        </button>
-                      ))}
-                    </div>
+                    {googleClientId ? (
+                      <div className="flex justify-center">
+                        <GoogleLogin
+                          onSuccess={handleGoogleLoginSuccess}
+                          onError={handleGoogleLoginError}
+                          type="icon"
+                          shape="circle"
+                          size="large"
+                          theme="outline"
+                        />
+                      </div>
+                    ) : (
+                      <p className="text-xs text-red-300">
+                        Missing NEXT_PUBLIC_GOOGLE_CLIENT_ID
+                      </p>
+                    )}
                   </div>
 
                   <div className="mt-3 text-center md:hidden">
@@ -345,20 +391,24 @@ export default function LoginPage() {
               </div>
 
               {/* Right Side - Login Form */}
-              <div className={`w-full md:w-1/2 h-auto md:h-full flex items-start md:items-center justify-start md:justify-center pt-8 pb-8 px-6 md:p-8 ${isLoginMode ? 'flex' : 'hidden md:flex'}`}>
+              <div
+                className={`w-full md:w-1/2 h-auto md:h-full flex items-start md:items-center justify-start md:justify-center pt-8 pb-8 px-6 md:p-8 ${isLoginMode ? "flex" : "hidden md:flex"}`}
+              >
                 <motion.div
                   className="w-full max-w-[320px]"
                   initial={{ opacity: 1, x: 0 }}
                   animate={{
                     opacity: isLoginMode ? 1 : 0,
-                    x: isLoginMode ? 0 : 20
+                    x: isLoginMode ? 0 : 20,
                   }}
                   transition={{ duration: 0.5, delay: 0.3 }}
-                  style={{ 
-                    pointerEvents: isLoginMode ? 'auto' : 'none'
+                  style={{
+                    pointerEvents: isLoginMode ? "auto" : "none",
                   }}
                 >
-                  <h2 className="text-3xl font-bold text-center mb-2 text-white">Login</h2>
+                  <h2 className="text-3xl font-bold text-center mb-2 text-white">
+                    Login
+                  </h2>
 
                   <form onSubmit={handleSubmitLogin(onLoginSubmit)}>
                     <div className="relative mb-4">
@@ -366,8 +416,8 @@ export default function LoginPage() {
                       <input
                         type="text"
                         placeholder="Username"
-                        {...registerLogin('username', {
-                          required: 'Username is required'
+                        {...registerLogin("username", {
+                          required: "Username is required",
                         })}
                         className="w-full h-12 pl-12 pr-4 rounded-lg bg-[hsla(220,20%,18%,0.5)] border border-[hsl(220,15%,25%,0.5)] text-white text-sm placeholder:text-[hsl(220,10%,60%)] focus:outline-none focus:border-[hsl(16,85%,60%)] focus:shadow-[0_0_0_2px_hsla(16,85%,60%,0.2)] transition-all hover:bg-[hsla(220,20%,18%,0.7)]"
                       />
@@ -381,10 +431,10 @@ export default function LoginPage() {
                     <div className="relative mb-4">
                       <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[hsl(220,10%,60%)] transition-colors" />
                       <input
-                        type={showPassword ? 'text' : 'password'}
+                        type={showPassword ? "text" : "password"}
                         placeholder="Password"
-                        {...registerLogin('password', {
-                          required: 'Password is required'
+                        {...registerLogin("password", {
+                          required: "Password is required",
                         })}
                         className="w-full h-12 pl-12 pr-12 rounded-lg bg-[hsla(220,20%,18%,0.5)] border border-[hsl(220,15%,25%,0.5)] text-white text-sm placeholder:text-[hsl(220,10%,60%)] focus:outline-none focus:border-[hsl(16,85%,60%)] focus:shadow-[0_0_0_2px_hsla(16,85%,60%,0.2)] transition-all hover:bg-[hsla(220,20%,18%,0.7)]"
                       />
@@ -418,7 +468,7 @@ export default function LoginPage() {
                       disabled={isLoading}
                       className="w-full h-12 rounded-lg bg-[hsl(16,85%,60%)] text-white text-base font-semibold transition-all hover:shadow-[0_0_20px_hsla(16,85%,60%,0.4),0_0_40px_hsla(16,85%,60%,0.2)] hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {isLoading ? 'Logging in...' : 'Login'}
+                      {isLoading ? "Logging in..." : "Login"}
                     </button>
                   </form>
 
@@ -426,62 +476,27 @@ export default function LoginPage() {
                     <p className="text-sm text-[hsl(220,10%,60%)] mb-4">
                       or login with social platforms
                     </p>
-                    <div className="flex justify-center gap-4">
-                      {[
-                        { 
-                          name: 'Google', 
-                          bg: 'bg-[#ea4335]', 
-                          icon: (
-                            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                            </svg>
-                          )
-                        },
-                        { 
-                          name: 'Facebook', 
-                          bg: 'bg-[#1877f2]', 
-                          icon: (
-                            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                            </svg>
-                          )
-                        },
-                        { 
-                          name: 'Zalo', 
-                          bg: 'bg-[#0068FF]', 
-                          icon: (
-                            <Image
-                              src="/zalo.png"
-                              alt="Zalo"
-                              width={20}
-                              height={20}
-                              className="object-contain"
-                            />
-                          )
-                        },
-                        { 
-                          name: 'Mail', 
-                          bg: 'bg-[#34A853]', 
-                          icon: <Mail className="w-5 h-5" />
-                        }
-                      ].map((social, index) => (
-                        <button
-                          key={index}
-                          className={`w-10 h-10 rounded-full ${social.bg} text-white flex items-center justify-center transition-all hover:scale-110 hover:shadow-[0_0_20px_hsla(16,85%,60%,0.4),0_0_40px_hsla(16,85%,60%,0.2)]`}
-                          title={social.name}
-                        >
-                          {social.icon}
-                        </button>
-                      ))}
-                    </div>
+                    {googleClientId ? (
+                      <div className="flex justify-center">
+                        <GoogleLogin
+                          onSuccess={handleGoogleLoginSuccess}
+                          onError={handleGoogleLoginError}
+                          type="icon"
+                          shape="circle"
+                          size="large"
+                          theme="outline"
+                        />
+                      </div>
+                    ) : (
+                      <p className="text-xs text-red-300">
+                        Missing NEXT_PUBLIC_GOOGLE_CLIENT_ID
+                      </p>
+                    )}
                   </div>
 
                   <div className="mt-3 text-center md:hidden">
                     <p className="text-sm text-white/80 mb-4">
-                      Don't have an account?
+                      {"Don't have an account?"}
                     </p>
                     <button
                       onClick={() => setIsLoginMode(false)}
@@ -498,11 +513,11 @@ export default function LoginPage() {
             <motion.div
               className="hidden md:block absolute top-0 left-0 w-1/2 h-full z-10"
               animate={{
-                left: isLoginMode ? 0 : '50%'
+                left: isLoginMode ? 0 : "50%",
               }}
               transition={{
                 duration: 0.7,
-                ease: [0.65, 0, 0.35, 1]
+                ease: [0.65, 0, 0.35, 1],
               }}
             >
               <div className="h-full bg-white/15 backdrop-blur-[24px] border-r border-white/20 rounded-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] flex flex-col items-center justify-center text-center p-8">
@@ -512,7 +527,7 @@ export default function LoginPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5 }}
                 >
-                  {isLoginMode ? 'Hello, Welcome To' : 'Welcome Back!'}
+                  {isLoginMode ? "Hello, Welcome To" : "Welcome Back!"}
                 </motion.h1>
                 <motion.h2
                   className="text-5xl font-bold mb-6 text-white"
@@ -528,7 +543,9 @@ export default function LoginPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.2 }}
                 >
-                  {isLoginMode ? "Don't have an account?" : 'Already have an account?'}
+                  {isLoginMode
+                    ? "Don't have an account?"
+                    : "Already have an account?"}
                 </motion.p>
                 <motion.button
                   onClick={toggleMode}
@@ -537,7 +554,7 @@ export default function LoginPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.3 }}
                 >
-                  {isLoginMode ? 'Register' : 'Login'}
+                  {isLoginMode ? "Register" : "Login"}
                 </motion.button>
               </div>
             </motion.div>
@@ -558,4 +575,6 @@ export default function LoginPage() {
       </div>
     </>
   );
+
+  return pageContent;
 }

@@ -30,6 +30,10 @@ export interface LoginResponse {
   user: UserProfile;
 }
 
+export interface GoogleLoginPayload {
+  credential: string;
+}
+
 export interface RegisterResponse {
   message: string;
   token: string;
