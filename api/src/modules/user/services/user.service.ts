@@ -213,5 +213,82 @@ export class UserService {
 
     return true;
   }
+
+  public async adminCreate(payload: IUserRegisterPayload): Promise<UserDto> {
+    if (!payload || !payload.email) throw new EntityNotFoundException();
+
+    if (payload?.username) {
+      const existUserByUsername = await this.userModel
+        .findOne({ username: payload.username.trim().toLowerCase() })
+        .lean();
+      if (existUserByUsername) throw new UsernameExistedException();
+    }
+
+    const existUserByEmail = await this.userModel
+      .findOne({ email: payload.email.toLowerCase() })
+      .lean();
+    if (existUserByEmail) throw new EmailHasBeenTakenException();
+
+    const user = await this.userModel.create({
+      username: payload.username,
+      email: payload.email.toLowerCase(),
+      name: payload.name || payload.username,
+      gender: payload.gender,
+      phone: payload.phone,
+      address: payload.address,
+      status: payload.status || STATUS.ACTIVE,
+      role: payload.role || ROLE.USER,
+    });
+
+    await this.queueEventService.publish(USER_CHANNELS.USER_REGISTERED, {
+      eventName: EVENT.CREATED,
+      data: user,
+    });
+
+    return new UserDto(user);
+  }
+
+  public async adminUpdate(
+    id: string,
+    payload: IUserUpdatePayload & { role?: string; status?: string },
+  ): Promise<UserDto> {
+    const userExists = await this.userModel.findById(id);
+    if (!userExists) throw new NotFoundException();
+
+    const updateData: any = {
+      updatedAt: new Date(),
+    };
+
+    if (payload.name !== undefined) updateData.name = payload.name;
+    if (payload.email !== undefined) {
+      // Check if email is already taken by another user
+      const existUserByEmail = await this.userModel
+        .findOne({
+          email: payload.email.toLowerCase(),
+          _id: { $ne: id },
+        })
+        .lean();
+      if (existUserByEmail) throw new EmailHasBeenTakenException();
+      updateData.email = payload.email.toLowerCase();
+    }
+    if (payload.phone !== undefined) updateData.phone = payload.phone;
+    if (payload.gender !== undefined) updateData.gender = payload.gender;
+    if (payload.address !== undefined) updateData.address = payload.address;
+    if (payload.avatarPath !== undefined)
+      updateData.avatarPath = payload.avatarPath;
+    if (payload.avatarId !== undefined) updateData.avatarId = payload.avatarId;
+    if (payload.dateOfBirth !== undefined)
+      updateData.dateOfBirth = payload.dateOfBirth;
+    if (payload.role !== undefined) updateData.role = payload.role;
+    if (payload.status !== undefined) updateData.status = payload.status;
+
+    const updatedUser = await this.userModel.findByIdAndUpdate(
+      id,
+      { $set: updateData },
+      { new: true },
+    );
+
+    return updatedUser ? new UserDto(updatedUser) : null;
+  }
 }
 

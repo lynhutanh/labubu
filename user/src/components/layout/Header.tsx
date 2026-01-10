@@ -1,7 +1,17 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
-import { User, LogOut, ShoppingCart, Heart, Menu, X } from "lucide-react";
+import Image from "next/image";
+import {
+  User,
+  LogOut,
+  ShoppingCart,
+  Heart,
+  Menu,
+  X,
+  Search,
+  Globe,
+} from "lucide-react";
 import { storage } from "../../utils/storage";
 import { cartService } from "../../services/cart.service";
 import { TOKEN } from "../../services/api-request";
@@ -11,7 +21,17 @@ export default function Header() {
   const [user, setUser] = useState<any>(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [showLanguageMenu, setShowLanguageMenu] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
   const [cartItemCount, setCartItemCount] = useState(0);
+  const [currentLanguage, setCurrentLanguage] = useState("VI");
+
+  const languages = [
+    { code: "VI", name: "Tiếng Việt", flag: "🇻🇳" },
+    { code: "EN", name: "English", flag: "🇺🇸" },
+    { code: "ZH", name: "中文", flag: "🇨🇳" },
+    { code: "JA", name: "日本語", flag: "🇯🇵" },
+  ];
 
   useEffect(() => {
     // Load user from storage
@@ -66,151 +86,211 @@ export default function Header() {
     "&background=f472b6&color=fff&size=128";
 
   return (
-    <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-pink-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <a href="/" className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-pink-200">
-                <span className="text-white text-xl">💄</span>
-              </div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
-                Cosmetics
-              </h1>
-            </a>
-          </div>
+    <header className="sticky top-0 z-50 bg-black border-b border-gray-800">
+      {/* Top blue-gray line */}
+      <div className="h-1 bg-gray-700"></div>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-6">
-            <a
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo Section - Left */}
+          <Link href="/" className="flex items-center gap-3 flex-shrink-0">
+            <div className="relative w-20 h-20">
+              <Image
+                src="/logo.png"
+                alt="Labubu Store Logo"
+                width={80}
+                height={80}
+                className="object-contain"
+                priority
+              />
+            </div>
+            <div className="flex flex-col">
+              <span
+                className="text-lg font-bold text-yellow-400 leading-tight"
+                style={{
+                  textShadow:
+                    "2px 2px 0px rgba(255,255,255,0.8), -1px -1px 0px rgba(255,255,255,0.8), 1px 1px 0px rgba(255,255,255,0.8)",
+                }}
+              >
+                LABUBU
+              </span>
+            </div>
+          </Link>
+
+          {/* Navigation Links - Center */}
+          <nav className="hidden lg:flex items-center gap-2 flex-1 justify-center">
+            <Link
               href="/"
-              className={`transition-colors ${
-                router.pathname === "/"
-                  ? "text-pink-600 font-medium"
-                  : "text-gray-600 hover:text-pink-600"
-              }`}
-            >
-              Trang chủ
-            </a>
-            <a
-              href="/products"
-              className={`transition-colors ${
-                router.pathname === "/products"
-                  ? "text-pink-600 font-medium"
-                  : "text-gray-600 hover:text-pink-600"
-              }`}
-            >
-              Sản phẩm
-            </a>
-            {user && (
-              <a
-                href="/orders"
-                className={`transition-colors ${
-                  router.pathname === "/orders"
-                    ? "text-pink-600 font-medium"
-                    : "text-gray-600 hover:text-pink-600"
+              className={`px-4 py-2 rounded-md transition-colors ${router.pathname === "/"
+                ? "text-yellow-400 font-semibold"
+                : "text-white hover:text-yellow-400"
                 }`}
-              >
-                Đơn hàng
-              </a>
-            )}
-
-            {user ? (
-              <div className="flex items-center gap-4">
-                <Link
-                  href="/cart"
-                  className="relative p-2 text-gray-600 hover:text-pink-600 transition-colors"
-                >
-                  <ShoppingCart className="w-6 h-6" />
-                  {cartItemCount > 0 && (
-                    <span className="absolute top-0 right-0 w-5 h-5 bg-pink-500 text-white text-xs rounded-full flex items-center justify-center">
-                      {cartItemCount > 99 ? "99+" : cartItemCount}
-                    </span>
-                  )}
-                </Link>
-
-                <div className="relative">
-                  <button
-                    onClick={() => setShowDropdown(!showDropdown)}
-                    className="flex items-center gap-3 hover:opacity-80 transition-opacity"
-                  >
-                    <img
-                      src={defaultAvatar}
-                      alt={user.name || user.username}
-                      className="w-10 h-10 rounded-full border-2 border-pink-200"
-                    />
-                    <span className="text-gray-700 font-medium hidden lg:block">
-                      {user.name || user.username}
-                    </span>
-                  </button>
-
-                  {showDropdown && (
-                    <>
-                      <div
-                        className="fixed inset-0 z-10"
-                        onClick={() => setShowDropdown(false)}
-                      />
-                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-20">
-                        <div className="px-4 py-2 border-b border-gray-100">
-                          <p className="text-sm font-medium text-gray-900">
-                            {user.name || user.username}
-                          </p>
-                          <p className="text-xs text-gray-500">{user.email}</p>
-                        </div>
-                        <a
-                          href="/profile"
-                          className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                        >
-                          <User className="w-4 h-4" />
-                          Tài khoản
-                        </a>
-                        <a
-                          href="/wishlist"
-                          className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                        >
-                          <Heart className="w-4 h-4" />
-                          Yêu thích
-                        </a>
-                        <button
-                          onClick={handleLogout}
-                          className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-                        >
-                          <LogOut className="w-4 h-4" />
-                          Đăng xuất
-                        </button>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <a
-                href="/auth/login"
-                className="px-6 py-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-full font-medium hover:shadow-lg hover:shadow-pink-200 transition-all"
-              >
-                Đăng nhập
-              </a>
-            )}
+            >
+              HOME
+            </Link>
+            <span className="text-white/30">•</span>
+            <Link
+              href="/products"
+              className={`px-4 py-2 rounded-md transition-colors ${router.pathname === "/products"
+                ? "text-yellow-400 font-semibold"
+                : "text-white hover:text-yellow-400"
+                }`}
+            >
+              PRODUCTS
+            </Link>
+            <span className="text-white/30">•</span>
+            <Link
+              href="/contact"
+              className={`px-4 py-2 rounded-md transition-colors ${router.pathname === "/contact"
+                ? "text-yellow-400 font-semibold"
+                : "text-white hover:text-yellow-400"
+                }`}
+            >
+              CONTACT US
+            </Link>
           </nav>
 
-          {/* Mobile Menu Button */}
-          <div className="md:hidden flex items-center gap-3">
-            {user && (
-              <Link
-                href="/cart"
-                className="relative p-2 text-gray-600 hover:text-pink-600 transition-colors"
+          {/* Icons Section - Right */}
+          <div className="flex items-center gap-3">
+            {/* Search Icon */}
+            <button
+              onClick={() => setShowSearch(!showSearch)}
+              className="p-2 text-white hover:text-yellow-400 transition-colors relative"
+              aria-label="Search"
+            >
+              <Search className="w-5 h-5" />
+            </button>
+
+            {/* Wishlist Icon */}
+            <Link
+              href="/wishlist"
+              className="p-2 text-white hover:text-yellow-400 transition-colors relative"
+              aria-label="Wishlist"
+            >
+              <Heart className="w-5 h-5" />
+            </Link>
+
+            {/* Shopping Cart Icon */}
+            <Link
+              href="/cart"
+              className="p-2 text-white hover:text-yellow-400 transition-colors relative"
+              aria-label="Shopping Cart"
+            >
+              <ShoppingCart className="w-5 h-5" />
+              {cartItemCount > 0 && (
+                <span className="absolute top-0 right-0 w-4 h-4 bg-yellow-400 text-black text-xs rounded-full flex items-center justify-center font-bold">
+                  {cartItemCount > 99 ? "99+" : cartItemCount}
+                </span>
+              )}
+            </Link>
+
+            {/* Language Switcher */}
+            <div className="relative">
+              <button
+                onClick={() => setShowLanguageMenu(!showLanguageMenu)}
+                className="p-2 text-white hover:text-yellow-400 transition-colors flex items-center gap-1"
+                aria-label="Language"
               >
-                <ShoppingCart className="w-6 h-6" />
-                {cartItemCount > 0 && (
-                  <span className="absolute top-0 right-0 w-5 h-5 bg-pink-500 text-white text-xs rounded-full flex items-center justify-center">
-                    {cartItemCount > 99 ? "99+" : cartItemCount}
-                  </span>
+                <Globe className="w-5 h-5" />
+              </button>
+
+              {showLanguageMenu && (
+                <>
+                  <div
+                    className="fixed inset-0 z-10"
+                    onClick={() => setShowLanguageMenu(false)}
+                  />
+                  <div className="absolute right-0 mt-2 w-48 bg-black border border-gray-700 rounded-lg shadow-xl py-2 z-20">
+                    {languages.map((lang) => (
+                      <button
+                        key={lang.code}
+                        onClick={() => {
+                          setCurrentLanguage(lang.code);
+                          setShowLanguageMenu(false);
+                        }}
+                        className={`w-full flex items-center gap-3 px-4 py-2 text-sm transition-colors ${currentLanguage === lang.code
+                          ? "bg-yellow-400/20 text-yellow-400"
+                          : "text-white hover:bg-gray-800"
+                          }`}
+                      >
+                        <span className="text-xl">{lang.flag}</span>
+                        <span>{lang.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* User Account Icon */}
+            {user ? (
+              <div className="relative">
+                <button
+                  onClick={() => setShowDropdown(!showDropdown)}
+                  className="p-2 text-white hover:text-yellow-400 transition-colors"
+                  aria-label="Account"
+                >
+                  <User className="w-5 h-5" />
+                </button>
+
+                {showDropdown && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-10"
+                      onClick={() => setShowDropdown(false)}
+                    />
+                    <div className="absolute right-0 mt-2 w-48 bg-black border border-gray-700 rounded-lg shadow-xl py-2 z-20">
+                      <div className="px-4 py-2 border-b border-gray-700">
+                        <p className="text-sm font-medium text-white">
+                          {user.name || user.username}
+                        </p>
+                        <p className="text-xs text-gray-400">{user.email}</p>
+                      </div>
+                      <Link
+                        href="/profile"
+                        className="flex items-center gap-2 px-4 py-2 text-sm text-white hover:bg-gray-800"
+                        onClick={() => setShowDropdown(false)}
+                      >
+                        <User className="w-4 h-4" />
+                        Tài khoản
+                      </Link>
+                      <Link
+                        href="/wishlist"
+                        className="flex items-center gap-2 px-4 py-2 text-sm text-white hover:bg-gray-800"
+                        onClick={() => setShowDropdown(false)}
+                      >
+                        <Heart className="w-4 h-4" />
+                        Yêu thích
+                      </Link>
+                      <button
+                        onClick={() => {
+                          handleLogout();
+                          setShowDropdown(false);
+                        }}
+                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-400 hover:bg-gray-800"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        Đăng xuất
+                      </button>
+                    </div>
+                  </>
                 )}
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                className="p-2 text-white hover:text-yellow-400 transition-colors"
+                aria-label="Login"
+              >
+                <User className="w-5 h-5" />
               </Link>
             )}
+
+
+            {/* Mobile Menu Button */}
             <button
               onClick={() => setShowMobileMenu(!showMobileMenu)}
-              className="p-2 text-gray-600 hover:text-pink-600 transition-colors"
+              className="lg:hidden p-2 text-white hover:text-yellow-400 transition-colors"
               aria-label="Toggle menu"
             >
               {showMobileMenu ? (
@@ -222,109 +302,106 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Mobile Menu */}
-        {showMobileMenu && (
-          <>
-            <div
-              className="fixed inset-0 bg-black/50 z-40 md:hidden"
-              onClick={() => setShowMobileMenu(false)}
-            />
-            <div className="fixed top-[73px] left-0 right-0 bg-white border-b border-gray-200 shadow-lg z-50 md:hidden max-h-[calc(100vh-73px)] overflow-y-auto">
-              <nav className="px-4 py-4 space-y-1">
-                <a
-                  href="/"
-                  onClick={() => setShowMobileMenu(false)}
-                  className={`block px-4 py-3 rounded-lg transition-colors ${
-                    router.pathname === "/"
-                      ? "bg-pink-50 text-pink-600 font-medium"
-                      : "text-gray-700 hover:bg-gray-50"
-                  }`}
-                >
-                  Trang chủ
-                </a>
-                <a
-                  href="/products"
-                  onClick={() => setShowMobileMenu(false)}
-                  className={`block px-4 py-3 rounded-lg transition-colors ${
-                    router.pathname === "/products"
-                      ? "bg-pink-50 text-pink-600 font-medium"
-                      : "text-gray-700 hover:bg-gray-50"
-                  }`}
-                >
-                  Sản phẩm
-                </a>
-                {user && (
-                  <>
-                    <a
-                      href="/orders"
-                      onClick={() => setShowMobileMenu(false)}
-                      className={`block px-4 py-3 rounded-lg transition-colors ${
-                        router.pathname === "/orders"
-                          ? "bg-pink-50 text-pink-600 font-medium"
-                          : "text-gray-700 hover:bg-gray-50"
-                      }`}
-                    >
-                      Đơn hàng
-                    </a>
-                    <div className="border-t border-gray-200 my-2" />
-                    <a
-                      href="/profile"
-                      onClick={() => setShowMobileMenu(false)}
-                      className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-                    >
-                      <User className="w-5 h-5" />
-                      Tài khoản
-                    </a>
-                    <a
-                      href="/wishlist"
-                      onClick={() => setShowMobileMenu(false)}
-                      className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-                    >
-                      <Heart className="w-5 h-5" />
-                      Yêu thích
-                    </a>
-                    <div className="border-t border-gray-200 my-2" />
-                    <div className="px-4 py-2">
-                      <div className="flex items-center gap-3 mb-3">
-                        <img
-                          src={defaultAvatar}
-                          alt={user.name || user.username}
-                          className="w-10 h-10 rounded-full border-2 border-pink-200"
-                        />
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">
-                            {user.name || user.username}
-                          </p>
-                          <p className="text-xs text-gray-500">{user.email}</p>
-                        </div>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => {
-                        handleLogout();
-                        setShowMobileMenu(false);
-                      }}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                    >
-                      <LogOut className="w-5 h-5" />
-                      Đăng xuất
-                    </button>
-                  </>
-                )}
-                {!user && (
-                  <a
-                    href="/auth/login"
-                    onClick={() => setShowMobileMenu(false)}
-                    className="block px-4 py-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg text-center font-medium mt-2"
-                  >
-                    Đăng nhập
-                  </a>
-                )}
-              </nav>
+        {/* Search Bar (when search is clicked) */}
+        {showSearch && (
+          <div className="pb-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Tìm kiếm sản phẩm..."
+                className="w-full pl-10 pr-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-yellow-400"
+                autoFocus
+              />
             </div>
-          </>
+          </div>
         )}
       </div>
+
+      {/* Mobile Menu */}
+      {showMobileMenu && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+            onClick={() => setShowMobileMenu(false)}
+          />
+          <div className="fixed top-[65px] left-0 right-0 bg-black border-b border-gray-800 shadow-lg z-50 lg:hidden max-h-[calc(100vh-65px)] overflow-y-auto">
+            <nav className="px-4 py-4 space-y-1">
+              <Link
+                href="/"
+                onClick={() => setShowMobileMenu(false)}
+                className={`block px-4 py-3 rounded-lg transition-colors ${router.pathname === "/"
+                  ? "bg-yellow-400/20 text-yellow-400 font-medium"
+                  : "text-white hover:bg-gray-800"
+                  }`}
+              >
+                HOME
+              </Link>
+              <Link
+                href="/products"
+                onClick={() => setShowMobileMenu(false)}
+                className={`block px-4 py-3 rounded-lg transition-colors ${router.pathname === "/products"
+                  ? "bg-yellow-400/20 text-yellow-400 font-medium"
+                  : "text-white hover:bg-gray-800"
+                  }`}
+              >
+                PRODUCTS
+              </Link>
+              <Link
+                href="/contact"
+                onClick={() => setShowMobileMenu(false)}
+                className={`block px-4 py-3 rounded-lg transition-colors ${router.pathname === "/contact"
+                  ? "bg-yellow-400/20 text-yellow-400 font-medium"
+                  : "text-white hover:bg-gray-800"
+                  }`}
+              >
+                CONTACT US
+              </Link>
+              {user && (
+                <>
+                  <div className="border-t border-gray-700 my-2" />
+                  <Link
+                    href="/profile"
+                    onClick={() => setShowMobileMenu(false)}
+                    className="flex items-center gap-3 px-4 py-3 text-white hover:bg-gray-800 rounded-lg transition-colors"
+                  >
+                    <User className="w-5 h-5" />
+                    Tài khoản
+                  </Link>
+                  <Link
+                    href="/wishlist"
+                    onClick={() => setShowMobileMenu(false)}
+                    className="flex items-center gap-3 px-4 py-3 text-white hover:bg-gray-800 rounded-lg transition-colors"
+                  >
+                    <Heart className="w-5 h-5" />
+                    Yêu thích
+                  </Link>
+                  <div className="border-t border-gray-700 my-2" />
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setShowMobileMenu(false);
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-gray-800 rounded-lg transition-colors"
+                  >
+                    <LogOut className="w-5 h-5" />
+                    Đăng xuất
+                  </button>
+                </>
+              )}
+              {!user && (
+                <Link
+                  href="/login"
+                  onClick={() => setShowMobileMenu(false)}
+                  className="block px-4 py-3 bg-yellow-400 text-black rounded-lg text-center font-medium mt-2"
+                >
+                  Đăng nhập
+                </Link>
+              )}
+            </nav>
+          </div>
+        </>
+      )}
     </header>
   );
 }

@@ -1,3 +1,849 @@
+import Head from "next/head";
+import Image from "next/image";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import {
+    ArrowRight,
+    Sparkles,
+    Zap,
+    Shield,
+    Truck,
+    Gift,
+    Award,
+    Headphones,
+} from "lucide-react";
+import Layout from "../src/components/layout/Layout";
+import ProductCardSimple from "../src/components/products/ProductCardSimple";
+
 export default function HomePage() {
-  return <div>HomePage</div>;
+    return (
+        <Layout>
+            <Head>
+                <title>Trang chủ - Labubu Store</title>
+                <meta
+                    name="description"
+                    content="Khám phá kiểu Sticker phù hợp cho mọi ý tưởng - Sáng tạo không giới hạn!"
+                />
+            </Head>
+
+            {/* Page Background - Common for all sections */}
+            <div
+                className="fixed inset-0 bg-cover bg-center bg-no-repeat bg-fixed -z-10"
+                style={{
+                    backgroundImage: "url('/bg.png')",
+                }}
+            />
+
+            {/* Hero Section */}
+            <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
+                {/* Background Image with Animation */}
+                <motion.div
+                    className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+                    style={{
+                        backgroundImage: "url('/bg_hero_Section.jpg')",
+                    }}
+                    initial={{ scale: 1.1, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 1.2, ease: "easeOut" }}
+                />
+
+                {/* Content Container */}
+                <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                        {/* Left Side - Text Content */}
+                        <motion.div
+                            initial={{ opacity: 0, x: -80, y: 20 }}
+                            animate={{ opacity: 1, x: 0, y: 0 }}
+                            transition={{
+                                duration: 0.8,
+                                ease: [0.25, 0.1, 0.25, 1],
+                                delay: 0.2,
+                            }}
+                            className="text-center lg:text-left"
+                        >
+                            {/* Headline */}
+                            <motion.h1
+                                className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight"
+                                style={{
+                                    textShadow:
+                                        "3px 3px 6px rgba(0,0,0,0.8), -1px -1px 2px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.8)",
+                                    WebkitTextStroke: "2px rgba(0,0,0,0.5)",
+                                }}
+                                initial={{ opacity: 0, y: 30 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{
+                                    duration: 0.8,
+                                    ease: "easeOut",
+                                    delay: 0.4,
+                                }}
+                            >
+                                LABUBU STORE
+                            </motion.h1>
+                            {/* Slogan */}
+                            <motion.h2
+                                className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-8"
+                                style={{
+                                    textShadow:
+                                        "3px 3px 8px rgba(0,0,0,0.9), -1px -1px 3px rgba(0,0,0,0.9), 1px 1px 3px rgba(0,0,0,0.9)",
+                                    WebkitTextStroke: "1.5px rgba(0,0,0,0.6)",
+                                }}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{
+                                    duration: 0.7,
+                                    ease: "easeOut",
+                                    delay: 0.6,
+                                }}
+                            >
+                                Phương châm &quot;Chất Lượng Luôn Đặt Hàng Đầu&quot;
+                            </motion.h2>
+
+                            {/* Body Text */}
+                            <motion.p
+                                className="text-lg md:text-xl text-white mb-8 leading-relaxed max-w-2xl mx-auto lg:mx-0"
+                                style={{
+                                    textShadow:
+                                        "2px 2px 4px rgba(236, 233, 16, 0.8), -1px -1px 2px rgba(206, 61, 61, 0.8)",
+                                }}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{
+                                    duration: 0.7,
+                                    ease: "easeOut",
+                                    delay: 0.8,
+                                }}
+                            >
+                                mong rằng tất cả khách hàng của Labubu Store hài lòng với tất cả
+                                dịch vụ của chúng tôi , hỗ trợ tận tình và nhiều ưu đãi giành
+                                đến khách hàng , Cảm ơn quý khách hàng đã luôn đồng hành cùng
+                                Labubu Store !
+                            </motion.p>
+
+                            {/* CTA Button */}
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{
+                                    duration: 0.6,
+                                    ease: "easeOut",
+                                    delay: 1,
+                                }}
+                                whileHover={{ scale: 1.05, y: -2 }}
+                                whileTap={{ scale: 0.98 }}
+                                className="flex justify-center lg:justify-start"
+                            >
+                                <Link
+                                    href="/products"
+                                    className="inline-flex items-center gap-3 px-8 py-4 bg-black text-white rounded-full font-semibold text-lg hover:bg-gray-800 transition-all shadow-xl hover:shadow-2xl"
+                                >
+                                    Khám phá ngay
+                                    <motion.span
+                                        animate={{ x: [0, 5, 0] }}
+                                        transition={{
+                                            duration: 1.5,
+                                            repeat: Infinity,
+                                            ease: "easeInOut",
+                                        }}
+                                    >
+                                        <ArrowRight className="w-6 h-6" />
+                                    </motion.span>
+                                </Link>
+                            </motion.div>
+
+                            {/* Features Grid */}
+                            <motion.div
+                                className="grid grid-cols-2 gap-4 mt-12 max-w-md mx-auto lg:mx-0"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{
+                                    duration: 0.6,
+                                    delay: 1.2,
+                                }}
+                            >
+                                {[
+                                    {
+                                        icon: Sparkles,
+                                        text: "Thiết kế độc đáo",
+                                    },
+                                    {
+                                        icon: Zap,
+                                        text: "Giao hàng nhanh",
+                                    },
+                                    {
+                                        icon: Shield,
+                                        text: "Chất lượng cao",
+                                    },
+                                    {
+                                        icon: Sparkles,
+                                        text: "Giá tốt nhất",
+                                    },
+                                ].map((feature, index) => (
+                                    <motion.div
+                                        key={index}
+                                        className="bg-white/90 backdrop-blur-sm rounded-lg p-4 shadow-xl border-2 border-yellow-400"
+                                        initial={{ opacity: 0, y: 30, scale: 0.9 }}
+                                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                                        transition={{
+                                            duration: 0.5,
+                                            ease: "easeOut",
+                                            delay: 1.3 + index * 0.1,
+                                        }}
+                                        whileHover={{
+                                            scale: 1.05,
+                                            y: -5,
+                                            transition: { duration: 0.2 },
+                                        }}
+                                    >
+                                        <feature.icon className="w-8 h-8 text-yellow-600 mb-2" />
+                                        <p
+                                            className="text-sm font-bold text-black"
+                                            style={{
+                                                textShadow: "1px 1px 2px rgba(255,255,255,0.8)",
+                                            }}
+                                        >
+                                            {feature.text}
+                                        </p>
+                                    </motion.div>
+                                ))}
+                            </motion.div>
+                        </motion.div>
+
+                        {/* Right Side - Image/Banner */}
+                        <motion.div
+                            initial={{ opacity: 0, x: 80, scale: 0.9 }}
+                            animate={{ opacity: 1, x: 0, scale: 1 }}
+                            transition={{
+                                duration: 1,
+                                ease: [0.25, 0.1, 0.25, 1],
+                                delay: 0.4,
+                            }}
+                            className="relative"
+                        >
+                            <motion.div
+                                className="relative w-full h-full flex items-center justify-center"
+                                whileHover={{ scale: 1.02 }}
+                                transition={{ duration: 0.3 }}
+                            >
+                                <Image
+                                    src="/section_right.png"
+                                    alt="Sticker showcase"
+                                    width={1200}
+                                    height={1200}
+                                    className="w-full h-auto object-contain rounded-3xl shadow-2xl"
+                                    priority
+                                />
+                            </motion.div>
+                        </motion.div>
+                    </div>
+                </div>
+
+                {/* Bottom Service Bar */}
+                <motion.div
+                    className="absolute bottom-0 left-0 right-0 bg-black text-white py-4"
+                    initial={{ opacity: 0, y: 50 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{
+                        duration: 0.8,
+                        ease: "easeOut",
+                        delay: 1.5,
+                    }}
+                >
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div className="flex flex-wrap justify-center items-center gap-4 md:gap-6 text-sm md:text-base font-bold">
+                            {[
+                                "HÀNG LIMITED",
+                                "MIỄN PHÍ THIẾT KẾ MẪU",
+                                "GIAO HÀNG TOÀN QUỐC",
+                            ].map((item, index, array) => (
+                                <div key={index} className="flex items-center gap-4 md:gap-6">
+                                    <motion.span
+                                        className="flex items-center gap-2"
+                                        initial={{ opacity: 0, x: -20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{
+                                            duration: 0.5,
+                                            ease: "easeOut",
+                                            delay: 1.6 + index * 0.15,
+                                        }}
+                                        whileHover={{ scale: 1.1 }}
+                                    >
+                                        <motion.span
+                                            className="w-2 h-2 bg-yellow-400 rounded-full"
+                                            animate={{
+                                                scale: [1, 1.3, 1],
+                                                opacity: [1, 0.7, 1],
+                                            }}
+                                            transition={{
+                                                duration: 2,
+                                                repeat: Infinity,
+                                                delay: index * 0.3,
+                                                ease: "easeInOut",
+                                            }}
+                                        />
+                                        {item}
+                                    </motion.span>
+                                    {index < array.length - 1 && (
+                                        <motion.span
+                                            className="text-white/50"
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            transition={{
+                                                duration: 0.3,
+                                                delay: 1.7 + index * 0.15,
+                                            }}
+                                        >
+                                            |
+                                        </motion.span>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </motion.div>
+            </section>
+
+            {/* Features Banner Section */}
+            <section className="py-12 relative">
+                {/* SVG Filter for electric effect */}
+                <svg className="absolute w-0 h-0">
+                    <defs>
+                        <filter id="turbulent-displace">
+                            <feTurbulence
+                                type="fractalNoise"
+                                baseFrequency="0.9"
+                                numOctaves="3"
+                                result="noise"
+                            >
+                                <animate
+                                    attributeName="baseFrequency"
+                                    values="0.9;1.1;0.9"
+                                    dur="2s"
+                                    repeatCount="indefinite"
+                                />
+                            </feTurbulence>
+                            <feDisplacementMap
+                                in="SourceGraphic"
+                                in2="noise"
+                                scale="3"
+                                xChannelSelector="R"
+                                yChannelSelector="G"
+                            />
+                            <feGaussianBlur stdDeviation="1" result="blur" />
+                            <feMerge>
+                                <feMergeNode in="blur" />
+                                <feMergeNode in="SourceGraphic" />
+                            </feMerge>
+                        </filter>
+                    </defs>
+                </svg>
+
+                {/* Container */}
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                    <div className="p-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
+                            {[
+                                {
+                                    icon: Truck,
+                                    title: "GIAO HÀNG TOÀN QUỐC",
+                                    description: "Chọn đơn hàng từ 3.000.000 vnđ",
+                                },
+                                {
+                                    icon: Gift,
+                                    title: "QUÀ TẶNG KÈM",
+                                    description: "Nhiều ưu đãi hấp dẫn",
+                                },
+                                {
+                                    icon: Award,
+                                    title: "CHẤT LIỆU CAO CẤP",
+                                    description: "Chống nước và thời gian",
+                                },
+                                {
+                                    icon: Headphones,
+                                    title: "HỖ TRỢ 24/7",
+                                    description: "Luôn sẵn sàng hỗ trợ bạn",
+                                },
+                            ].map((feature, index) => (
+                                <motion.div
+                                    key={index}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    whileHover={{ scale: 1.05 }}
+                                    viewport={{ once: true }}
+                                    transition={{ delay: index * 0.1 }}
+                                    className="card-container h-full cursor-pointer"
+                                    style={{
+                                        padding: "2px",
+                                        borderRadius: "24px",
+                                        position: "relative",
+                                        background:
+                                            "linear-gradient(-30deg, #fbbf24, transparent, #fbbf24), linear-gradient(to bottom, #1f2937, #1f2937)",
+                                        backgroundSize: "200% 200%",
+                                        animation: "electric-border 3s ease infinite",
+                                    }}
+                                >
+                                    <div
+                                        className="main-card bg-white rounded-[22px] p-6 text-center h-full flex flex-col"
+                                        style={{
+                                            width: "100%",
+                                            height: "100%",
+                                            borderRadius: "22px",
+                                            border: "1px solid #f97316",
+                                            marginTop: "-2px",
+                                            marginLeft: "-2px",
+                                            position: "relative",
+                                            filter: "url(#turbulent-displace)",
+                                            boxShadow: "0 0 2px rgba(249, 115, 22, 0.3)",
+                                            animation: "electric-pulse 2s ease-in-out infinite",
+                                        }}
+                                    >
+                                        {/* Electric sparks */}
+                                        <span
+                                            className="electric-spark"
+                                            style={{
+                                                top: "10%",
+                                                left: "0",
+                                                animation: "electric-spark 1.5s ease-in-out infinite",
+                                                animationDelay: "0s",
+                                            }}
+                                        />
+                                        <span
+                                            className="electric-spark"
+                                            style={{
+                                                top: "30%",
+                                                right: "0",
+                                                animation: "electric-spark-2 1.8s ease-in-out infinite",
+                                                animationDelay: "0.5s",
+                                            }}
+                                        />
+                                        <span
+                                            className="electric-spark"
+                                            style={{
+                                                bottom: "20%",
+                                                left: "0",
+                                                animation: "electric-spark-3 1.6s ease-in-out infinite",
+                                                animationDelay: "1s",
+                                            }}
+                                        />
+                                        <span
+                                            className="electric-spark"
+                                            style={{
+                                                bottom: "10%",
+                                                right: "0",
+                                                animation: "electric-spark 1.7s ease-in-out infinite",
+                                                animationDelay: "0.3s",
+                                            }}
+                                        />
+                                        <span
+                                            className="electric-spark"
+                                            style={{
+                                                top: "50%",
+                                                left: "0",
+                                                animation: "electric-spark-2 1.9s ease-in-out infinite",
+                                                animationDelay: "0.8s",
+                                            }}
+                                        />
+                                        <span
+                                            className="electric-spark"
+                                            style={{
+                                                top: "0",
+                                                left: "50%",
+                                                transform: "translateX(-50%)",
+                                                animation: "electric-spark-3 1.5s ease-in-out infinite",
+                                                animationDelay: "0.2s",
+                                            }}
+                                        />
+                                        <span
+                                            className="electric-spark"
+                                            style={{
+                                                bottom: "0",
+                                                left: "50%",
+                                                transform: "translateX(-50%)",
+                                                animation: "electric-spark 1.6s ease-in-out infinite",
+                                                animationDelay: "0.6s",
+                                            }}
+                                        />
+                                        <span
+                                            className="electric-spark"
+                                            style={{
+                                                top: "20%",
+                                                right: "0",
+                                                animation: "electric-spark-3 1.4s ease-in-out infinite",
+                                                animationDelay: "0.4s",
+                                            }}
+                                        />
+                                        <span
+                                            className="electric-spark"
+                                            style={{
+                                                bottom: "30%",
+                                                right: "0",
+                                                animation: "electric-spark 1.8s ease-in-out infinite",
+                                                animationDelay: "0.7s",
+                                            }}
+                                        />
+                                        <span
+                                            className="electric-spark"
+                                            style={{
+                                                top: "70%",
+                                                left: "0",
+                                                animation: "electric-spark-2 1.5s ease-in-out infinite",
+                                                animationDelay: "0.9s",
+                                            }}
+                                        />
+                                        <div className="flex flex-col items-center justify-center flex-1">
+                                            <div className="w-16 h-16 rounded-full border-2 border-yellow-500 flex items-center justify-center mb-4 bg-transparent">
+                                                <feature.icon className="w-8 h-8 text-yellow-500" />
+                                            </div>
+                                            <h3 className="text-lg font-bold text-black mb-2">
+                                                {feature.title}
+                                            </h3>
+                                            <p className="text-sm text-gray-700">
+                                                {feature.description}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* New Products Section */}
+            <section className="py-16 relative">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="text-center mb-12">
+                        <motion.div
+                            initial={{ opacity: 0, y: -50, scale: 0.8 }}
+                            whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                            viewport={{ once: true, margin: "-100px" }}
+                            transition={{
+                                duration: 0.8,
+                                ease: [0.25, 0.1, 0.25, 1],
+                            }}
+                        >
+                            <h2 className="text-3xl md:text-4xl lg:text-5xl galaxy-glow-text mb-4">
+                                SẢN PHẨM MỚI
+                            </h2>
+                        </motion.div>
+                        <motion.div
+                            initial={{ opacity: 0, y: 50, scale: 0.8 }}
+                            whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                            viewport={{ once: true, margin: "-100px" }}
+                            transition={{
+                                duration: 0.8,
+                                ease: [0.25, 0.1, 0.25, 1],
+                                delay: 0.2,
+                            }}
+                        >
+                            <p className="text-lg md:text-xl galaxy-glow-subtitle max-w-2xl mx-auto">
+                                Khám phá những sản phẩm sticker mới nhất với thiết kế độc đáo
+                            </p>
+                        </motion.div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+                        {[
+                            {
+                                id: "1",
+                                name: "Sticker D20 - Màu đỏ",
+                                brand: "Labubu",
+                                price: 50000,
+                                originalPrice: 60000,
+                                rating: 4.5,
+                                reviewCount: 128,
+                                image:
+                                    "https://images.unsplash.com/photo-1611262588024-d12430b98920?w=400&h=400&fit=crop",
+                                badge: "New" as const,
+                                discount: 17,
+                                stock: 50,
+                            },
+                            {
+                                id: "2",
+                                name: "Sticker Controller - Màu xanh",
+                                brand: "Labubu",
+                                price: 55000,
+                                originalPrice: 65000,
+                                rating: 4.8,
+                                reviewCount: 95,
+                                image:
+                                    "https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?w=400&h=400&fit=crop",
+                                badge: "Hot" as const,
+                                discount: 15,
+                                stock: 30,
+                            },
+                            {
+                                id: "3",
+                                name: "Sticker Kettlebell - Màu đen",
+                                brand: "Labubu",
+                                price: 60000,
+                                rating: 4.7,
+                                reviewCount: 156,
+                                image:
+                                    "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+                                badge: "New" as const,
+                                stock: 25,
+                            },
+                            {
+                                id: "4",
+                                name: "Sticker Custom - Thiết kế riêng",
+                                brand: "Labubu",
+                                price: 100000,
+                                originalPrice: 120000,
+                                rating: 5.0,
+                                reviewCount: 42,
+                                image:
+                                    "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&h=400&fit=crop",
+                                badge: "Best Seller" as const,
+                                discount: 17,
+                                stock: 15,
+                            },
+                            {
+                                id: "5",
+                                name: "Sticker Sheet - Bộ 10 mẫu",
+                                brand: "Labubu",
+                                price: 150000,
+                                originalPrice: 180000,
+                                rating: 4.6,
+                                reviewCount: 203,
+                                image:
+                                    "https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=400&h=400&fit=crop",
+                                badge: "New" as const,
+                                discount: 17,
+                                stock: 40,
+                            },
+                        ].map((product) => (
+                            <ProductCardSimple key={product.id} {...product} />
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* Top Selling Products Section */}
+            <section className="py-16 relative">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="text-center mb-12">
+                        <motion.div
+                            initial={{ opacity: 0, x: -100, rotateY: -45 }}
+                            whileInView={{ opacity: 1, x: 0, rotateY: 0 }}
+                            viewport={{ once: true, margin: "-100px" }}
+                            transition={{
+                                duration: 0.8,
+                                ease: [0.25, 0.1, 0.25, 1],
+                            }}
+                        >
+                            <h2 className="text-3xl md:text-4xl lg:text-5xl galaxy-glow-text mb-4">
+                                CHỌN HÀNG TUẦN
+                            </h2>
+                        </motion.div>
+                        <motion.div
+                            initial={{ opacity: 0, x: 100, rotateY: 45 }}
+                            whileInView={{ opacity: 1, x: 0, rotateY: 0 }}
+                            viewport={{ once: true, margin: "-100px" }}
+                            transition={{
+                                duration: 0.8,
+                                ease: [0.25, 0.1, 0.25, 1],
+                                delay: 0.2,
+                            }}
+                        >
+                            <p className="text-lg md:text-xl galaxy-glow-subtitle max-w-2xl mx-auto">
+                                Top bán chạy - Những sản phẩm được yêu thích nhất tuần này
+                            </p>
+                        </motion.div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+                        {[
+                            {
+                                id: "6",
+                                name: "Sticker Gaming Set - Bộ 5 mẫu",
+                                brand: "Labubu",
+                                price: 200000,
+                                originalPrice: 250000,
+                                rating: 4.9,
+                                reviewCount: 312,
+                                image:
+                                    "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=400&h=400&fit=crop",
+                                badge: "Best Seller" as const,
+                                discount: 20,
+                                stock: 60,
+                            },
+                            {
+                                id: "7",
+                                name: "Sticker Logo Brand - Màu vàng",
+                                brand: "Labubu",
+                                price: 80000,
+                                originalPrice: 100000,
+                                rating: 4.8,
+                                reviewCount: 245,
+                                image:
+                                    "https://images.unsplash.com/photo-1607082349566-187342175e2f?w=400&h=400&fit=crop",
+                                badge: "Hot" as const,
+                                discount: 20,
+                                stock: 45,
+                            },
+                            {
+                                id: "8",
+                                name: "Sticker Animal - Bộ 8 mẫu",
+                                brand: "Labubu",
+                                price: 180000,
+                                originalPrice: 220000,
+                                rating: 5.0,
+                                reviewCount: 189,
+                                image:
+                                    "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=400&fit=crop",
+                                badge: "Best Seller" as const,
+                                discount: 18,
+                                stock: 35,
+                            },
+                            {
+                                id: "9",
+                                name: "Sticker Quote - Câu nói hay",
+                                brand: "Labubu",
+                                price: 70000,
+                                originalPrice: 85000,
+                                rating: 4.7,
+                                reviewCount: 167,
+                                image:
+                                    "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&h=400&fit=crop",
+                                badge: "Hot" as const,
+                                discount: 18,
+                                stock: 55,
+                            },
+                            {
+                                id: "10",
+                                name: "Sticker Premium - Chất lượng cao",
+                                brand: "Labubu",
+                                price: 120000,
+                                originalPrice: 150000,
+                                rating: 4.9,
+                                reviewCount: 278,
+                                image:
+                                    "https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=400&h=400&fit=crop",
+                                badge: "Best Seller" as const,
+                                discount: 20,
+                                stock: 28,
+                            },
+                        ].map((product) => (
+                            <ProductCardSimple key={product.id} {...product} />
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* Diecut Sticker Section */}
+            <section className="relative py-16 overflow-hidden">
+                {/* Background Image */}
+                <div
+                    className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+                    style={{
+                        backgroundImage: "url('/background_login.webp')",
+                    }}
+                />
+                {/* Overlay nhẹ để text dễ đọc */}
+                <div className="absolute inset-0 bg-white/10"></div>
+
+                {/* Top Black Header */}
+                <div className="relative z-10 bg-black text-white py-3">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                        <p className="text-sm md:text-base font-medium">
+                            Chú ý: TÔI CAM KẾT MANG ĐẾN CHO BẠN SỰ HÀI LÒNG VÀ TỐI ƯU CHI PHÍ
+                            CHO CÁC CHIẾN DỊCH CỦA BẠN.
+                        </p>
+                    </div>
+                </div>
+
+                {/* Main Content */}
+                <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                    {/* Main Title */}
+                    <div className="text-center mb-8">
+                        <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-black mb-4 flex items-center justify-center gap-3">
+                            <Sparkles className="w-8 h-8 text-yellow-600" />
+                            In Sticker Diecut, Cắt Bế Mọi Hình Dạng - Phù hợp cho làm sự kiện,
+                            quà tặng và kinh doanh
+                            <Sparkles className="w-8 h-8 text-yellow-600" />
+                        </h2>
+                        <p className="text-lg md:text-xl text-black max-w-4xl mx-auto mt-4">
+                            Sticker bền đẹp, nổi bật, phù hợp cho quà tặng tiếp thị, sự kiện
+                            và bán lại. Nhanh chóng, hợp lý, hỗ trợ thiết kế miễn phí.
+                        </p>
+                    </div>
+
+                    {/* Wavy Divider */}
+                    <div className="my-8">
+                        <svg
+                            className="w-full h-8"
+                            viewBox="0 0 1200 40"
+                            preserveAspectRatio="none"
+                        >
+                            <path
+                                d="M0,20 Q300,0 600,20 T1200,20 L1200,40 L0,40 Z"
+                                fill="black"
+                            />
+                        </svg>
+                    </div>
+
+                    {/* Three Content Blocks */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+                        {[
+                            {
+                                title: "Thiết Kế Miễn Phí, Tư Vấn Tận Tình",
+                                description:
+                                    "Đưa ý tưởng, nhận file mẫu miễn phí - đội ngũ hỗ trợ nhanh, nhiệt tình.",
+                                image:
+                                    "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=600&h=400&fit=crop",
+                            },
+                            {
+                                title: "Không Phân Biệt Đơn Hàng Ít Nhiều",
+                                description:
+                                    "In từ 1 tờ đến hàng ngàn lá - vẫn được phục vụ như nhau chất lượng không đổi",
+                                image:
+                                    "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=600&h=400&fit=crop",
+                            },
+                            {
+                                title: "In Nhanh - Bảo Đảm Tiến Độ",
+                                description:
+                                    "Đáp ứng sự kiện kịp thời, giao hàng nhanh toàn quốc và quốc tế.",
+                                image:
+                                    "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=600&h=400&fit=crop",
+                            },
+                        ].map((block, index) => (
+                            <motion.div
+                                key={index}
+                                initial={{ opacity: 0, y: 30 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: index * 0.2 }}
+                                className="bg-white border-2 border-black rounded-lg overflow-hidden shadow-lg"
+                            >
+                                {/* Image */}
+                                <div className="relative h-64 overflow-hidden">
+                                    <Image
+                                        src={block.image}
+                                        alt={block.title}
+                                        fill
+                                        className="object-cover"
+                                        unoptimized
+                                    />
+                                </div>
+
+                                {/* Content */}
+                                <div className="p-6">
+                                    <h3 className="text-xl font-bold text-black mb-3">
+                                        {block.title}
+                                    </h3>
+                                    <p className="text-gray-700 mb-4 flex items-start gap-2">
+                                        <Sparkles className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                                        {block.description}
+                                    </p>
+                                    <button className="w-full py-3 border-2 border-black text-black font-bold rounded-lg hover:bg-black hover:text-white transition-colors">
+                                        TƯ VẤN IN STICKER
+                                    </button>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+        </Layout>
+    );
 }
