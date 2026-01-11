@@ -49,15 +49,6 @@ const menuItems: MenuItem[] = [
     ],
   },
   {
-    name: "Nhãn hàng",
-    icon: Tag,
-    href: "/brands",
-    children: [
-      { name: "Danh sách", icon: List, href: "/brands" },
-      { name: "Tạo mới", icon: CirclePlus, href: "/brands/create" },
-    ],
-  },
-  {
     name: "Đơn hàng",
     icon: ShoppingBag,
     href: "/orders",

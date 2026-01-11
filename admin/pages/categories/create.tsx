@@ -2,8 +2,8 @@ import Head from "next/head";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { motion } from "framer-motion";
-import { ArrowLeft, Save, Upload, Loader2, X } from "lucide-react";
-import { categoryService, fileService } from "../../src/services";
+import { ArrowLeft, Save, Loader2 } from "lucide-react";
+import { categoryService } from "../../src/services";
 import { CreateCategoryPayload } from "../../src/interfaces";
 import { storage } from "../../src/utils/storage";
 import AdminLayout from "../../src/components/layout/AdminLayout";
@@ -12,18 +12,11 @@ import toast from "react-hot-toast";
 export default function CreateCategoryPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [uploading, setUploading] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [formData, setFormData] = useState<CreateCategoryPayload>({
     name: "",
-    slug: "",
-    description: "",
-    icon: "",
-    image: "",
     status: "active",
     sortOrder: 0,
-    subcategories: [],
   });
 
   useEffect(() => {
@@ -76,32 +69,6 @@ export default function CreateCategoryPage() {
     }
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith("image/")) {
-      toast.error("Vui lòng chọn file ảnh");
-      return;
-    }
-
-    setUploading(true);
-    try {
-      const url = await categoryService.uploadCategoryImage(file);
-      setFormData({ ...formData, image: url });
-      setImagePreview(url);
-      toast.success("Upload ảnh thành công!");
-    } catch (error: any) {
-      toast.error("Upload ảnh thất bại. Vui lòng thử lại.");
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const removeImage = () => {
-    setFormData({ ...formData, image: "" });
-    setImagePreview(null);
-  };
 
   return (
     <AdminLayout>
@@ -172,69 +139,12 @@ export default function CreateCategoryPage() {
                   <input
                     type="text"
                     value={formData.name}
-                    onChange={(e) => {
-                      const name = e.target.value;
-                      const slug = name
-                        .toLowerCase()
-                        .replace(/đ/g, "d")
-                        .normalize("NFD")
-                        .replace(/[\u0300-\u036f]/g, "")
-                        .replace(/[^a-z0-9]+/g, "-")
-                        .replace(/(^-|-$)/g, "");
-                      setFormData({ ...formData, name, slug });
-                    }}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
                     className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-400 text-white placeholder-purple-300 backdrop-blur-sm"
                     placeholder="Nhập tên danh mục"
                     required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-purple-200 mb-2">
-                    Slug
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.slug || ""}
-                    onChange={(e) =>
-                      setFormData({ ...formData, slug: e.target.value })
-                    }
-                    className="w-full px-4 py-2 bg-white/5 border border-purple-500/20 rounded-lg text-purple-400 cursor-not-allowed"
-                    placeholder="slug-tu-dong-tao"
-                    disabled
-                  />
-                  <p className="text-xs text-purple-300 mt-1">
-                    Slug sẽ được tự động tạo từ tên danh mục
-                  </p>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-purple-200 mb-2">
-                    Mô tả
-                  </label>
-                  <textarea
-                    value={formData.description || ""}
-                    onChange={(e) =>
-                      setFormData({ ...formData, description: e.target.value })
-                    }
-                    rows={3}
-                    className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-400 text-white placeholder-purple-300 backdrop-blur-sm"
-                    placeholder="Mô tả về danh mục"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-purple-200 mb-2">
-                    Icon (Emoji)
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.icon || ""}
-                    onChange={(e) =>
-                      setFormData({ ...formData, icon: e.target.value })
-                    }
-                    className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-400 text-white placeholder-purple-300 backdrop-blur-sm"
-                    placeholder="💄"
                   />
                 </div>
 
@@ -264,7 +174,7 @@ export default function CreateCategoryPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-purple-200 mb-2">
-                      Thứ tự sắp xếp
+                      Thứ tự
                     </label>
                     <input
                       type="number"
@@ -283,70 +193,6 @@ export default function CreateCategoryPage() {
               </div>
             </motion.div>
 
-            {/* Image Upload */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="galaxy-card rounded-xl p-6"
-            >
-              <h2
-                className="text-lg font-semibold mb-4"
-                style={{
-                  background:
-                    "linear-gradient(135deg, #fbbf24, #f59e0b, #ec4899)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                }}
-              >
-                Hình ảnh danh mục
-              </h2>
-
-              <div className="space-y-4">
-                {imagePreview || formData.image ? (
-                  <div className="relative">
-                    <img
-                      src={imagePreview || formData.image}
-                      alt="Preview"
-                      className="w-full h-64 object-cover rounded-lg border border-purple-500/30"
-                    />
-                    <button
-                      type="button"
-                      onClick={removeImage}
-                      className="absolute top-2 right-2 p-2 bg-red-500/80 text-white rounded-full hover:bg-red-600 transition-colors border border-red-400/50 backdrop-blur-sm"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                ) : (
-                  <div className="border-2 border-dashed border-purple-500/30 rounded-lg p-8 text-center bg-white/5 backdrop-blur-sm">
-                    <Upload className="w-12 h-12 text-purple-300 mx-auto mb-4" />
-                    <p className="text-purple-200 mb-2">
-                      Chọn ảnh cho danh mục
-                    </p>
-                    <label
-                      htmlFor="category-image-upload"
-                      className="inline-block px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg hover:opacity-90 transition-all cursor-pointer shadow-lg"
-                      style={{
-                        boxShadow: "0 0 20px rgba(236, 72, 153, 0.4)",
-                      }}
-                    >
-                      {uploading ? "Đang upload..." : "Chọn ảnh"}
-                    </label>
-                  </div>
-                )}
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="hidden"
-                  id="category-image-upload"
-                  disabled={uploading}
-                />
-              </div>
-            </motion.div>
-
             {/* Submit Button */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -362,7 +208,7 @@ export default function CreateCategoryPage() {
               </a>
               <button
                 type="submit"
-                disabled={loading || uploading}
+                disabled={loading}
                 className="px-6 py-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg font-medium hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg"
                 style={{
                   boxShadow: "0 0 25px rgba(236, 72, 153, 0.5)",

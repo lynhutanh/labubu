@@ -25,3 +25,7 @@ export function buildUrl(baseUrl: string, params?: { [key: string]: any }) {
     .join("&");
   return `${baseUrl}?${queryString}`;
 }
+
+export function formatCurrency(amount: number): string {
+  return amount.toLocaleString("vi-VN");
+}

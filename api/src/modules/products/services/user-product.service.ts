@@ -126,11 +126,11 @@ export class UserProductService {
     const products = await this.productModel
       .find({
         status: PRODUCT_STATUS.ACTIVE,
-        isNewArrival: true,
       })
       .populate("brandId", "name slug")
       .populate("fileIds")
-      .sort({ createdAt: -1 })
+      .populate("categoryId", "name slug")
+      .sort({ createdAt: -1 }) // Sắp xếp theo thời gian tạo mới nhất
       .limit(limit)
       .lean();
 

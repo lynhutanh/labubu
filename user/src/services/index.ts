@@ -4,6 +4,7 @@ export { cartService } from "./cart.service";
 export { categoryService } from "./category.service";
 export { orderService } from "./order.service";
 export { productService } from "./product.service";
+export { wishlistService } from "./wishlist.service";
 
 // Export API Request base class
 export { APIRequest, TOKEN } from "./api-request";

@@ -112,7 +112,7 @@ export default function Header() {
                     "2px 2px 0px rgba(255,255,255,0.8), -1px -1px 0px rgba(255,255,255,0.8), 1px 1px 0px rgba(255,255,255,0.8)",
                 }}
               >
-                LABUBU
+                LABUBU STORE
               </span>
             </div>
           </Link>

@@ -1,6 +1,7 @@
 import Head from "next/head";
 import Image from "next/image";
 import Link from "next/link";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
     ArrowRight,
@@ -14,8 +15,66 @@ import {
 } from "lucide-react";
 import Layout from "../src/components/layout/Layout";
 import ProductCardSimple from "../src/components/products/ProductCardSimple";
+import { productService, Product } from "../src/services/product.service";
+
+// Helper function to map Product from API to ProductCardSimple format
+const mapProductToCard = (product: Product) => {
+    const firstImage = product.files?.[0]?.url || product.files?.[0]?.thumbnailUrl || "";
+    const displayPrice = product.salePrice && product.salePrice > 0 ? product.salePrice : product.price;
+    const originalPrice = product.salePrice && product.salePrice > 0 ? product.price : undefined;
+    const discount = originalPrice 
+        ? Math.round(((originalPrice - displayPrice) / originalPrice) * 100)
+        : undefined;
+    
+    // Determine badge based on product data
+    let badge: "Best Seller" | "Hot" | "New" | undefined = undefined;
+    if (product.soldCount && product.soldCount > 50) {
+        badge = "Best Seller";
+    } else if (product.salePrice && product.salePrice > 0) {
+        badge = "Hot";
+    } else {
+        badge = "New";
+    }
+
+    return {
+        id: product.slug || product._id, // Use slug for URL, fallback to _id
+        productId: product._id, // Actual product _id for API calls
+        name: product.name,
+        brand: product.categoryId?.name || "Labubu",
+        price: displayPrice,
+        originalPrice: originalPrice,
+        rating: product.rating || 0,
+        reviewCount: product.reviewCount || 0,
+        image: firstImage,
+        badge: badge,
+        discount: discount,
+        stock: product.stock,
+    };
+};
 
 export default function HomePage() {
+    const [newProducts, setNewProducts] = useState<Product[]>([]);
+    const [bestSellers, setBestSellers] = useState<Product[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const loadProducts = async () => {
+            try {
+                setLoading(true);
+                const [newProds, bestSellProds] = await Promise.all([
+                    productService.getNew(5),
+                    productService.getBestSellers(5),
+                ]);
+                setNewProducts(newProds);
+                setBestSellers(bestSellProds);
+            } catch (error) {
+                console.error("Error loading products:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadProducts();
+    }, []);
     return (
         <Layout>
             <Head>
@@ -229,7 +288,7 @@ export default function HomePage() {
                                     alt="Sticker showcase"
                                     width={1200}
                                     height={1200}
-                                    className="w-full h-auto object-contain rounded-3xl shadow-2xl"
+                                    className="w-full h-auto object-contain rounded-3xl"
                                     priority
                                 />
                             </motion.div>
@@ -541,80 +600,22 @@ export default function HomePage() {
                         </motion.div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
-                        {[
-                            {
-                                id: "1",
-                                name: "Sticker D20 - Màu đỏ",
-                                brand: "Labubu",
-                                price: 50000,
-                                originalPrice: 60000,
-                                rating: 4.5,
-                                reviewCount: 128,
-                                image:
-                                    "https://images.unsplash.com/photo-1611262588024-d12430b98920?w=400&h=400&fit=crop",
-                                badge: "New" as const,
-                                discount: 17,
-                                stock: 50,
-                            },
-                            {
-                                id: "2",
-                                name: "Sticker Controller - Màu xanh",
-                                brand: "Labubu",
-                                price: 55000,
-                                originalPrice: 65000,
-                                rating: 4.8,
-                                reviewCount: 95,
-                                image:
-                                    "https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?w=400&h=400&fit=crop",
-                                badge: "Hot" as const,
-                                discount: 15,
-                                stock: 30,
-                            },
-                            {
-                                id: "3",
-                                name: "Sticker Kettlebell - Màu đen",
-                                brand: "Labubu",
-                                price: 60000,
-                                rating: 4.7,
-                                reviewCount: 156,
-                                image:
-                                    "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
-                                badge: "New" as const,
-                                stock: 25,
-                            },
-                            {
-                                id: "4",
-                                name: "Sticker Custom - Thiết kế riêng",
-                                brand: "Labubu",
-                                price: 100000,
-                                originalPrice: 120000,
-                                rating: 5.0,
-                                reviewCount: 42,
-                                image:
-                                    "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&h=400&fit=crop",
-                                badge: "Best Seller" as const,
-                                discount: 17,
-                                stock: 15,
-                            },
-                            {
-                                id: "5",
-                                name: "Sticker Sheet - Bộ 10 mẫu",
-                                brand: "Labubu",
-                                price: 150000,
-                                originalPrice: 180000,
-                                rating: 4.6,
-                                reviewCount: 203,
-                                image:
-                                    "https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=400&h=400&fit=crop",
-                                badge: "New" as const,
-                                discount: 17,
-                                stock: 40,
-                            },
-                        ].map((product) => (
-                            <ProductCardSimple key={product.id} {...product} />
-                        ))}
-                    </div>
+                    {loading ? (
+                        <div className="text-center py-12">
+                            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-400"></div>
+                            <p className="mt-4 text-white">Đang tải sản phẩm...</p>
+                        </div>
+                    ) : newProducts.length > 0 ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+                            {newProducts.map((product) => (
+                                <ProductCardSimple key={product._id} {...mapProductToCard(product)} />
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-center py-12 text-white">
+                            <p>Chưa có sản phẩm mới</p>
+                        </div>
+                    )}
                 </div>
             </section>
 
@@ -651,82 +652,22 @@ export default function HomePage() {
                         </motion.div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
-                        {[
-                            {
-                                id: "6",
-                                name: "Sticker Gaming Set - Bộ 5 mẫu",
-                                brand: "Labubu",
-                                price: 200000,
-                                originalPrice: 250000,
-                                rating: 4.9,
-                                reviewCount: 312,
-                                image:
-                                    "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=400&h=400&fit=crop",
-                                badge: "Best Seller" as const,
-                                discount: 20,
-                                stock: 60,
-                            },
-                            {
-                                id: "7",
-                                name: "Sticker Logo Brand - Màu vàng",
-                                brand: "Labubu",
-                                price: 80000,
-                                originalPrice: 100000,
-                                rating: 4.8,
-                                reviewCount: 245,
-                                image:
-                                    "https://images.unsplash.com/photo-1607082349566-187342175e2f?w=400&h=400&fit=crop",
-                                badge: "Hot" as const,
-                                discount: 20,
-                                stock: 45,
-                            },
-                            {
-                                id: "8",
-                                name: "Sticker Animal - Bộ 8 mẫu",
-                                brand: "Labubu",
-                                price: 180000,
-                                originalPrice: 220000,
-                                rating: 5.0,
-                                reviewCount: 189,
-                                image:
-                                    "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=400&fit=crop",
-                                badge: "Best Seller" as const,
-                                discount: 18,
-                                stock: 35,
-                            },
-                            {
-                                id: "9",
-                                name: "Sticker Quote - Câu nói hay",
-                                brand: "Labubu",
-                                price: 70000,
-                                originalPrice: 85000,
-                                rating: 4.7,
-                                reviewCount: 167,
-                                image:
-                                    "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&h=400&fit=crop",
-                                badge: "Hot" as const,
-                                discount: 18,
-                                stock: 55,
-                            },
-                            {
-                                id: "10",
-                                name: "Sticker Premium - Chất lượng cao",
-                                brand: "Labubu",
-                                price: 120000,
-                                originalPrice: 150000,
-                                rating: 4.9,
-                                reviewCount: 278,
-                                image:
-                                    "https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=400&h=400&fit=crop",
-                                badge: "Best Seller" as const,
-                                discount: 20,
-                                stock: 28,
-                            },
-                        ].map((product) => (
-                            <ProductCardSimple key={product.id} {...product} />
-                        ))}
-                    </div>
+                    {loading ? (
+                        <div className="text-center py-12">
+                            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-400"></div>
+                            <p className="mt-4 text-white">Đang tải sản phẩm...</p>
+                        </div>
+                    ) : bestSellers.length > 0 ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+                            {bestSellers.map((product) => (
+                                <ProductCardSimple key={product._id} {...mapProductToCard(product)} />
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-center py-12 text-white">
+                            <p>Chưa có sản phẩm bán chạy</p>
+                        </div>
+                    )}
                 </div>
             </section>
 

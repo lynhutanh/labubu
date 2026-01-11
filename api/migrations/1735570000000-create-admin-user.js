@@ -43,7 +43,7 @@ module.exports.up = async function up() {
   const adminUser = {
     name: 'Admin',
     username: 'admin',
-    email: 'admin@cosmetics.com',
+    email: 'admin@labubu.com',
     role: 'admin',
     status: 'active',
     createdAt: new Date(),

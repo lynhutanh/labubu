@@ -6,7 +6,6 @@ import { ArrowLeft, Save, Upload, X, Loader2 } from "lucide-react";
 import {
   productService,
   categoryService,
-  brandService,
   fileService,
 } from "../../src/services";
 import { CreateProductPayload } from "../../src/interfaces";
@@ -14,31 +13,12 @@ import { storage } from "../../src/utils/storage";
 import AdminLayout from "../../src/components/layout/AdminLayout";
 import toast from "react-hot-toast";
 
-const PRODUCT_TYPES = [
-  { value: "skincare", label: "Chăm sóc da" },
-  { value: "makeup", label: "Trang điểm" },
-  { value: "haircare", label: "Chăm sóc tóc" },
-  { value: "bodycare", label: "Chăm sóc cơ thể" },
-  { value: "fragrance", label: "Nước hoa" },
-  { value: "tools", label: "Dụng cụ" },
-  { value: "other", label: "Khác" },
-];
-
-const SKIN_TYPES = [
-  { value: "all", label: "Mọi loại da" },
-  { value: "oily", label: "Da dầu" },
-  { value: "dry", label: "Da khô" },
-  { value: "combination", label: "Da hỗn hợp" },
-  { value: "sensitive", label: "Da nhạy cảm" },
-  { value: "normal", label: "Da thường" },
-];
 
 export default function CreateProductPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [categories, setCategories] = useState<any[]>([]);
-  const [brands, setBrands] = useState<any[]>([]);
   const [mounted, setMounted] = useState(false);
   const [mediaPreviews, setMediaPreviews] = useState<
     { url: string; type: "image" | "video" }[]
@@ -50,63 +30,15 @@ export default function CreateProductPage() {
     description: "",
     shortDescription: "",
     categoryId: "",
-    subcategorySlug: "",
-    brandId: "",
-    productType: "other",
     price: 0,
-    salePrice: 0,
-    discountPercentage: 0,
     stock: 0,
-    volume: "",
-    weight: 0,
-    ingredients: "",
-    howToUse: "",
-    skinType: [],
-    origin: "",
-    madeIn: "",
-    expiryMonths: 24,
-    metaTitle: "",
-    metaDescription: "",
-    metaKeywords: [],
-    featured: false,
-    isNewArrival: true,
   });
 
-  // Auto-calculate discount percentage when price or salePrice changes
-  const calculateDiscount = (price: number, salePrice: number): number => {
-    if (price > 0 && salePrice > 0 && salePrice < price) {
-      return Math.round(((price - salePrice) / price) * 100);
-    }
-    return 0;
-  };
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Load brands whenever component mounts or when window gets focus
-  useEffect(() => {
-    if (!mounted) return;
-
-    const loadBrands = async () => {
-      try {
-        const brandsList = await brandService.getAll();
-        setBrands(brandsList);
-      } catch (error) {
-        console.error("Error loading brands:", error);
-      }
-    };
-
-    loadBrands();
-
-    // Reload brands when window gets focus (user might have added brands in another tab)
-    const handleFocus = () => {
-      loadBrands();
-    };
-
-    window.addEventListener("focus", handleFocus);
-    return () => window.removeEventListener("focus", handleFocus);
-  }, [mounted]);
 
   useEffect(() => {
     if (!mounted) return;
@@ -122,7 +54,7 @@ export default function CreateProductPage() {
       try {
         const cats = await categoryService.getAll();
         setCategories(cats);
-      } catch (error) {
+      } catch {
         toast.error("Không thể tải dữ liệu. Vui lòng thử lại.");
       }
     };
@@ -138,8 +70,8 @@ export default function CreateProductPage() {
     e.preventDefault();
 
     // Validate required fields
-    if (!formData.brandId) {
-      toast.error("Vui lòng chọn nhãn hàng");
+    if (!formData.categoryId) {
+      toast.error("Vui lòng chọn danh mục");
       return;
     }
 
@@ -177,26 +109,8 @@ export default function CreateProductPage() {
       if (!payload.slug) delete payload.slug;
       if (!payload.description) delete payload.description;
       if (!payload.shortDescription) delete payload.shortDescription;
-      if (!payload.subcategorySlug) delete payload.subcategorySlug;
-      if (!payload.brandId) delete payload.brandId;
-      if (!payload.salePrice || payload.salePrice === 0) {
-        delete payload.salePrice;
-        delete payload.discountPercentage;
-      }
       if (!payload.fileIds || payload.fileIds.length === 0)
         delete payload.fileIds;
-      if (!payload.ingredients) delete payload.ingredients;
-      if (!payload.howToUse) delete payload.howToUse;
-      if (!payload.volume) delete payload.volume;
-      if (!payload.weight) delete payload.weight;
-      if (!payload.skinType || payload.skinType.length === 0)
-        delete payload.skinType;
-      if (!payload.origin) delete payload.origin;
-      if (!payload.madeIn) delete payload.madeIn;
-      if (!payload.metaTitle) delete payload.metaTitle;
-      if (!payload.metaDescription) delete payload.metaDescription;
-      if (!payload.metaKeywords || payload.metaKeywords.length === 0)
-        delete payload.metaKeywords;
 
       await productService.create(payload);
       toast.success("Tạo sản phẩm thành công!");
@@ -385,7 +299,7 @@ export default function CreateProductPage() {
               </div>
             </motion.div>
 
-            {/* Category & Brand */}
+            {/* Category */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -402,103 +316,34 @@ export default function CreateProductPage() {
                   backgroundClip: "text",
                 }}
               >
-                Danh mục & Nhãn hàng
+                Danh mục
               </h2>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-purple-200 mb-2">
-                    Danh mục <span className="text-red-400">*</span>
-                  </label>
-                  <select
-                    value={formData.categoryId}
-                    onChange={(e) =>
-                      setFormData({ ...formData, categoryId: e.target.value })
-                    }
-                    className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-400 text-white backdrop-blur-sm"
-                    required
-                  >
-                    <option value="" className="bg-gray-900">
-                      Chọn danh mục
+              <div>
+                <label className="block text-sm font-medium text-purple-200 mb-2">
+                  Danh mục <span className="text-red-400">*</span>
+                </label>
+                <select
+                  value={formData.categoryId}
+                  onChange={(e) =>
+                    setFormData({ ...formData, categoryId: e.target.value })
+                  }
+                  className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-400 text-white backdrop-blur-sm"
+                  required
+                >
+                  <option value="" className="bg-gray-900">
+                    Chọn danh mục
+                  </option>
+                  {categories.map((cat) => (
+                    <option
+                      key={cat._id}
+                      value={cat._id}
+                      className="bg-gray-900"
+                    >
+                      {cat.name}
                     </option>
-                    {categories.map((cat) => (
-                      <option
-                        key={cat._id}
-                        value={cat._id}
-                        className="bg-gray-900"
-                      >
-                        {cat.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-purple-200 mb-2">
-                    Nhãn hàng <span className="text-red-400">*</span>
-                  </label>
-                  <div className="flex gap-2">
-                    <select
-                      value={formData.brandId || ""}
-                      onChange={(e) =>
-                        setFormData({ ...formData, brandId: e.target.value })
-                      }
-                      className="flex-1 px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-400 text-white backdrop-blur-sm"
-                      required
-                    >
-                      <option value="" className="bg-gray-900">
-                        Chọn nhãn hàng
-                      </option>
-                      {brands.map((brand) => (
-                        <option
-                          key={brand._id}
-                          value={brand._id}
-                          className="bg-gray-900"
-                        >
-                          {brand.name}
-                        </option>
-                      ))}
-                    </select>
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        try {
-                          const brandsList = await brandService.getAll();
-                          setBrands(brandsList);
-                          toast.success("Đã tải lại danh sách nhãn hàng");
-                        } catch (error) {
-                          toast.error("Không thể tải lại danh sách nhãn hàng");
-                        }
-                      }}
-                      className="px-3 py-2 text-sm text-purple-200 hover:text-white border border-purple-500/30 rounded-lg hover:bg-white/10 transition-all backdrop-blur-sm"
-                      title="Tải lại danh sách"
-                    >
-                      🔄
-                    </button>
-                  </div>
-                  {brands.length === 0 && (
-                    <p className="text-xs text-purple-300 mt-1">
-                      Chưa có nhãn hàng.{" "}
-                      <a
-                        href="/brands/create"
-                        className="text-pink-400 hover:text-pink-300 hover:underline"
-                      >
-                        Tạo nhãn hàng mới
-                      </a>
-                    </p>
-                  )}
-                  {brands.length > 0 && (
-                    <p className="text-xs text-purple-300 mt-1">
-                      Có {brands.length} nhãn hàng.{" "}
-                      <a
-                        href="/brands/create"
-                        className="text-pink-400 hover:text-pink-300 hover:underline"
-                      >
-                        Thêm mới
-                      </a>
-                    </p>
-                  )}
-                </div>
+                  ))}
+                </select>
               </div>
             </motion.div>
 
@@ -506,7 +351,7 @@ export default function CreateProductPage() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
+              transition={{ delay: 0.4 }}
               className="galaxy-card rounded-xl p-6"
             >
               <h2
@@ -606,11 +451,11 @@ export default function CreateProductPage() {
               </div>
             </motion.div>
 
-            {/* Product Details */}
+            {/* Price & Stock */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
+              transition={{ delay: 0.3 }}
               className="galaxy-card rounded-xl p-6"
             >
               <h2
@@ -623,127 +468,28 @@ export default function CreateProductPage() {
                   backgroundClip: "text",
                 }}
               >
-                Chi tiết sản phẩm
+                Giá & Tồn kho
               </h2>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-purple-200 mb-2">
-                    Loại sản phẩm
-                  </label>
-                  <select
-                    value={formData.productType}
-                    onChange={(e) =>
-                      setFormData({ ...formData, productType: e.target.value })
-                    }
-                    className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-400 text-white backdrop-blur-sm"
-                  >
-                    {PRODUCT_TYPES.map((type) => (
-                      <option
-                        key={type.value}
-                        value={type.value}
-                        className="bg-gray-900"
-                      >
-                        {type.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-purple-200 mb-2">
-                    Giá gốc <span className="text-red-400">*</span>
+                    Giá <span className="text-red-400">*</span>
                   </label>
                   <input
                     type="number"
                     value={formData.price || ""}
-                    onChange={(e) => {
-                      const price = parseFloat(e.target.value) || 0;
-                      const discount = calculateDiscount(
-                        price,
-                        formData.salePrice || 0,
-                      );
+                    onChange={(e) =>
                       setFormData({
                         ...formData,
-                        price,
-                        discountPercentage: discount,
-                      });
-                    }}
+                        price: parseFloat(e.target.value) || 0,
+                      })
+                    }
                     min="0"
                     className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-400 text-white placeholder-purple-300 backdrop-blur-sm"
                     placeholder="VNĐ"
                     required
                   />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-purple-200 mb-2">
-                    Giá khuyến mãi
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.salePrice || ""}
-                    onChange={(e) => {
-                      const salePrice = parseFloat(e.target.value) || 0;
-                      const discount = calculateDiscount(
-                        formData.price || 0,
-                        salePrice,
-                      );
-                      setFormData({
-                        ...formData,
-                        salePrice,
-                        discountPercentage: discount,
-                      });
-                    }}
-                    min="0"
-                    className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-400 text-white placeholder-purple-300 backdrop-blur-sm"
-                    placeholder="VNĐ (để trống nếu không KM)"
-                  />
-                  {formData.salePrice > 0 &&
-                    formData.salePrice >= formData.price && (
-                      <p className="text-xs text-red-400 mt-1">
-                        Giá khuyến mãi phải nhỏ hơn giá gốc
-                      </p>
-                    )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-purple-200 mb-2">
-                    Giảm giá
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={
-                        formData.discountPercentage
-                          ? `${formData.discountPercentage}%`
-                          : "0%"
-                      }
-                      disabled
-                      className="w-full px-4 py-2 bg-white/5 border border-purple-500/20 rounded-lg text-purple-400 cursor-not-allowed"
-                    />
-                    {formData.discountPercentage > 0 && (
-                      <span
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-green-400 text-sm font-medium"
-                        style={{
-                          background:
-                            "linear-gradient(135deg, #10b981, #14b8a6)",
-                          WebkitBackgroundClip: "text",
-                          WebkitTextFillColor: "transparent",
-                          backgroundClip: "text",
-                        }}
-                      >
-                        Tiết kiệm{" "}
-                        {(formData.price - formData.salePrice).toLocaleString(
-                          "vi-VN",
-                        )}
-                        ₫
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-xs text-purple-300 mt-1">
-                    Tự động tính từ giá gốc và giá khuyến mãi
-                  </p>
                 </div>
 
                 <div>
@@ -764,285 +510,6 @@ export default function CreateProductPage() {
                     placeholder="0"
                   />
                 </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-purple-200 mb-2">
-                    Dung tích
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.volume}
-                    onChange={(e) =>
-                      setFormData({ ...formData, volume: e.target.value })
-                    }
-                    placeholder="50ml"
-                    className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-400 text-white placeholder-purple-300 backdrop-blur-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-purple-200 mb-2">
-                    Khối lượng (gram)
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.weight || ""}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        weight: parseFloat(e.target.value) || 0,
-                      })
-                    }
-                    min="0"
-                    placeholder="100"
-                    className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-400 text-white placeholder-purple-300 backdrop-blur-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-purple-200 mb-2">
-                    Loại da phù hợp
-                  </label>
-                  <select
-                    multiple
-                    value={formData.skinType}
-                    onChange={(e) => {
-                      const selected = Array.from(
-                        e.target.selectedOptions,
-                        (option) => option.value,
-                      );
-                      setFormData({ ...formData, skinType: selected });
-                    }}
-                    className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-400 text-white backdrop-blur-sm"
-                    size={3}
-                  >
-                    {SKIN_TYPES.map((type) => (
-                      <option
-                        key={type.value}
-                        value={type.value}
-                        className="bg-gray-900"
-                      >
-                        {type.label}
-                      </option>
-                    ))}
-                  </select>
-                  <p className="text-xs text-purple-300 mt-1">
-                    Giữ Ctrl/Cmd để chọn nhiều
-                  </p>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Additional Information */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-              className="galaxy-card rounded-xl p-6"
-            >
-              <h2
-                className="text-lg font-semibold mb-4"
-                style={{
-                  background:
-                    "linear-gradient(135deg, #fbbf24, #f59e0b, #ec4899)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                }}
-              >
-                Thông tin bổ sung
-              </h2>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-purple-200 mb-2">
-                    Thành phần
-                  </label>
-                  <textarea
-                    value={formData.ingredients}
-                    onChange={(e) =>
-                      setFormData({ ...formData, ingredients: e.target.value })
-                    }
-                    rows={3}
-                    className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-400 text-white placeholder-purple-300 backdrop-blur-sm"
-                    placeholder="Danh sách thành phần"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-purple-200 mb-2">
-                    Hướng dẫn sử dụng
-                  </label>
-                  <textarea
-                    value={formData.howToUse}
-                    onChange={(e) =>
-                      setFormData({ ...formData, howToUse: e.target.value })
-                    }
-                    rows={3}
-                    className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-400 text-white placeholder-purple-300 backdrop-blur-sm"
-                    placeholder="Hướng dẫn sử dụng sản phẩm"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-purple-200 mb-2">
-                      Xuất xứ
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.origin}
-                      onChange={(e) =>
-                        setFormData({ ...formData, origin: e.target.value })
-                      }
-                      className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-400 text-white placeholder-purple-300 backdrop-blur-sm"
-                      placeholder="Xuất xứ"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-purple-200 mb-2">
-                      Nơi sản xuất
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.madeIn}
-                      onChange={(e) =>
-                        setFormData({ ...formData, madeIn: e.target.value })
-                      }
-                      className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-400 text-white placeholder-purple-300 backdrop-blur-sm"
-                      placeholder="Nơi sản xuất"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-purple-200 mb-2">
-                      Hạn sử dụng (tháng)
-                    </label>
-                    <input
-                      type="number"
-                      value={formData.expiryMonths}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          expiryMonths: parseInt(e.target.value) || 24,
-                        })
-                      }
-                      min="1"
-                      className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-400 text-white placeholder-purple-300 backdrop-blur-sm"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-6">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={formData.featured}
-                      onChange={(e) =>
-                        setFormData({ ...formData, featured: e.target.checked })
-                      }
-                      className="w-4 h-4 text-pink-500 border-purple-500/30 rounded focus:ring-pink-500 bg-white/10"
-                    />
-                    <span className="text-sm text-purple-200">
-                      Sản phẩm nổi bật
-                    </span>
-                  </label>
-
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={formData.isNewArrival}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          isNewArrival: e.target.checked,
-                        })
-                      }
-                      className="w-4 h-4 text-pink-500 border-purple-500/30 rounded focus:ring-pink-500 bg-white/10"
-                    />
-                    <span className="text-sm text-purple-200">
-                      Sản phẩm mới
-                    </span>
-                  </label>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* SEO Information */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 }}
-              className="galaxy-card rounded-xl p-6"
-            >
-              <h2
-                className="text-lg font-semibold mb-4"
-                style={{
-                  background:
-                    "linear-gradient(135deg, #fbbf24, #f59e0b, #ec4899)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                }}
-              >
-                Thông tin SEO
-              </h2>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-purple-200 mb-2">
-                    Meta Title
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.metaTitle || ""}
-                    onChange={(e) =>
-                      setFormData({ ...formData, metaTitle: e.target.value })
-                    }
-                    className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-400 text-white placeholder-purple-300 backdrop-blur-sm"
-                    placeholder="Tiêu đề SEO"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-purple-200 mb-2">
-                    Meta Description
-                  </label>
-                  <textarea
-                    value={formData.metaDescription || ""}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        metaDescription: e.target.value,
-                      })
-                    }
-                    rows={2}
-                    className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-400 text-white placeholder-purple-300 backdrop-blur-sm"
-                    placeholder="Mô tả SEO"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-purple-200 mb-2">
-                    Meta Keywords (phân cách bằng dấu phẩy)
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.metaKeywords?.join(", ") || ""}
-                    onChange={(e) => {
-                      const keywords = e.target.value
-                        .split(",")
-                        .map((k) => k.trim())
-                        .filter((k) => k.length > 0);
-                      setFormData({ ...formData, metaKeywords: keywords });
-                    }}
-                    className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-400 text-white placeholder-purple-300 backdrop-blur-sm"
-                    placeholder="keyword1, keyword2, keyword3"
-                  />
-                </div>
               </div>
             </motion.div>
 
@@ -1050,7 +517,7 @@ export default function CreateProductPage() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.7 }}
+              transition={{ delay: 0.5 }}
               className="flex items-center justify-end gap-4"
             >
               <a

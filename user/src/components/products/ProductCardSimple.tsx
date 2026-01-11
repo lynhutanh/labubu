@@ -1,10 +1,16 @@
 import { Star, ShoppingCart, Heart, Eye } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/router";
+import { cartService } from "../../services/cart.service";
+import { wishlistService } from "../../services/wishlist.service";
+import { storage } from "../../utils/storage";
+import toast from "react-hot-toast";
 
 interface ProductCardSimpleProps {
-    id: string | number;
+    id: string | number; // For URL (slug or _id)
+    productId?: string; // Actual product _id for API calls
     name: string;
     brand: string;
     price: number;
@@ -19,6 +25,7 @@ interface ProductCardSimpleProps {
 
 export default function ProductCardSimple({
     id,
+    productId,
     name,
     brand,
     price,
@@ -30,23 +37,105 @@ export default function ProductCardSimple({
     discount,
     stock,
 }: ProductCardSimpleProps) {
+    const router = useRouter();
     const [isInWishlist, setIsInWishlist] = useState(false);
     const [isAddingToCart, setIsAddingToCart] = useState(false);
+    const [isTogglingWishlist, setIsTogglingWishlist] = useState(false);
     const isInStock = stock === undefined || stock === null || stock > 0;
 
-    const handleAddToCart = (e: React.MouseEvent) => {
+    // Check if product is in wishlist on mount
+    useEffect(() => {
+        const checkWishlistStatus = async () => {
+            const user = storage.getUser();
+            if (!user || !productId) return;
+
+            try {
+                const isInWishlist = await wishlistService.checkProduct(productId);
+                setIsInWishlist(isInWishlist);
+            } catch (error) {
+                // Silently fail - user might not be logged in
+                console.error("Failed to check wishlist status:", error);
+            }
+        };
+
+        checkWishlistStatus();
+    }, [productId]);
+
+    const handleAddToCart = async (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
+
+        // Check if user is logged in
+        const user = storage.getUser();
+        if (!user) {
+            toast.error("Vui lòng đăng nhập để thêm vào giỏ hàng");
+            router.push("/login");
+            return;
+        }
+
+        if (!isInStock) {
+            toast.error("Sản phẩm đã hết hàng");
+            return;
+        }
+
         setIsAddingToCart(true);
-        setTimeout(() => {
+        try {
+            // Use productId if provided, otherwise use id (might be _id or slug)
+            const actualProductId = productId || (typeof id === "string" ? id : String(id));
+            await cartService.addToCart({
+                productId: actualProductId,
+                quantity: 1,
+            });
+            toast.success("Đã thêm vào giỏ hàng!");
+        } catch (error: any) {
+            console.error("Error adding to cart:", error);
+            const message = error?.response?.data?.message || error?.message || "Không thể thêm vào giỏ hàng";
+            toast.error(message);
+        } finally {
             setIsAddingToCart(false);
-        }, 1000);
+        }
     };
 
-    const handleToggleWishlist = (e: React.MouseEvent) => {
+    const handleToggleWishlist = async (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        setIsInWishlist(!isInWishlist);
+
+        // Check if user is logged in
+        const user = storage.getUser();
+        if (!user) {
+            toast.error("Vui lòng đăng nhập để thêm vào danh sách yêu thích");
+            router.push("/login");
+            return;
+        }
+
+        // Use productId if provided, otherwise use id (might be _id or slug)
+        const actualProductId = productId || (typeof id === "string" ? id : String(id));
+        
+        if (!actualProductId) {
+            toast.error("Không tìm thấy ID sản phẩm");
+            return;
+        }
+
+        setIsTogglingWishlist(true);
+        try {
+            if (isInWishlist) {
+                // Remove from wishlist
+                await wishlistService.removeFromWishlist({ productId: actualProductId });
+                setIsInWishlist(false);
+                toast.success("Đã xóa khỏi danh sách yêu thích");
+            } else {
+                // Add to wishlist
+                await wishlistService.addToWishlist({ productId: actualProductId });
+                setIsInWishlist(true);
+                toast.success("Đã thêm vào danh sách yêu thích");
+            }
+        } catch (error: any) {
+            console.error("Error toggling wishlist:", error);
+            const message = error?.response?.data?.message || error?.message || "Không thể cập nhật danh sách yêu thích";
+            toast.error(message);
+        } finally {
+            setIsTogglingWishlist(false);
+        }
     };
 
     return (
@@ -93,7 +182,8 @@ export default function ProductCardSimple({
                 {/* Wishlist Button - Top Left */}
                 <button
                     onClick={handleToggleWishlist}
-                    className={`absolute top-3 left-3 z-10 w-9 h-9 rounded-full backdrop-blur-md flex items-center justify-center transition-all ${isInWishlist
+                    disabled={isTogglingWishlist}
+                    className={`absolute top-3 left-3 z-10 w-9 h-9 rounded-full backdrop-blur-md flex items-center justify-center transition-all disabled:opacity-50 disabled:cursor-not-allowed ${isInWishlist
                             ? "bg-pink-500/80 border-2 border-pink-400 shadow-lg shadow-pink-500/50"
                             : "bg-white/10 border border-white/20 hover:bg-white/20"
                         }`}
@@ -142,17 +232,20 @@ export default function ProductCardSimple({
                 {/* Quick Actions - Bottom Overlay */}
                 <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/90 via-black/70 to-transparent translate-y-full group-hover:translate-y-0 transition-transform duration-300 backdrop-blur-sm">
                     <div className="flex flex-col gap-2">
-                        <button
+                        <Link 
+                            href={`/products/${id}`}
+                            className="w-full block"
                             onClick={(e) => {
-                                e.preventDefault();
                                 e.stopPropagation();
-                                // TODO: Open quick view modal
                             }}
-                            className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-2 rounded-lg font-semibold text-sm hover:from-purple-500 hover:to-indigo-500 transition-all flex items-center justify-center gap-2 shadow-lg shadow-purple-500/50"
                         >
-                            <Eye className="w-4 h-4" />
-                            Xem nhanh sản phẩm
-                        </button>
+                            <button
+                                className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-2 rounded-lg font-semibold text-sm hover:from-purple-500 hover:to-indigo-500 transition-all flex items-center justify-center gap-2 shadow-lg shadow-purple-500/50"
+                            >
+                                <Eye className="w-4 h-4" />
+                                Xem nhanh sản phẩm
+                            </button>
+                        </Link>
                         <button
                             onClick={handleAddToCart}
                             disabled={!isInStock || isAddingToCart}

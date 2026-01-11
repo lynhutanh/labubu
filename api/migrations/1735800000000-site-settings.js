@@ -4,7 +4,7 @@ const settings = [
   // Site Settings
   {
     key: 'siteName',
-    value: 'Cosmetics Shop',
+    value: 'Labubu Shop',
     name: 'Tên website',
     description: 'Tên hiển thị của website',
     public: true,
@@ -16,7 +16,7 @@ const settings = [
   },
   {
     key: 'siteTitle',
-    value: 'Cosmetics - Mỹ phẩm chính hãng',
+    value: 'Labubu - chính hãng',
     name: 'Tiêu đề website',
     description: 'Tiêu đề SEO của website',
     public: true,
@@ -28,7 +28,7 @@ const settings = [
   },
   {
     key: 'siteDescription',
-    value: 'Cửa hàng mỹ phẩm chính hãng với đa dạng sản phẩm chăm sóc da, trang điểm từ các thương hiệu uy tín.',
+    value: 'Labubu chính hãng với đa dạng sản phẩm ',
     name: 'Mô tả website',
     description: 'Mô tả SEO của website',
     public: true,
@@ -77,7 +77,7 @@ const settings = [
   // Contact Settings
   {
     key: 'contactEmail',
-    value: 'contact@cosmetics.com',
+    value: 'contact@labubu.com',
     name: 'Email liên hệ',
     description: 'Email liên hệ chính của cửa hàng',
     public: true,

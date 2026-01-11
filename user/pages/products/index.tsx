@@ -1,70 +1,160 @@
 import Head from "next/head";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Search, Grid3x3, List, SlidersHorizontal } from "lucide-react";
 import Layout from "../../src/components/layout/Layout";
 import ProductCardSimple from "../../src/components/products/ProductCardSimple";
+import { productService, Product } from "../../src/services/product.service";
+import { categoryService, Category } from "../../src/services/category.service";
 
-// Fake data - 3 products
-const fakeProducts = [
-    {
-        id: "1",
-        name: "Sticker Labubu Premium - Bộ 10 mẫu độc đáo",
-        brand: "Labubu",
-        price: 250000,
-        originalPrice: 300000,
-        rating: 4.8,
-        reviewCount: 156,
-        image:
-            "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=600&h=600&fit=crop",
-        badge: "Best Seller" as const,
-        discount: 17,
-        stock: 50,
-    },
-    {
-        id: "2",
-        name: "Sticker Cute Animal Collection - Bộ 15 mẫu",
-        brand: "Labubu",
-        price: 320000,
-        originalPrice: 380000,
-        rating: 4.9,
-        reviewCount: 203,
-        image:
-            "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=600&h=600&fit=crop",
-        badge: "Hot" as const,
-        discount: 16,
-        stock: 35,
-    },
-    {
-        id: "3",
-        name: "Sticker Kawaii Style - Bộ 12 mẫu siêu dễ thương",
-        brand: "Labubu",
-        price: 280000,
-        originalPrice: 350000,
-        rating: 4.7,
-        reviewCount: 128,
-        image:
-            "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&h=600&fit=crop",
-        badge: "New" as const,
-        discount: 20,
-        stock: 42,
-    },
-];
+// Helper function to map Product from API to ProductCardSimple format
+const mapProductToCard = (product: Product) => {
+    // Get image from files array or coverImage
+    const firstImage = 
+        product.files?.[0]?.url || 
+        product.files?.[0]?.thumbnailUrl || 
+        (product as any).coverImage || 
+        "";
+    
+    const displayPrice = product.salePrice && product.salePrice > 0 ? product.salePrice : product.price;
+    const originalPrice = product.salePrice && product.salePrice > 0 ? product.price : undefined;
+    const discount = originalPrice 
+        ? Math.round(((originalPrice - displayPrice) / originalPrice) * 100)
+        : undefined;
+    
+    // Determine badge based on product data
+    let badge: "Best Seller" | "Hot" | "New" | undefined = undefined;
+    if (product.soldCount && product.soldCount > 50) {
+        badge = "Best Seller";
+    } else if (product.salePrice && product.salePrice > 0) {
+        badge = "Hot";
+    } else {
+        badge = "New";
+    }
+
+    // Get category name - categoryId might be string ID or object
+    let categoryName = "Labubu";
+    if (product.categoryId) {
+        if (typeof product.categoryId === "object" && product.categoryId.name) {
+            categoryName = product.categoryId.name;
+        } else if ((product as any).category && typeof (product as any).category === "object") {
+            categoryName = (product as any).category.name || "Labubu";
+        }
+    }
+
+    return {
+        id: product.slug || product._id, // Use slug for URL, fallback to _id
+        productId: product._id, // Actual product _id for API calls
+        name: product.name,
+        brand: categoryName,
+        price: displayPrice,
+        originalPrice: originalPrice,
+        rating: product.rating || 0,
+        reviewCount: product.reviewCount || 0,
+        image: firstImage,
+        badge: badge,
+        discount: discount,
+        stock: product.stock,
+    };
+};
 
 export default function ProductsPage() {
+    const [products, setProducts] = useState<Product[]>([]);
+    const [categories, setCategories] = useState<Category[]>([]);
+    const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
+    const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
     const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
     const [showFilters, setShowFilters] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState("all");
     const [priceRange, setPriceRange] = useState("all");
     const [sortBy, setSortBy] = useState("default");
 
-    const filteredProducts = fakeProducts.filter((product) => {
-        if (searchQuery) {
-            return product.name.toLowerCase().includes(searchQuery.toLowerCase());
-        }
-        return true;
-    });
+    // Debounce search query
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearchQuery(searchQuery);
+        }, 500); // Wait 500ms after user stops typing
+
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
+
+    // Load categories on mount
+    useEffect(() => {
+        const loadCategories = async () => {
+            try {
+                const cats = await categoryService.getAll();
+                setCategories(cats);
+            } catch (error) {
+                console.error("Error loading categories:", error);
+            }
+        };
+        loadCategories();
+    }, []);
+
+    // Load products with filters whenever filters change
+    useEffect(() => {
+        const loadProducts = async () => {
+            try {
+                setLoading(true);
+                
+                // Build search params
+                const searchParams: any = {
+                    limit: 100,
+                };
+
+                // Add keyword if search query exists
+                if (debouncedSearchQuery) {
+                    searchParams.keyword = debouncedSearchQuery;
+                }
+
+                // Add category filter
+                if (selectedCategory !== "all") {
+                    searchParams.categoryId = selectedCategory;
+                }
+
+                // Add price range filter
+                if (priceRange !== "all") {
+                    const [min, max] = priceRange.split("-").map(Number);
+                    searchParams.minPrice = min;
+                    if (max) {
+                        searchParams.maxPrice = max;
+                    }
+                }
+
+                // Add sort
+                if (sortBy === "price-asc") {
+                    searchParams.sortBy = "price";
+                    searchParams.sortOrder = "asc";
+                } else if (sortBy === "price-desc") {
+                    searchParams.sortBy = "price";
+                    searchParams.sortOrder = "desc";
+                } else if (sortBy === "rating") {
+                    searchParams.sortBy = "rating";
+                    searchParams.sortOrder = "desc";
+                } else if (sortBy === "newest") {
+                    searchParams.sortBy = "createdAt";
+                    searchParams.sortOrder = "desc";
+                } else {
+                    // default
+                    searchParams.sortBy = "createdAt";
+                    searchParams.sortOrder = "desc";
+                }
+
+                const prodsResponse = await productService.search(searchParams);
+                setProducts(prodsResponse.data || []);
+            } catch (error) {
+                console.error("Error loading products:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        
+        loadProducts();
+    }, [debouncedSearchQuery, selectedCategory, priceRange, sortBy]);
+
+    // Use products directly (already filtered by API)
+    const filteredProducts = products;
 
     return (
         <Layout>
@@ -164,17 +254,21 @@ export default function ProductsPage() {
             <section className="relative py-12 min-h-screen">
                 <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     {/* Search and Filter Bar */}
-                    <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="galaxy-card rounded-2xl p-6 mb-8 backdrop-blur-sm"
+                    >
                         <div className="flex flex-col lg:flex-row gap-4">
                             {/* Search Input */}
                             <div className="flex-1 relative">
-                                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-purple-300 w-5 h-5 z-10" />
                                 <input
                                     type="text"
                                     placeholder="Tìm kiếm sản phẩm..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all"
+                                    className="w-full pl-12 pr-4 py-3 bg-white/10 border border-purple-500/30 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-400 text-white placeholder-purple-300 backdrop-blur-sm transition-all"
                                 />
                             </div>
 
@@ -182,29 +276,35 @@ export default function ProductsPage() {
                             <div className="flex gap-3">
                                 <button
                                     onClick={() => setShowFilters(!showFilters)}
-                                    className="flex items-center gap-2 px-6 py-3 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors"
+                                    className="flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 border border-purple-500/30 rounded-lg font-medium text-purple-200 transition-all backdrop-blur-sm"
                                 >
                                     <SlidersHorizontal className="w-5 h-5" />
                                     Lọc
                                 </button>
 
                                 {/* View Mode Toggle */}
-                                <div className="flex border border-gray-300 rounded-lg overflow-hidden">
+                                <div className="flex border border-purple-500/30 rounded-lg overflow-hidden backdrop-blur-sm">
                                     <button
                                         onClick={() => setViewMode("grid")}
                                         className={`p-3 transition-colors ${viewMode === "grid"
-                                                ? "bg-pink-500 text-white"
-                                                : "bg-white text-gray-600 hover:bg-gray-100"
+                                                ? "bg-gradient-to-r from-pink-500 to-purple-600 text-white"
+                                                : "bg-white/10 text-purple-200 hover:bg-white/20"
                                             }`}
+                                        style={viewMode === "grid" ? {
+                                            boxShadow: "0 0 20px rgba(236, 72, 153, 0.4)",
+                                        } : {}}
                                     >
                                         <Grid3x3 className="w-5 h-5" />
                                     </button>
                                     <button
                                         onClick={() => setViewMode("list")}
                                         className={`p-3 transition-colors ${viewMode === "list"
-                                                ? "bg-pink-500 text-white"
-                                                : "bg-white text-gray-600 hover:bg-gray-100"
+                                                ? "bg-gradient-to-r from-pink-500 to-purple-600 text-white"
+                                                : "bg-white/10 text-purple-200 hover:bg-white/20"
                                             }`}
+                                        style={viewMode === "list" ? {
+                                            boxShadow: "0 0 20px rgba(236, 72, 153, 0.4)",
+                                        } : {}}
                                     >
                                         <List className="w-5 h-5" />
                                     </button>
@@ -218,78 +318,91 @@ export default function ProductsPage() {
                                 initial={{ opacity: 0, height: 0 }}
                                 animate={{ opacity: 1, height: "auto" }}
                                 exit={{ opacity: 0, height: 0 }}
-                                className="mt-6 pt-6 border-t border-gray-200"
+                                className="mt-6 pt-6 border-t border-purple-500/30"
                             >
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     {/* Category Filter */}
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        <label className="block text-sm font-medium text-purple-200 mb-2">
                                             Danh mục
                                         </label>
                                         <select
                                             value={selectedCategory}
                                             onChange={(e) => setSelectedCategory(e.target.value)}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                                            className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-400 text-white backdrop-blur-sm"
                                         >
-                                            <option value="all">Tất cả</option>
-                                            <option value="premium">Premium</option>
-                                            <option value="cute">Cute</option>
-                                            <option value="kawaii">Kawaii</option>
+                                            <option value="all" className="bg-gray-900">Tất cả</option>
+                                            {categories.map((cat) => (
+                                                <option key={cat._id} value={cat._id} className="bg-gray-900">
+                                                    {cat.name}
+                                                </option>
+                                            ))}
                                         </select>
                                     </div>
 
                                     {/* Price Range Filter */}
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        <label className="block text-sm font-medium text-purple-200 mb-2">
                                             Khoảng giá
                                         </label>
                                         <select
                                             value={priceRange}
                                             onChange={(e) => setPriceRange(e.target.value)}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                                            className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-400 text-white backdrop-blur-sm"
                                         >
-                                            <option value="all">Tất cả</option>
-                                            <option value="0-200000">0₫ - 200.000₫</option>
-                                            <option value="200000-300000">200.000₫ - 300.000₫</option>
-                                            <option value="300000+">Trên 300.000₫</option>
+                                            <option value="all" className="bg-gray-900">Tất cả</option>
+                                            <option value="0-200000" className="bg-gray-900">0₫ - 200.000₫</option>
+                                            <option value="200000-300000" className="bg-gray-900">200.000₫ - 300.000₫</option>
+                                            <option value="300000+" className="bg-gray-900">Trên 300.000₫</option>
                                         </select>
                                     </div>
 
                                     {/* Sort By */}
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        <label className="block text-sm font-medium text-purple-200 mb-2">
                                             Sắp xếp
                                         </label>
                                         <select
                                             value={sortBy}
                                             onChange={(e) => setSortBy(e.target.value)}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                                            className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-400 text-white backdrop-blur-sm"
                                         >
-                                            <option value="default">Mặc định</option>
-                                            <option value="price-asc">Giá: Thấp đến cao</option>
-                                            <option value="price-desc">Giá: Cao đến thấp</option>
-                                            <option value="rating">Đánh giá cao nhất</option>
-                                            <option value="newest">Mới nhất</option>
+                                            <option value="default" className="bg-gray-900">Mặc định</option>
+                                            <option value="price-asc" className="bg-gray-900">Giá: Thấp đến cao</option>
+                                            <option value="price-desc" className="bg-gray-900">Giá: Cao đến thấp</option>
+                                            <option value="rating" className="bg-gray-900">Đánh giá cao nhất</option>
+                                            <option value="newest" className="bg-gray-900">Mới nhất</option>
                                         </select>
                                     </div>
                                 </div>
                             </motion.div>
                         )}
-                    </div>
+                    </motion.div>
 
                     {/* Results Count */}
                     <div className="mb-6 flex items-center justify-between">
                         <p className="text-white">
-                            Tìm thấy{" "}
-                            <span className="font-semibold text-pink-600">
-                                {filteredProducts.length}
-                            </span>{" "}
-                            sản phẩm
+                            {loading ? (
+                                "Đang tải..."
+                            ) : (
+                                <>
+                                    Tìm thấy{" "}
+                                    <span className="font-semibold text-pink-600">
+                                        {filteredProducts.length}
+                                    </span>{" "}
+                                    sản phẩm
+                                </>
+                            )}
                         </p>
                     </div>
 
                     {/* Products Grid */}
-                    {filteredProducts.length > 0 ? (
+                    {loading ? (
+                        <div className="text-center py-20">
+                            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500"></div>
+                            <p className="mt-4 text-white">Đang tải sản phẩm...</p>
+                        </div>
+                    ) : filteredProducts.length > 0 ? (
                         <div
                             className={
                                 viewMode === "grid"
@@ -299,7 +412,7 @@ export default function ProductsPage() {
                         >
                             {filteredProducts.map((product, index) => (
                                 <motion.div
-                                    key={product.id}
+                                    key={product._id}
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{
@@ -307,7 +420,7 @@ export default function ProductsPage() {
                                         delay: index * 0.1,
                                     }}
                                 >
-                                    <ProductCardSimple {...product} />
+                                    <ProductCardSimple {...mapProductToCard(product)} />
                                 </motion.div>
                             ))}
                         </div>
