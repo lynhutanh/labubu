@@ -18,4 +18,3 @@ import { ProductModule } from "../products/product.module";
   exports: [...cartProviders, CartService],
 })
 export class CartModule {}
-

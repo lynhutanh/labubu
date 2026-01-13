@@ -18,4 +18,3 @@ import { ProductModule } from "../products/product.module";
   exports: [...brandProviders, BrandService],
 })
 export class BrandModule {}
-

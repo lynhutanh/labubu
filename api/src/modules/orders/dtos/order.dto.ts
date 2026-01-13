@@ -124,6 +124,9 @@ export class OrderDto {
   paymentUrl?: string;
 
   @Expose()
+  paymentRef?: string;
+
+  @Expose()
   status: string;
 
   @Expose()
@@ -169,6 +172,7 @@ export class OrderDto {
       this.paymentStatus = init.paymentStatus;
       this.paymentTransactionId = init.paymentTransactionId;
       this.paymentUrl = init.paymentUrl;
+      this.paymentRef = init.paymentRef;
       this.status = init.status;
       this.cancelReason = init.cancelReason;
       this.cancelledAt = init.cancelledAt;
@@ -198,6 +202,7 @@ export class OrderDto {
       paymentStatus: this.paymentStatus,
       paymentTransactionId: this.paymentTransactionId,
       paymentUrl: this.paymentUrl,
+      paymentRef: this.paymentRef,
       status: this.status,
       cancelReason: this.cancelReason,
       cancelledAt: this.cancelledAt,

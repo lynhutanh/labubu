@@ -30,6 +30,13 @@ const getTabConfig = (): TabConfig[] => [
     color: "from-green-500 to-emerald-500",
     description: "Cấu hình thông tin liên hệ.",
   },
+  {
+    key: "payment",
+    title: "Thanh toán",
+    icon: CreditCard,
+    color: "from-green-500 to-emerald-500",
+    description: "Cấu hình thông tin thanh toán.",
+  },
 ];
 
 export default function SettingsPage() {
@@ -145,21 +152,20 @@ export default function SettingsPage() {
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className={`mb-4 px-4 py-3 rounded-lg backdrop-blur-sm ${
-                  message.type === "success"
-                    ? "bg-green-500/20 text-green-300 border border-green-400/30"
-                    : "bg-red-500/20 text-red-300 border border-red-400/30"
-                }`}
+                className={`mb-4 px-4 py-3 rounded-lg backdrop-blur-sm ${message.type === "success"
+                  ? "bg-green-500/20 text-green-300 border border-green-400/30"
+                  : "bg-red-500/20 text-red-300 border border-red-400/30"
+                  }`}
               >
                 {message.text}
               </motion.div>
             )}
 
-        <SettingsTabs
-          activeTab={selectedTab}
-          onTabChange={handleTabChange}
-          tabs={tabConfig}
-        />
+            <SettingsTabs
+              activeTab={selectedTab}
+              onTabChange={handleTabChange}
+              tabs={tabConfig}
+            />
 
             <div className="px-2">
               <div className="mb-6">
@@ -214,15 +220,14 @@ export default function SettingsPage() {
                       }
                       className={`
                         inline-flex items-center gap-2 px-6 py-2.5 rounded-lg font-medium transition-all duration-200 shadow-lg
-                        ${
-                          updating || Object.keys(dataChange.current).length === 0
-                            ? "bg-white/10 text-purple-400 cursor-not-allowed border border-purple-500/20"
-                            : "bg-gradient-to-r from-pink-500 to-purple-600 text-white hover:opacity-90"
+                        ${updating || Object.keys(dataChange.current).length === 0
+                          ? "bg-white/10 text-purple-400 cursor-not-allowed border border-purple-500/20"
+                          : "bg-gradient-to-r from-pink-500 to-purple-600 text-white hover:opacity-90"
                         }
                       `}
                       style={{
-                        boxShadow: updating || Object.keys(dataChange.current).length === 0 
-                          ? "none" 
+                        boxShadow: updating || Object.keys(dataChange.current).length === 0
+                          ? "none"
                           : "0 0 25px rgba(236, 72, 153, 0.5)",
                       }}
                     >

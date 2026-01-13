@@ -16,6 +16,7 @@ export const PAYMENT_METHOD = {
   WALLET: "wallet",
   PAYPAL: "paypal",
   ZALOPAY: "zalopay",
+  SEPAY: "sepay",
 } as const;
 
 export const PAYMENT_STATUS = {

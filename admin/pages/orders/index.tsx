@@ -1,7 +1,7 @@
 import Head from "next/head";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { Search, ShoppingBag, Eye, Filter } from "lucide-react";
+import { Search, ShoppingBag, Eye, Filter, Package } from "lucide-react";
 import { orderService } from "../../src/services";
 import { OrderResponse } from "../../src/interfaces";
 import { storage } from "../../src/utils/storage";
@@ -12,9 +12,10 @@ import toast from "react-hot-toast";
 const STATUSES = [
   { value: "", label: "Tất cả" },
   { value: "pending", label: "Chờ xử lý" },
-  { value: "processing", label: "Đang xử lý" },
-  { value: "shipped", label: "Đã giao hàng" },
-  { value: "delivered", label: "Đã nhận hàng" },
+  { value: "processing", label: "Người bán đang chuẩn bị hàng" },
+  { value: "shipping", label: "Đang giao hàng" },
+  { value: "delivered", label: "Đã giao" },
+  { value: "completed", label: "Hoàn thành" },
   { value: "cancelled", label: "Đã hủy" },
 ];
 
@@ -108,11 +109,13 @@ export default function OrdersPage() {
       case "pending":
         return "bg-yellow-500/20 text-yellow-300 border-yellow-500/30";
       case "processing":
-        return "bg-blue-500/20 text-blue-300 border-blue-500/30";
-      case "shipped":
         return "bg-purple-500/20 text-purple-300 border-purple-500/30";
+      case "shipping":
+        return "bg-indigo-500/20 text-indigo-300 border-indigo-500/30";
       case "delivered":
         return "bg-green-500/20 text-green-300 border-green-500/30";
+      case "completed":
+        return "bg-emerald-500/20 text-emerald-300 border-emerald-500/30";
       case "cancelled":
         return "bg-red-500/20 text-red-300 border-red-500/30";
       default:
@@ -218,6 +221,46 @@ export default function OrdersPage() {
                 ),
               },
               {
+                key: "items",
+                label: "Sản phẩm",
+                render: (order) => {
+                  const firstItem = order.items?.[0];
+                  if (!firstItem) {
+                    return (
+                      <span className="text-xs text-purple-300">
+                        Không có sản phẩm
+                      </span>
+                    );
+                  }
+
+                  return (
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg overflow-hidden bg-white/10 flex items-center justify-center flex-shrink-0">
+                        {firstItem.coverImage ? (
+                          <img
+                            src={firstItem.coverImage}
+                            alt={firstItem.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <Package className="w-5 h-5 text-purple-300" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium text-white truncate">
+                          {firstItem.name}
+                        </div>
+                        {order.items.length > 1 && (
+                          <div className="text-xs text-purple-300">
+                            +{order.items.length - 1} sản phẩm khác
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                },
+              },
+              {
                 key: "customer",
                 label: "Khách hàng",
                 render: (order) => (
@@ -278,13 +321,13 @@ export default function OrdersPage() {
                 label: "Thao tác",
                 align: "right",
                 render: (order) => (
-                  <a
-                    href={`/orders/${order._id}`}
+                  <button
+                    onClick={() => router.push(`/orders/${order._id}`)}
                     className="inline-flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg hover:opacity-90 transition-all text-sm"
                   >
                     <Eye className="w-4 h-4" />
                     Xem
-                  </a>
+                  </button>
                 ),
               },
             ]}

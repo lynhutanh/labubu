@@ -69,4 +69,8 @@ export class CreateTransactionDto {
   @IsOptional()
   @IsString()
   notes?: string;
+
+  @IsOptional()
+  @IsObject()
+  rawWebhook?: Record<string, unknown>;
 }

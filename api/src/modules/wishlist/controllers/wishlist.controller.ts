@@ -15,10 +15,7 @@ import { CurrentUser } from "src/modules/auth/decorators";
 import { DataResponse } from "src/kernel";
 import { WishlistService } from "../services";
 import { WishlistDto } from "../dtos";
-import {
-  AddToWishlistPayload,
-  RemoveFromWishlistPayload,
-} from "../payloads";
+import { AddToWishlistPayload, RemoveFromWishlistPayload } from "../payloads";
 
 @ApiTags("Wishlist")
 @Controller("wishlist")
@@ -94,7 +91,3 @@ export class WishlistController {
     return DataResponse.ok({ isInWishlist });
   }
 }
-
-
-
-

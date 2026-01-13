@@ -28,4 +28,3 @@ import { PaymentModule } from "../payment/payment.module";
   exports: [...orderProviders, BuyerOrderService, AdminOrderService],
 })
 export class OrderModule {}
-

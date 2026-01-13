@@ -292,7 +292,9 @@ export class PayPalService {
     headers: Record<string, string>,
   ): Promise<{ success: boolean; message: string }> {
     try {
-      this.logger.log(`[PayPal Webhook] Received event: ${webhookEvent?.event_type}`);
+      this.logger.log(
+        `[PayPal Webhook] Received event: ${webhookEvent?.event_type}`,
+      );
 
       const settings = await this.getSettings();
 
@@ -306,12 +308,7 @@ export class PayPalService {
         headers["paypal-webhook-id"] || settings.paypalWebhookId;
       if (webhookId && settings.paypalWebhookId) {
         try {
-          await verifyPayPalWebhook(
-            webhookId,
-            webhookEvent,
-            headers,
-            settings,
-          );
+          await verifyPayPalWebhook(webhookId, webhookEvent, headers, settings);
         } catch (verifyError) {
           this.logger.warn(
             `[PayPal Webhook] Verification skipped: ${verifyError instanceof Error ? verifyError.message : "Unknown"}`,
@@ -319,7 +316,9 @@ export class PayPalService {
           // Continue processing even if verification fails in sandbox
         }
       } else {
-        this.logger.warn("[PayPal Webhook] Webhook verification skipped - no webhookId configured");
+        this.logger.warn(
+          "[PayPal Webhook] Webhook verification skipped - no webhookId configured",
+        );
       }
 
       const eventType = webhookEvent.event_type;
@@ -337,7 +336,9 @@ export class PayPalService {
         case "CHECKOUT.ORDER.CANCELLED":
           return await this.handleOrderCancelled(resource);
         default:
-          this.logger.log(`[PayPal Webhook] Unhandled event type: ${eventType}`);
+          this.logger.log(
+            `[PayPal Webhook] Unhandled event type: ${eventType}`,
+          );
           return {
             success: true,
             message: `Unhandled event type: ${eventType}`,
@@ -484,7 +485,9 @@ export class PayPalService {
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
-      this.logger.error(`[PayPal] handlePaymentCaptureCompleted error: ${errorMessage}`);
+      this.logger.error(
+        `[PayPal] handlePaymentCaptureCompleted error: ${errorMessage}`,
+      );
       return {
         success: false,
         message: `Failed to process capture: ${errorMessage}`,

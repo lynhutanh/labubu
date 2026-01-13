@@ -24,7 +24,3 @@ export class BrandModel extends Document {
 
   updatedAt: Date;
 }
-
-
-
-

@@ -34,7 +34,11 @@ export class CreateUserPayload {
   @Transform(({ value }) => value?.trim().toLowerCase())
   username: string;
 
-  @ApiProperty({ description: "Password", example: "password123", required: false })
+  @ApiProperty({
+    description: "Password",
+    example: "password123",
+    required: false,
+  })
   @IsOptional()
   @IsString({ message: "Mật khẩu phải là chuỗi" })
   @MinLength(6, { message: "Mật khẩu phải có ít nhất 6 ký tự" })

@@ -181,9 +181,27 @@ export class BuyerOrderService {
       paidAt = new Date();
     }
 
+    // Generate order number first
+    const orderNumber = generateOrderNumber();
+
+    // Generate payment_ref for SePay
+    let paymentRef = "";
+    if (paymentMethod === PAYMENT_METHOD.SEPAY) {
+      paymentRef = `SP_${orderNumber}`;
+      console.log("=== SePay Order Created ===");
+      console.log("Order Number:", orderNumber);
+      console.log("Payment Ref (nội dung CK):", paymentRef);
+      console.log(
+        "⚠️ QUAN TRỌNG: User phải chuyển khoản với nội dung:",
+        paymentRef,
+      );
+      console.log("⚠️ Nếu nội dung không khớp → SePay KHÔNG gửi webhook");
+      console.log("===========================");
+    }
+
     // Create order first
     const order = await this.orderModel.create({
-      orderNumber: generateOrderNumber(),
+      orderNumber,
       buyerId,
       buyerType,
       items: orderItems,
@@ -194,6 +212,7 @@ export class BuyerOrderService {
       total,
       shippingAddress,
       paymentMethod: paymentMethod || PAYMENT_METHOD.COD,
+      paymentRef,
       paymentStatus,
       walletTransactionId,
       paidAt,
@@ -270,7 +289,8 @@ export class BuyerOrderService {
 
       if (zaloPayPayment.returncode !== 1) {
         throw new BadRequestException(
-          zaloPayPayment.returnmessage || "Không thể tạo đơn thanh toán ZaloPay",
+          zaloPayPayment.returnmessage ||
+            "Không thể tạo đơn thanh toán ZaloPay",
         );
       }
 
@@ -449,6 +469,23 @@ export class BuyerOrderService {
     const order = await this.orderModel
       .findOne({
         _id: orderId,
+        buyerId,
+        buyerType,
+      })
+      .lean();
+
+    return order ? new OrderDto(order) : null;
+  }
+
+  async findByOrderNumber(
+    user: any,
+    orderNumber: string,
+  ): Promise<OrderDto | null> {
+    const { buyerId, buyerType } = this.getBuyerInfo(user);
+
+    const order = await this.orderModel
+      .findOne({
+        orderNumber,
         buyerId,
         buyerType,
       })

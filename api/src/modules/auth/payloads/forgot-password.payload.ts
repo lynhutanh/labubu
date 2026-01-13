@@ -8,5 +8,3 @@ export class ForgotPasswordPayload {
   @IsNotEmpty()
   email: string;
 }
-
-

@@ -108,6 +108,12 @@ export const orderSchema = new Schema(
       enum: Object.values(PAYMENT_METHOD),
       default: PAYMENT_METHOD.COD,
     },
+    paymentRef: {
+      type: String,
+      default: "",
+      index: true,
+      sparse: true,
+    },
     paymentStatus: {
       type: String,
       enum: Object.values(PAYMENT_STATUS),

@@ -291,4 +291,3 @@ export class UserService {
     return updatedUser ? new UserDto(updatedUser) : null;
   }
 }
-

@@ -25,4 +25,3 @@ import { productProviders } from "../products/providers";
   exports: [...categoryProviders, CategoryService],
 })
 export class CategoryModule {}
-

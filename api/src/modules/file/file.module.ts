@@ -14,4 +14,3 @@ import { AuthModule } from "../auth/auth.module";
   exports: [...fileProviders, FileService, VideoThumbnailService],
 })
 export class FileModule {}
-

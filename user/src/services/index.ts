@@ -5,6 +5,8 @@ export { categoryService } from "./category.service";
 export { orderService } from "./order.service";
 export { productService } from "./product.service";
 export { wishlistService } from "./wishlist.service";
+export { walletService } from "./wallet.service";
+export { userService } from "./user.service";
 
 // Export API Request base class
 export { APIRequest, TOKEN } from "./api-request";

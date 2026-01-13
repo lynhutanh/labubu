@@ -87,8 +87,7 @@ export default function CartPage() {
   };
 
   const handleCheckout = () => {
-    // TODO: Navigate to checkout page
-    toast.info("Chức năng thanh toán đang được phát triển");
+    router.push("/checkout");
   };
 
   if (loading) {
@@ -106,8 +105,7 @@ export default function CartPage() {
     const price = item.product?.salePrice || item.product?.price || 0;
     return sum + price * item.quantity;
   }, 0);
-  const shippingFee = subtotal > 500000 ? 0 : 30000;
-  const total = subtotal + shippingFee;
+  const total = subtotal;
 
   return (
     <Layout>
@@ -412,22 +410,6 @@ export default function CartPage() {
                         {formatCurrency(subtotal)}₫
                       </span>
                     </div>
-                    <div className="flex justify-between text-purple-200">
-                      <span>Phí vận chuyển:</span>
-                      <span className="font-semibold text-white">
-                        {shippingFee === 0 ? (
-                          <span className="text-green-400">Miễn phí</span>
-                        ) : (
-                          `${formatCurrency(shippingFee)}₫`
-                        )}
-                      </span>
-                    </div>
-                    {subtotal < 500000 && (
-                      <p className="text-sm text-pink-300">
-                        Mua thêm {formatCurrency(500000 - subtotal)}₫ để được
-                        miễn phí vận chuyển
-                      </p>
-                    )}
                     <div className="border-t border-purple-500/30 pt-4">
                       <div className="flex justify-between text-lg font-bold text-white">
                         <span>Tổng cộng:</span>

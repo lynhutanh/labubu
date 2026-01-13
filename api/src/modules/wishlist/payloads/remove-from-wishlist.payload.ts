@@ -7,6 +7,3 @@ export class RemoveFromWishlistPayload {
   @IsString()
   productId: string;
 }
-
-
-

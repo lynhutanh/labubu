@@ -12,12 +12,14 @@ export const PAYMENT_METHOD = {
   BANK_TRANSFER: "bank_transfer",
   ZALOPAY: "zalopay",
   PAYPAL: "paypal",
+  SEPAY: "sepay",
 } as const;
 
 export const PAYMENT_PROVIDER = {
   ZALOPAY: "zalopay",
   BANK: "bank",
   PAYPAL: "paypal",
+  SEPAY: "sepay",
 } as const;
 
 export const PAYMENT_CHANNELS = {

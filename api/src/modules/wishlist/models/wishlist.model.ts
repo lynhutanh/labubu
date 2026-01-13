@@ -17,7 +17,3 @@ export interface IWishlist extends Document {
 }
 
 export type WishlistModel = IWishlist;
-
-
-
-

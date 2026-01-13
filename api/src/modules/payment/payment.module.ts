@@ -8,6 +8,8 @@ import {
   WalletController,
   AdminWalletController,
   WalletDepositController,
+  SePayController,
+  WebhookController,
 } from "./controllers";
 import {
   TransactionService,
@@ -16,6 +18,7 @@ import {
   WalletService,
   WalletTransactionService,
   WalletDepositService,
+  SePayService,
 } from "./services";
 import { UserRegisteredWalletListener } from "./listeners";
 import { AuthModule } from "../auth/auth.module";
@@ -36,6 +39,8 @@ import { OrderModule } from "../orders/order.module";
     WalletController,
     AdminWalletController,
     WalletDepositController,
+    SePayController,
+    WebhookController,
   ],
   providers: [
     ...transactionProviders,
@@ -46,6 +51,7 @@ import { OrderModule } from "../orders/order.module";
     WalletService,
     WalletTransactionService,
     WalletDepositService,
+    SePayService,
     UserRegisteredWalletListener,
   ],
   exports: [
@@ -57,7 +63,7 @@ import { OrderModule } from "../orders/order.module";
     WalletService,
     WalletTransactionService,
     WalletDepositService,
+    SePayService,
   ],
 })
 export class PaymentModule {}
-

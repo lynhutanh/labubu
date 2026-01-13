@@ -14,4 +14,3 @@ export class Username implements ValidatorConstraintInterface {
     return "Username can only contain letters, numbers, and underscores";
   }
 }
-

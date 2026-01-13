@@ -155,7 +155,9 @@ export class WishlistService {
 
     const itemIndex = findItemIndex(wishlist.items, productId);
     if (itemIndex === -1) {
-      throw new NotFoundException("Sản phẩm không có trong danh sách yêu thích");
+      throw new NotFoundException(
+        "Sản phẩm không có trong danh sách yêu thích",
+      );
     }
 
     wishlist.items.splice(itemIndex, 1);
@@ -211,7 +213,3 @@ export class WishlistService {
     return findItemIndex(wishlist.items, productId) !== -1;
   }
 }
-
-
-
-

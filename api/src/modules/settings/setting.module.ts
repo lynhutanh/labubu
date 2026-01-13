@@ -18,4 +18,3 @@ export class SettingModule implements OnModuleInit {
     await this.settingService.syncCache();
   }
 }
-

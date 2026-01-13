@@ -12,8 +12,7 @@ export class EmailService {
     if (apiKey && apiKey !== "SG.....") {
       sgMail.setApiKey(apiKey);
     }
-    this.fromEmail =
-      process.env.FROM_EMAIL || "noreply@labubu.com";
+    this.fromEmail = process.env.FROM_EMAIL || "noreply@labubu.com";
     this.fromName = process.env.FROM_NAME || "Labubu Store";
   }
 
@@ -85,5 +84,3 @@ export class EmailService {
     });
   }
 }
-
-

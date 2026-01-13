@@ -42,7 +42,3 @@ export const wishlistSchema = new Schema(
 
 wishlistSchema.index({ ownerId: 1, ownerType: 1 }, { unique: true });
 wishlistSchema.index({ "items.productId": 1 });
-
-
-
-

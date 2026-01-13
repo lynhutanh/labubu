@@ -17,8 +17,3 @@ import { ProductModule } from "../products/product.module";
   exports: [...wishlistProviders, WishlistService],
 })
 export class WishlistModule {}
-
-
-
-
-

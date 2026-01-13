@@ -76,8 +76,8 @@ export class ResetPasswordController {
     await this.authService.deleteForgot(payload.token);
 
     return DataResponse.ok({
-      message: "Password has been reset successfully. You can now login with your new password.",
+      message:
+        "Password has been reset successfully. You can now login with your new password.",
     });
   }
 }
-

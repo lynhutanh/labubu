@@ -33,4 +33,4 @@ import { SendgridModule } from "../sendgrid/sendgrid.module";
   providers: [AuthService, AuthGuard, RoleGuard, LoadUser, ...authProviders],
   exports: [AuthService, AuthGuard, RoleGuard, LoadUser],
 })
-export class AuthModule { }
+export class AuthModule {}

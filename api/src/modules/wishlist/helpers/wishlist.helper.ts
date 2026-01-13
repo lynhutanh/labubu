@@ -25,7 +25,3 @@ export function findItemIndex(
 export function calculateTotalItems(items: IWishlistItem[]): number {
   return items.length;
 }
-
-
-
-

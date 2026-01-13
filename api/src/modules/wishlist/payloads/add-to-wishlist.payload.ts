@@ -7,7 +7,3 @@ export class AddToWishlistPayload {
   @IsString()
   productId: string;
 }
-
-
-
-

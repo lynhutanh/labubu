@@ -13,5 +13,3 @@ export class ResetPasswordPayload {
   @MinLength(8)
   password: string;
 }
-
-

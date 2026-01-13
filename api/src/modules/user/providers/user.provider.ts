@@ -12,4 +12,3 @@ export const userProviders = [
     inject: [MONGO_DB_PROVIDER],
   },
 ];
-

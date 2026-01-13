@@ -12,7 +12,3 @@ export const wishlistProviders = [
     inject: [MONGO_DB_PROVIDER],
   },
 ];
-
-
-
-

@@ -47,7 +47,6 @@ export class ProductService extends APIRequest {
     // API returns: { status: 0, data: { products: [], total, page, limit, totalPages } }
     // axios.get() returns resp.data, so response = { status: 0, data: { products: [], ... } }
     // We need to access response.data.data.products
-    console.log("Raw API response:", response); // Debug
     
     // Try response.data.data first (nested structure)
     const nestedData = (response as any).data?.data;

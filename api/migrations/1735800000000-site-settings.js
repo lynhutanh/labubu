@@ -158,6 +158,67 @@ const settings = [
     visible: true,
     type: 'text',
     order: 7
+  },
+  // Payment Settings (SePay)
+  {
+    key: 'sepayMerchantId',
+    value: '',
+    name: 'SePay Merchant ID',
+    description: 'Mã merchant từ SePay dashboard',
+    public: false,
+    group: 'payment',
+    editable: true,
+    visible: true,
+    type: 'text',
+    order: 1
+  },
+  {
+    key: 'sepaySecretKey',
+    value: '',
+    name: 'SePay Secret Key',
+    description: 'Secret key để verify webhook từ SePay',
+    public: false,
+    group: 'payment',
+    editable: true,
+    visible: true,
+    type: 'password',
+    order: 2
+  },
+  {
+    key: 'sepayAccount',
+    value: '',
+    name: 'Số tài khoản ngân hàng',
+    description: 'Số tài khoản nhận tiền (SePay)',
+    public: false,
+    group: 'payment',
+    editable: true,
+    visible: true,
+    type: 'text',
+    order: 3
+  },
+  {
+    key: 'sepayBank',
+    value: 'VIB',
+    name: 'Tên ngân hàng',
+    description: 'Tên ngân hàng (VD: VIB, MBBank, TPBank...)',
+    public: false,
+    group: 'payment',
+    editable: true,
+    visible: true,
+    type: 'text',
+    order: 4
+  },
+  {
+    key: 'sepayWebhookTimeout',
+    value: '900000',
+    name: 'Thời gian hết hạn thanh toán (ms)',
+    description: 'Thời gian hết hạn thanh toán tính bằng milliseconds (mặc định: 900000 = 15 phút)',
+    public: false,
+    group: 'payment',
+    editable: true,
+    visible: true,
+    type: 'number',
+    order: 5
   }
 ];
 
@@ -185,7 +246,7 @@ module.exports.up = async function () {
 };
 
 module.exports.down = async function () {
-  await DB.collection(COLLECTION.SETTING).deleteMany({ group: { $in: ['site', 'contact'] } });
-  console.log('Rollback Site and Contact settings completed');
+  await DB.collection(COLLECTION.SETTING).deleteMany({ group: { $in: ['site', 'contact', 'payment'] } });
+  console.log('Rollback Site, Contact and Payment settings completed');
 };
 

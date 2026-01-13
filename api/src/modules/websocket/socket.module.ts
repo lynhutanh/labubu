@@ -10,4 +10,3 @@ import { AuthModule } from "../auth/auth.module";
   exports: [SocketUserService],
 })
 export class SocketModule {}
-

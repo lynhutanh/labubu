@@ -75,6 +75,10 @@ export const TransactionSchema = new Schema(
       type: Schema.Types.Mixed,
       default: {},
     },
+    rawWebhook: {
+      type: Schema.Types.Mixed,
+      default: null,
+    },
     ipAddress: {
       type: String,
       default: "",

@@ -41,7 +41,7 @@ export class AuthService {
 
     @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
-  ) { }
+  ) {}
 
   public async createAuthPassword(data: AuthCreateDto): Promise<AuthDto> {
     const salt = generateSalt();
@@ -202,16 +202,15 @@ export class AuthService {
     return token;
   }
 
-  public async findByForgotToken(
-    token: string,
-  ): Promise<ForgotModel | null> {
+  public async findByForgotToken(token: string): Promise<ForgotModel | null> {
     const forgot = await this.ForgotModel.findOne({ token }).lean();
     if (!forgot) return null;
 
     // Check if token is expired (1 hour)
     const createdAt = new Date(forgot.createdAt);
     const now = new Date();
-    const diffInHours = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
+    const diffInHours =
+      (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
 
     if (diffInHours > 1) {
       // Token expired, delete it

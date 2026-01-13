@@ -25,13 +25,14 @@ import email from "./config/email";
 import image from "./config/image";
 import queue from "./config/queue";
 import redis from "./config/redis";
+import sepay from "./config/sepay";
 import { CoreQueueModule, MongoDBModule } from "./kernel";
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [app, file, email, image, queue, redis],
+      load: [app, file, email, image, queue, redis, sepay],
     }),
     MongooseModule.forRoot(
       process.env.MONGO_URI || "mongodb://localhost:27017/cosmetics",
