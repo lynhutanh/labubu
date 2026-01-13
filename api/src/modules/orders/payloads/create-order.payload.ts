@@ -51,17 +51,33 @@ export class ShippingAddressInput {
   @MaxLength(100)
   ward?: string;
 
+  @ApiPropertyOptional({ description: "Ward Code" })
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  wardCode?: string;
+
   @ApiPropertyOptional({ description: "District" })
   @IsOptional()
   @IsString()
   @MaxLength(100)
   district?: string;
 
+  @ApiPropertyOptional({ description: "District ID" })
+  @IsOptional()
+  @IsNumber()
+  districtId?: number;
+
   @ApiProperty({ description: "City" })
   @IsNotEmpty({ message: "Thành phố là bắt buộc" })
   @IsString()
   @MaxLength(100)
   city: string;
+
+  @ApiPropertyOptional({ description: "Province ID" })
+  @IsOptional()
+  @IsNumber()
+  provinceId?: number;
 
   @ApiPropertyOptional({ description: "Note" })
   @IsOptional()

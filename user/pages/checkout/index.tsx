@@ -51,8 +51,11 @@ export default function CheckoutPage() {
         phone: "",
         address: "",
         ward: "",
+        wardCode: "",
         district: "",
+        districtId: null as number | null,
         city: "",
+        provinceId: null as number | null,
         note: "",
     });
     const [provinces, setProvinces] = useState<any[]>([]);
@@ -200,8 +203,11 @@ export default function CheckoutPage() {
         setFormData((prev) => ({
             ...prev,
             city: province?.ProvinceName || "",
+            provinceId: provinceId,
             district: "",
+            districtId: null,
             ward: "",
+            wardCode: "",
         }));
 
         try {
@@ -232,7 +238,9 @@ export default function CheckoutPage() {
         setFormData((prev) => ({
             ...prev,
             district: district?.DistrictName || "",
+            districtId: districtId,
             ward: "",
+            wardCode: "",
         }));
 
         try {
@@ -249,6 +257,7 @@ export default function CheckoutPage() {
         setFormData((prev) => ({
             ...prev,
             ward: ward?.WardName || "",
+            wardCode: value || "",
         }));
     };
 
@@ -274,8 +283,11 @@ export default function CheckoutPage() {
                     phone: formData.phone,
                     address: formData.address,
                     ward: formData.ward,
+                    wardCode: formData.wardCode,
                     district: formData.district,
+                    districtId: formData.districtId || undefined,
                     city: formData.city,
+                    provinceId: formData.provinceId || undefined,
                     note: formData.note,
                 },
                 paymentMethod: selectedPayment,

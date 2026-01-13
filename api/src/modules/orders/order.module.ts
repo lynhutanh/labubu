@@ -8,6 +8,7 @@ import { AuthModule } from "../auth/auth.module";
 import { ProductModule } from "../products/product.module";
 import { CartModule } from "../cart/cart.module";
 import { PaymentModule } from "../payment/payment.module";
+import { SettingModule } from "../settings/setting.module";
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { PaymentModule } from "../payment/payment.module";
     forwardRef(() => ProductModule),
     forwardRef(() => CartModule),
     forwardRef(() => PaymentModule),
+    forwardRef(() => SettingModule),
   ],
   controllers: [BuyerOrderController, AdminOrderController],
   providers: [

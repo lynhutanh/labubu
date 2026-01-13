@@ -89,9 +89,9 @@ const settings = [
   },
   {
     key: 'contactPhone',
-    value: '0123 456 789',
+    value: '0123456789',
     name: 'Số điện thoại',
-    description: 'Số điện thoại liên hệ',
+    description: 'Số điện thoại liên hệ (không có khoảng trắng, VD: 0123456789)',
     public: true,
     group: 'contact',
     editable: true,
@@ -112,6 +112,42 @@ const settings = [
     order: 3
   },
   {
+    key: 'contactProvince',
+    value: 'TP. Hồ Chí Minh',
+    name: 'Tỉnh/Thành phố',
+    description: 'Tỉnh/thành phố của cửa hàng (dùng cho GHN)',
+    public: false,
+    group: 'contact',
+    editable: true,
+    visible: true,
+    type: 'text',
+    order: 4
+  },
+  {
+    key: 'contactDistrict',
+    value: 'Quận 1',
+    name: 'Quận/Huyện',
+    description: 'Quận/huyện của cửa hàng (dùng cho GHN)',
+    public: false,
+    group: 'contact',
+    editable: true,
+    visible: true,
+    type: 'text',
+    order: 5
+  },
+  {
+    key: 'contactWard',
+    value: 'Phường Bến Nghé',
+    name: 'Phường/Xã',
+    description: 'Phường/xã của cửa hàng (dùng cho GHN)',
+    public: false,
+    group: 'contact',
+    editable: true,
+    visible: true,
+    type: 'text',
+    order: 6
+  },
+  {
     key: 'workingHours',
     value: '8:00 - 22:00 (Thứ 2 - Chủ nhật)',
     name: 'Giờ làm việc',
@@ -121,7 +157,7 @@ const settings = [
     editable: true,
     visible: true,
     type: 'text',
-    order: 4
+    order: 7
   },
   {
     key: 'facebookUrl',
@@ -133,7 +169,7 @@ const settings = [
     editable: true,
     visible: true,
     type: 'text',
-    order: 5
+    order: 8
   },
   {
     key: 'instagramUrl',
@@ -145,7 +181,7 @@ const settings = [
     editable: true,
     visible: true,
     type: 'text',
-    order: 6
+    order: 9
   },
   {
     key: 'zaloUrl',
@@ -157,7 +193,7 @@ const settings = [
     editable: true,
     visible: true,
     type: 'text',
-    order: 7
+    order: 10
   },
   // Payment Settings (SePay)
   {
@@ -219,6 +255,43 @@ const settings = [
     visible: true,
     type: 'number',
     order: 5
+  },
+  // GHN Settings
+  {
+    key: 'GHN_BASE_URL',
+    value: 'https://dev-online-gateway.ghn.vn',
+    name: 'GHN Base URL',
+    description: 'Base URL của GHN API (dev: https://dev-online-gateway.ghn.vn, prod: https://online-gateway.ghn.vn)',
+    public: false,
+    group: 'ghn',
+    editable: true,
+    visible: true,
+    type: 'text',
+    order: 1
+  },
+  {
+    key: 'GHN_TOKEN',
+    value: '',
+    name: 'GHN Token',
+    description: 'Token API từ GHN (lấy từ https://khachhang.ghn.vn/)',
+    public: false,
+    group: 'ghn',
+    editable: true,
+    visible: true,
+    type: 'password',
+    order: 2
+  },
+  {
+    key: 'GHN_SHOP_ID',
+    value: '',
+    name: 'GHN Shop ID',
+    description: 'Mã cửa hàng từ GHN (lấy từ https://khachhang.ghn.vn/)',
+    public: false,
+    group: 'ghn',
+    editable: true,
+    visible: true,
+    type: 'text',
+    order: 3
   }
 ];
 
@@ -246,7 +319,7 @@ module.exports.up = async function () {
 };
 
 module.exports.down = async function () {
-  await DB.collection(COLLECTION.SETTING).deleteMany({ group: { $in: ['site', 'contact', 'payment'] } });
-  console.log('Rollback Site, Contact and Payment settings completed');
+  await DB.collection(COLLECTION.SETTING).deleteMany({ group: { $in: ['site', 'contact', 'payment', 'ghn'] } });
+  console.log('Rollback Site, Contact, Payment and GHN settings completed');
 };
 

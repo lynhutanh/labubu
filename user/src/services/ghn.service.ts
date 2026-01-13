@@ -18,27 +18,39 @@ export interface GhnWard {
 class GhnService extends APIRequest {
     async getProvinces(): Promise<GhnProvince[]> {
         const response = await this.get("/ghn/provinces");
-        const root = response.data || response;
-        const ghn = root.data || root;
-        return ghn.data || [];
+        if (Array.isArray(response?.data)) {
+            return response.data;
+        }
+        if (Array.isArray(response)) {
+            return response;
+        }
+        return [];
     }
 
     async getDistricts(provinceId: number): Promise<GhnDistrict[]> {
         const response = await this.post("/ghn/districts", {
             province_id: provinceId,
         });
-        const root = response.data || response;
-        const ghn = root.data || root;
-        return ghn.data || [];
+        if (Array.isArray(response?.data)) {
+            return response.data;
+        }
+        if (Array.isArray(response)) {
+            return response;
+        }
+        return [];
     }
 
     async getWards(districtId: number): Promise<GhnWard[]> {
         const response = await this.get(
             `/ghn/wards?district_id=${encodeURIComponent(districtId)}`,
         );
-        const root = response.data || response;
-        const ghn = root.data || root;
-        return ghn.data || [];
+        if (Array.isArray(response?.data)) {
+            return response.data;
+        }
+        if (Array.isArray(response)) {
+            return response;
+        }
+        return [];
     }
 }
 

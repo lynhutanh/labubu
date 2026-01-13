@@ -44,6 +44,7 @@ export interface OrderResponse {
   paymentMethod: string;
   paymentStatus: string;
   status: string;
+  ghnOrderCode?: string;
   cancelReason?: string;
   cancelledAt?: Date;
   confirmedAt?: Date;

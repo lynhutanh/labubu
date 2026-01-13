@@ -7,32 +7,45 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  BadRequestException,
 } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
-import { AuthGuard, RoleGuard } from "src/modules/auth/guards";
+import { RoleGuard } from "src/modules/auth/guards";
 import { Role } from "src/modules/auth/decorators";
 import { ROLE } from "src/modules/user/constants";
 import { GhnService, GhnCreateOrderPayload } from "../services/ghn.service";
 import { DataResponse } from "src/kernel";
+import { SettingService } from "src/modules/settings/services";
+import { forwardRef, Inject } from "@nestjs/common";
 
 @ApiTags("GHN")
 @Controller("ghn")
 export class GhnController {
-  constructor(private readonly ghnService: GhnService) { }
+  constructor(
+    private readonly ghnService: GhnService,
+    @Inject(forwardRef(() => SettingService))
+    private readonly settingService: SettingService,
+  ) {}
 
   @Get("provinces")
-  @UseGuards(AuthGuard)
-  @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Lấy danh sách tỉnh/thành phố" })
   async getProvinces() {
-    const data = await this.ghnService.getProvinces();
-    return DataResponse.ok(data);
+    try {
+      const data = await this.ghnService.getProvinces();
+      return DataResponse.ok(data);
+    } catch (error: any) {
+      console.error("GhnController getProvinces error:", {
+        message: error?.message,
+        statusCode: error?.statusCode,
+        response: error?.response,
+        stack: error?.stack,
+      });
+      throw error;
+    }
   }
 
   @Post("districts")
-  @UseGuards(AuthGuard)
-  @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Lấy danh sách quận/huyện" })
   async getDistricts(@Body("province_id") provinceId: number) {
@@ -41,8 +54,6 @@ export class GhnController {
   }
 
   @Get("wards")
-  @UseGuards(AuthGuard)
-  @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Lấy danh sách phường/xã" })
   async getWards(@Query("district_id") districtId: number) {
@@ -72,6 +83,49 @@ export class GhnController {
     return DataResponse.ok(data);
   }
 
+  @Get("print-url")
+  @UseGuards(RoleGuard)
+  @Role(ROLE.ADMIN)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Lấy URL in bill GHN" })
+  async getPrintUrl(@Query("orderCode") orderCode: string) {
+    const data = await this.ghnService.getPrintUrl(orderCode);
+    return DataResponse.ok(data);
+  }
+
+  @Get("print-url-by-ghn-code")
+  @UseGuards(RoleGuard)
+  @Role(ROLE.ADMIN)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Lấy URL in bill GHN bằng GHN order code" })
+  async getPrintUrlByGhnCode(@Query("ghnOrderCode") ghnOrderCode: string) {
+    if (!ghnOrderCode) {
+      throw new BadRequestException("ghnOrderCode là bắt buộc");
+    }
+    try {
+      const tokenResponse = await this.ghnService.genPrintToken([ghnOrderCode]);
+      const tokenData = tokenResponse?.data || tokenResponse;
+      const token = tokenData?.token;
+      
+      if (!token) {
+        throw new BadRequestException("Không thể tạo token để in bill từ GHN");
+      }
+      
+      const baseUrl = await this.settingService.get("GHN_BASE_URL") || "https://dev-online-gateway.ghn.vn";
+      const printUrl = `${baseUrl}/a5/public-api/print52x70?token=${token}`;
+      
+      return DataResponse.ok({ token, printUrl, ghnOrderCode });
+    } catch (error: any) {
+      throw new BadRequestException(
+        error?.response?.data?.message ||
+        error?.message ||
+        "Không thể tạo URL in bill từ GHN",
+      );
+    }
+  }
+
   @Post("tracking/ghn-code")
   @UseGuards(RoleGuard)
   @Role(ROLE.ADMIN)
@@ -90,9 +144,8 @@ export class GhnController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Tra cứu đơn GHN theo client_order_code" })
   async detailByClient(@Body("client_order_code") clientOrderCode: string) {
-    const data = await this.ghnService.getOrderDetailByClientCode(
-      clientOrderCode,
-    );
+    const data =
+      await this.ghnService.getOrderDetailByClientCode(clientOrderCode);
     return DataResponse.ok(data);
   }
 }

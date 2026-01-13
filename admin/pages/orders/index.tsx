@@ -1,8 +1,9 @@
 import Head from "next/head";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { Search, ShoppingBag, Eye, Filter, Package } from "lucide-react";
+import { Search, ShoppingBag, Eye, Filter, Package, Printer } from "lucide-react";
 import { orderService } from "../../src/services";
+import { ghnService } from "../../src/services/ghn.service";
 import { OrderResponse } from "../../src/interfaces";
 import { storage } from "../../src/utils/storage";
 import AdminLayout from "../../src/components/layout/AdminLayout";
@@ -315,6 +316,55 @@ export default function OrdersPage() {
                     {formatDate(order.createdAt)}
                   </span>
                 ),
+              },
+              {
+                key: "printBill",
+                label: "In bill",
+                align: "center",
+                render: (order) => {
+                  const handlePrintBill = async () => {
+                    try {
+                      toast.loading("Đang tạo bill...", { id: "print-bill" });
+                      
+                      let response;
+                      if (order.ghnOrderCode) {
+                        response = await ghnService.getPrintUrlByGhnCode(order.ghnOrderCode);
+                      } else {
+                        response = await ghnService.getPrintUrl(order.orderNumber);
+                      }
+                      
+                      if (response?.printUrl) {
+                        window.open(response.printUrl, "_blank");
+                        toast.success("Đã mở bill để in", { id: "print-bill" });
+                      } else {
+                        toast.error("Không thể tạo bill", { id: "print-bill" });
+                      }
+                    } catch (error: any) {
+                      console.error("Error printing bill:", error);
+                      const errorMessage = error?.response?.data?.message || error?.message || "Không thể in bill";
+                      
+                      if (errorMessage.includes("chưa được tạo trên GHN") || errorMessage.includes("không tồn tại")) {
+                        toast.error(
+                          "Đơn hàng chưa được tạo trên GHN. Vui lòng tạo đơn GHN trước khi in bill.",
+                          { id: "print-bill", duration: 5000 }
+                        );
+                      } else {
+                        toast.error(errorMessage, { id: "print-bill" });
+                      }
+                    }
+                  };
+
+                  return (
+                    <button
+                      onClick={handlePrintBill}
+                      className="inline-flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg hover:opacity-90 transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="In bill GHN (chỉ áp dụng cho đơn hàng đã tạo trên GHN)"
+                    >
+                      <Printer className="w-4 h-4" />
+                      In bill
+                    </button>
+                  );
+                },
               },
               {
                 key: "actions",

@@ -8,6 +8,7 @@ import {
 import { Model } from "mongoose";
 import { ObjectId } from "mongodb";
 import { QueueMessageService } from "src/kernel";
+import { ConfigService } from "@nestjs/config";
 import { EVENT } from "src/kernel/constants";
 import { OrderModel, IOrderItem } from "../models";
 import { OrderDto, OrderSearchResponseDto } from "../dtos";
@@ -41,9 +42,11 @@ import {
   ZaloPayService,
   PayPalService,
   TransactionService,
+  GhnService,
 } from "src/modules/payment/services";
 import { WALLET_OWNER_TYPE } from "src/modules/payment/constants";
 import { CreateTransactionDto } from "src/modules/payment/dtos";
+import { SettingService } from "src/modules/settings/services";
 
 interface IPaymentResult {
   paymentUrl?: string;
@@ -67,6 +70,11 @@ export class BuyerOrderService {
     private readonly payPalService: PayPalService,
     @Inject(forwardRef(() => TransactionService))
     private readonly transactionService: TransactionService,
+    @Inject(forwardRef(() => GhnService))
+    private readonly ghnService: GhnService,
+    private readonly configService: ConfigService,
+    @Inject(forwardRef(() => SettingService))
+    private readonly settingService: SettingService,
   ) {}
 
   private getBuyerInfo(user: any): { buyerId: ObjectId; buyerType: string } {
@@ -243,6 +251,8 @@ export class BuyerOrderService {
         $inc: { stock: -update.quantity, soldCount: update.quantity },
       });
     }
+
+    await this.createGhnOrder(order, shippingAddress);
 
     const orderDto = new OrderDto(order);
 
@@ -531,5 +541,173 @@ export class BuyerOrderService {
       page,
       limit,
     });
+  }
+
+  private async createGhnOrder(order: OrderModel, shippingAddress: any): Promise<void> {
+    try {
+      console.log("=== GHN Create Order Debug ===");
+      console.log("Order Info:", {
+        orderNumber: order.orderNumber,
+        orderId: order._id,
+        total: order.total,
+        paymentMethod: order.paymentMethod,
+        itemsCount: order.items.length,
+        items: order.items.map((item) => ({
+          name: item.name,
+          quantity: item.quantity,
+        })),
+      });
+
+      console.log("Shipping Address:", {
+        fullName: shippingAddress.fullName,
+        phone: shippingAddress.phone,
+        address: shippingAddress.address,
+        ward: shippingAddress.ward,
+        wardCode: shippingAddress.wardCode,
+        district: shippingAddress.district,
+        districtId: shippingAddress.districtId,
+        city: shippingAddress.city,
+        provinceId: shippingAddress.provinceId,
+        note: shippingAddress.note,
+      });
+
+      if (!shippingAddress.wardCode || !shippingAddress.districtId) {
+        console.warn(
+          `❌ Order ${order.orderNumber} missing wardCode or districtId, skipping GHN order creation`,
+        );
+        console.log("Missing fields:", {
+          hasWardCode: !!shippingAddress.wardCode,
+          hasDistrictId: !!shippingAddress.districtId,
+        });
+        return;
+      }
+
+      const shopName = await this.settingService.get("siteName");
+      const shopPhoneRaw = await this.settingService.get("contactPhone");
+      const shopAddress = await this.settingService.get("contactAddress");
+      const shopWard = await this.settingService.get("contactWard");
+      const shopDistrict = await this.settingService.get("contactDistrict");
+      const shopProvince = await this.settingService.get("contactProvince");
+
+      console.log("Shop Info from Settings:", {
+        siteName: shopName,
+        contactPhone: shopPhoneRaw,
+        contactAddress: shopAddress,
+        contactWard: shopWard,
+        contactDistrict: shopDistrict,
+        contactProvince: shopProvince,
+      });
+
+      if (!shopName || !shopPhoneRaw || !shopAddress) {
+        console.warn("❌ Shop info not configured in settings, skipping GHN order creation");
+        console.log("Missing shop fields:", {
+          hasShopName: !!shopName,
+          hasShopPhone: !!shopPhoneRaw,
+          hasShopAddress: !!shopAddress,
+        });
+        return;
+      }
+
+      const shopPhone = String(shopPhoneRaw).replace(/\s+/g, "").trim();
+      
+      console.log("Shop Phone Processing:", {
+        raw: shopPhoneRaw,
+        processed: shopPhone,
+        length: shopPhone.length,
+      });
+
+      if (!shopPhone || shopPhone.length < 10) {
+        console.warn("❌ Shop phone number invalid, skipping GHN order creation");
+        return;
+      }
+
+      const totalWeight = order.items.reduce((sum, item) => {
+        const estimatedWeight = 200;
+        return sum + estimatedWeight * item.quantity;
+      }, 0);
+
+      const ghnPayload = {
+        orderCode: order.orderNumber,
+        toName: shippingAddress.fullName,
+        toPhone: shippingAddress.phone,
+        toAddress: shippingAddress.address,
+        toWardCode: shippingAddress.wardCode,
+        toDistrictId: shippingAddress.districtId,
+        fromName: shopName || "Shop",
+        fromPhone: shopPhone,
+        fromAddress: shopAddress || "",
+        fromWardName: shopWard || "",
+        fromDistrictName: shopDistrict || "",
+        fromProvinceName: shopProvince || "",
+        weight: Math.max(totalWeight, 100),
+        length: 20,
+        width: 15,
+        height: 10,
+        codAmount:
+          order.paymentMethod === PAYMENT_METHOD.COD ? order.total : 0,
+        serviceTypeId: 2,
+        paymentTypeId: order.paymentMethod === PAYMENT_METHOD.COD ? 2 : 1,
+        requiredNote: "KHONGCHOXEMHANG",
+        content: `Đơn hàng ${order.orderNumber}`,
+      };
+
+      console.log("GHN Payload (Full):", JSON.stringify(ghnPayload, null, 2));
+      console.log("GHN Payload Summary:", {
+        orderCode: ghnPayload.orderCode,
+        toName: ghnPayload.toName,
+        toPhone: ghnPayload.toPhone,
+        toAddress: ghnPayload.toAddress,
+        toWardCode: ghnPayload.toWardCode,
+        toDistrictId: ghnPayload.toDistrictId,
+        fromName: ghnPayload.fromName,
+        fromPhone: ghnPayload.fromPhone,
+        fromAddress: ghnPayload.fromAddress,
+        fromWardName: ghnPayload.fromWardName,
+        fromDistrictName: ghnPayload.fromDistrictName,
+        fromProvinceName: ghnPayload.fromProvinceName,
+        weight: ghnPayload.weight,
+        dimensions: `${ghnPayload.length}x${ghnPayload.width}x${ghnPayload.height}`,
+        codAmount: ghnPayload.codAmount,
+        serviceTypeId: ghnPayload.serviceTypeId,
+        paymentTypeId: ghnPayload.paymentTypeId,
+        requiredNote: ghnPayload.requiredNote,
+        content: ghnPayload.content,
+      });
+
+      console.log("Calling GHN API...");
+      const ghnResponse = await this.ghnService.createOrder(ghnPayload);
+      
+      console.log("GHN API Response:", {
+        fullResponse: ghnResponse,
+        orderCode: ghnResponse?.data?.order_code,
+        code: ghnResponse?.code,
+        message: ghnResponse?.message,
+      });
+
+      const ghnOrderCode = ghnResponse?.data?.order_code;
+
+      if (ghnOrderCode) {
+        await this.orderModel.updateOne(
+          { _id: order._id },
+          { ghnOrderCode },
+        );
+        console.log(
+          `✅ GHN order created successfully: ${ghnOrderCode} for order ${order.orderNumber}`,
+        );
+      } else {
+        console.warn("⚠️ GHN order created but no order_code in response");
+      }
+      console.log("=============================");
+    } catch (error: any) {
+      console.error("❌ Failed to create GHN order:", {
+        orderNumber: order.orderNumber,
+        error: error?.message,
+        response: error?.response?.data,
+        status: error?.response?.status,
+        statusText: error?.response?.statusText,
+        stack: error?.stack,
+      });
+      console.log("=============================");
+    }
   }
 }

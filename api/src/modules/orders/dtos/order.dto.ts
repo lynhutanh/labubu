@@ -148,6 +148,9 @@ export class OrderDto {
   completedAt?: Date;
 
   @Expose()
+  ghnOrderCode?: string;
+
+  @Expose()
   createdAt: Date;
 
   @Expose()
@@ -180,6 +183,7 @@ export class OrderDto {
       this.shippedAt = init.shippedAt;
       this.deliveredAt = init.deliveredAt;
       this.completedAt = init.completedAt;
+      this.ghnOrderCode = init.ghnOrderCode;
       this.createdAt = init.createdAt;
       this.updatedAt = init.updatedAt;
     }
@@ -210,6 +214,7 @@ export class OrderDto {
       shippedAt: this.shippedAt,
       deliveredAt: this.deliveredAt,
       completedAt: this.completedAt,
+      ghnOrderCode: this.ghnOrderCode,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
     };

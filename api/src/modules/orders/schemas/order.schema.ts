@@ -99,8 +99,11 @@ export const orderSchema = new Schema(
       phone: { type: String, required: true },
       address: { type: String, required: true },
       ward: { type: String, default: "" },
+      wardCode: { type: String, default: "" },
       district: { type: String, default: "" },
+      districtId: { type: Number, default: null },
       city: { type: String, required: true },
+      provinceId: { type: Number, default: null },
       note: { type: String, default: "" },
     },
     paymentMethod: {
@@ -164,6 +167,12 @@ export const orderSchema = new Schema(
     completedAt: {
       type: Date,
       default: null,
+    },
+    ghnOrderCode: {
+      type: String,
+      default: "",
+      sparse: true,
+      index: true,
     },
   },
   {

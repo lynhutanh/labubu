@@ -6,6 +6,7 @@ import {
   CreditCard,
   DollarSign,
   Save,
+  Truck,
 } from "lucide-react";
 import { settingsService } from "src/services";
 import {
@@ -36,6 +37,13 @@ const getTabConfig = (): TabConfig[] => [
     icon: CreditCard,
     color: "from-green-500 to-emerald-500",
     description: "Cấu hình thông tin thanh toán.",
+  },
+  {
+    key: "ghn",
+    title: "GHN",
+    icon: Truck,
+    color: "from-orange-500 to-red-500",
+    description: "Cấu hình thông tin GHN (Giao Hàng Nhanh).",
   },
 ];
 
