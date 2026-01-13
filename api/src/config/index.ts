@@ -4,6 +4,7 @@ import * as email from "./email";
 import * as image from "./image";
 import * as queue from "./queue";
 import * as sepay from "./sepay";
+import * as ghn from "./ghn";
 
 export default {
   app,
@@ -12,4 +13,5 @@ export default {
   image,
   queue,
   sepay,
+  ghn,
 };

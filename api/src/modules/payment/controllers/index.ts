@@ -5,3 +5,4 @@ export * from "./wallet.controller";
 export * from "./wallet-deposit.controller";
 export * from "./sepay.controller";
 export * from "./webhook.controller";
+export * from "./ghn.controller";

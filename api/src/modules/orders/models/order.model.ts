@@ -47,6 +47,8 @@ export class OrderModel extends Document {
 
   paymentMethod: string;
 
+  paymentRef?: string;
+
   paymentStatus: string;
 
   walletTransactionId?: ObjectId;

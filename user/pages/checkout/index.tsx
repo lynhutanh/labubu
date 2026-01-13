@@ -19,6 +19,7 @@ import {
 import Layout from "../../src/components/layout/Layout";
 import { cartService, Cart } from "../../src/services/cart.service";
 import { orderService, CreateOrderPayload } from "../../src/services/order.service";
+import { ghnService } from "../../src/services/ghn.service";
 import { storage } from "../../src/utils/storage";
 import toast from "react-hot-toast";
 import { formatCurrency } from "../../src/lib/string";
@@ -54,6 +55,11 @@ export default function CheckoutPage() {
         city: "",
         note: "",
     });
+    const [provinces, setProvinces] = useState<any[]>([]);
+    const [districts, setDistricts] = useState<any[]>([]);
+    const [wards, setWards] = useState<any[]>([]);
+    const [selectedProvinceId, setSelectedProvinceId] = useState<number | null>(null);
+    const [selectedDistrictId, setSelectedDistrictId] = useState<number | null>(null);
 
     useEffect(() => {
         const loadCart = async () => {
@@ -84,6 +90,19 @@ export default function CheckoutPage() {
 
         loadCart();
     }, [router]);
+
+    useEffect(() => {
+        const loadProvinces = async () => {
+            try {
+                const data = await ghnService.getProvinces();
+                setProvinces(data || []);
+            } catch (error) {
+                console.error("Failed to load provinces:", error);
+            }
+        };
+
+        loadProvinces();
+    }, []);
 
     // Countdown timer
     useEffect(() => {
@@ -151,10 +170,86 @@ export default function CheckoutPage() {
             return false;
         }
         if (!formData.city.trim()) {
-            toast.error("Vui lòng nhập thành phố");
+            toast.error("Vui lòng chọn tỉnh/thành phố");
             return false;
         }
         return true;
+    };
+
+    const handleProvinceChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const value = e.target.value;
+        if (!value) {
+            setSelectedProvinceId(null);
+            setDistricts([]);
+            setWards([]);
+            setFormData((prev) => ({
+                ...prev,
+                city: "",
+                district: "",
+                ward: "",
+            }));
+            return;
+        }
+
+        const provinceId = Number(value);
+        const province = provinces.find((p) => p.ProvinceID === provinceId);
+        setSelectedProvinceId(provinceId);
+        setSelectedDistrictId(null);
+        setWards([]);
+
+        setFormData((prev) => ({
+            ...prev,
+            city: province?.ProvinceName || "",
+            district: "",
+            ward: "",
+        }));
+
+        try {
+            const data = await ghnService.getDistricts(provinceId);
+            setDistricts(data || []);
+        } catch (error) {
+            console.error("Failed to load districts:", error);
+        }
+    };
+
+    const handleDistrictChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const value = e.target.value;
+        if (!value) {
+            setSelectedDistrictId(null);
+            setWards([]);
+            setFormData((prev) => ({
+                ...prev,
+                district: "",
+                ward: "",
+            }));
+            return;
+        }
+
+        const districtId = Number(value);
+        const district = districts.find((d) => d.DistrictID === districtId);
+        setSelectedDistrictId(districtId);
+
+        setFormData((prev) => ({
+            ...prev,
+            district: district?.DistrictName || "",
+            ward: "",
+        }));
+
+        try {
+            const data = await ghnService.getWards(districtId);
+            setWards(data || []);
+        } catch (error) {
+            console.error("Failed to load wards:", error);
+        }
+    };
+
+    const handleWardChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const value = e.target.value;
+        const ward = wards.find((w: any) => w.WardCode === value);
+        setFormData((prev) => ({
+            ...prev,
+            ward: ward?.WardName || "",
+        }));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -447,44 +542,78 @@ export default function CheckoutPage() {
                                         <div className="grid grid-cols-2 gap-4">
                                             <div>
                                                 <label className="block text-purple-200 mb-2">
-                                                    Phường/Xã
+                                                    Tỉnh/Thành phố <span className="text-red-400">*</span>
                                                 </label>
-                                                <input
-                                                    type="text"
-                                                    name="ward"
-                                                    value={formData.ward}
-                                                    onChange={handleInputChange}
-                                                    className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white placeholder-purple-400 focus:outline-none focus:ring-2 focus:ring-pink-500"
-                                                    placeholder="Phường/Xã"
-                                                />
+                                                <select
+                                                    name="city"
+                                                    value={selectedProvinceId ? String(selectedProvinceId) : ""}
+                                                    onChange={handleProvinceChange}
+                                                    className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
+                                                >
+                                                    <option value="" className="bg-gray-900 text-purple-200">
+                                                        Chọn tỉnh/thành phố
+                                                    </option>
+                                                    {provinces.map((p: any) => (
+                                                        <option
+                                                            key={p.ProvinceID}
+                                                            value={p.ProvinceID}
+                                                            className="bg-gray-900 text-purple-200"
+                                                        >
+                                                            {p.ProvinceName}
+                                                        </option>
+                                                    ))}
+                                                </select>
                                             </div>
                                             <div>
                                                 <label className="block text-purple-200 mb-2">
                                                     Quận/Huyện
                                                 </label>
-                                                <input
-                                                    type="text"
+                                                <select
                                                     name="district"
-                                                    value={formData.district}
-                                                    onChange={handleInputChange}
-                                                    className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white placeholder-purple-400 focus:outline-none focus:ring-2 focus:ring-pink-500"
-                                                    placeholder="Quận/Huyện"
-                                                />
+                                                    value={selectedDistrictId ? String(selectedDistrictId) : ""}
+                                                    onChange={handleDistrictChange}
+                                                    disabled={!selectedProvinceId}
+                                                    className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-pink-500 disabled:opacity-50"
+                                                >
+                                                    <option value="" className="bg-gray-900 text-purple-200">
+                                                        Chọn quận/huyện
+                                                    </option>
+                                                    {districts.map((d: any) => (
+                                                        <option
+                                                            key={d.DistrictID}
+                                                            value={d.DistrictID}
+                                                            className="bg-gray-900 text-purple-200"
+                                                        >
+                                                            {d.DistrictName}
+                                                        </option>
+                                                    ))}
+                                                </select>
                                             </div>
                                         </div>
                                         <div>
                                             <label className="block text-purple-200 mb-2">
-                                                Thành phố <span className="text-red-400">*</span>
+                                                Phường/Xã
                                             </label>
-                                            <input
-                                                type="text"
-                                                name="city"
-                                                value={formData.city}
-                                                onChange={handleInputChange}
-                                                required
-                                                className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white placeholder-purple-400 focus:outline-none focus:ring-2 focus:ring-pink-500"
-                                                placeholder="Thành phố"
-                                            />
+                                            <select
+                                                name="ward"
+                                                value={wards.find((w: any) => w.WardName === formData.ward)?.WardCode || ""}
+                                                onChange={handleWardChange}
+                                                disabled={!selectedDistrictId}
+                                                className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-pink-500 disabled:opacity-50"
+                                            >
+                                                <option value="" className="bg-gray-900 text-purple-200">
+                                                    Chọn phường/xã
+                                                </option>
+                                                {wards.map((w: any) => (
+                                                    <option
+                                                        key={w.WardCode}
+                                                        value={w.WardCode}
+                                                        className="bg-gray-900 text-purple-200"
+                                                    >
+                                                        {w.WardName}
+                                                    </option>
+                                                ))}
+                                            </select>
                                         </div>
                                         <div>
                                             <label className="block text-purple-200 mb-2">

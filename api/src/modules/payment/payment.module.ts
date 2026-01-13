@@ -10,6 +10,7 @@ import {
   WalletDepositController,
   SePayController,
   WebhookController,
+  GhnController,
 } from "./controllers";
 import {
   TransactionService,
@@ -20,6 +21,7 @@ import {
   WalletDepositService,
   SePayService,
 } from "./services";
+import { GhnService } from "./services/ghn.service";
 import { UserRegisteredWalletListener } from "./listeners";
 import { AuthModule } from "../auth/auth.module";
 import { SettingModule } from "../settings/setting.module";
@@ -41,6 +43,7 @@ import { OrderModule } from "../orders/order.module";
     WalletDepositController,
     SePayController,
     WebhookController,
+    GhnController,
   ],
   providers: [
     ...transactionProviders,
@@ -52,6 +55,7 @@ import { OrderModule } from "../orders/order.module";
     WalletTransactionService,
     WalletDepositService,
     SePayService,
+    GhnService,
     UserRegisteredWalletListener,
   ],
   exports: [
@@ -64,6 +68,7 @@ import { OrderModule } from "../orders/order.module";
     WalletTransactionService,
     WalletDepositService,
     SePayService,
+    GhnService,
   ],
 })
 export class PaymentModule {}

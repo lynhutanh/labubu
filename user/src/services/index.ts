@@ -7,6 +7,7 @@ export { productService } from "./product.service";
 export { wishlistService } from "./wishlist.service";
 export { walletService } from "./wallet.service";
 export { userService } from "./user.service";
+export { ghnService } from "./ghn.service";
 
 // Export API Request base class
 export { APIRequest, TOKEN } from "./api-request";

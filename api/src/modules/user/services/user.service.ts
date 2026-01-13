@@ -22,6 +22,7 @@ export interface IUserRegisterPayload {
   gender?: string;
   address?: string;
   role?: string;
+  status?: string;
 }
 
 export interface IUserUpdatePayload {

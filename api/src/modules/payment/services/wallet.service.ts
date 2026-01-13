@@ -3,7 +3,6 @@ import {
   BadRequestException,
   NotFoundException,
   Inject,
-  forwardRef,
 } from "@nestjs/common";
 import { Model, ClientSession } from "mongoose";
 import { v4 as uuidv4 } from "uuid";
@@ -29,7 +28,6 @@ export class WalletService {
     private readonly walletModel: Model<WalletModel>,
     @Inject(WALLET_TRANSACTION_MODEL_PROVIDER)
     private readonly walletTransactionModel: Model<WalletTransactionModel>,
-    @Inject(forwardRef(() => QueueMessageService))
     private readonly queueEventService: QueueMessageService,
   ) {}
 
