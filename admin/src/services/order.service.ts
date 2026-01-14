@@ -37,6 +37,11 @@ class OrderService extends APIRequest {
     return response.data;
   }
 
+  public async confirmAndCreateGhn(id: string): Promise<OrderResponse> {
+    const response = await this.post(`/admin/orders/${id}/confirm-ghn`, {});
+    return response.data;
+  }
+
   public async cancelOrder(id: string, reason: string): Promise<OrderResponse> {
     const response = await this.put(`/admin/orders/${id}/cancel`, { reason });
     return response.data;

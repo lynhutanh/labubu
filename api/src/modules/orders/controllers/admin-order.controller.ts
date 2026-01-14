@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Put,
+  Post,
   Param,
   Body,
   Query,
@@ -90,6 +91,17 @@ export class AdminOrderController {
     @Body() payload: UpdatePaymentStatusPayload,
   ) {
     const order = await this.adminOrderService.updatePaymentStatus(id, payload);
+    return DataResponse.ok(order.toResponse());
+  }
+
+  @Post(":id/confirm-ghn")
+  @UseGuards(RoleGuard)
+  @Role(ROLE.ADMIN)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Xác nhận đơn hàng và tạo đơn GHN" })
+  async confirmAndCreateGhn(@Param("id") id: string) {
+    const order = await this.adminOrderService.confirmAndCreateGhnOrder(id);
     return DataResponse.ok(order.toResponse());
   }
 }

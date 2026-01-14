@@ -9,6 +9,7 @@ import { ProductModule } from "../products/product.module";
 import { CartModule } from "../cart/cart.module";
 import { PaymentModule } from "../payment/payment.module";
 import { SettingModule } from "../settings/setting.module";
+import { GhnOrderSyncService } from "./services/ghn-order-sync.service";
 
 @Module({
   imports: [
@@ -26,7 +27,13 @@ import { SettingModule } from "../settings/setting.module";
     AdminOrderService,
     OrderCreatedListener,
     OrderCancelledListener,
+    GhnOrderSyncService,
   ],
-  exports: [...orderProviders, BuyerOrderService, AdminOrderService],
+  exports: [
+    ...orderProviders,
+    BuyerOrderService,
+    AdminOrderService,
+    GhnOrderSyncService,
+  ],
 })
 export class OrderModule {}

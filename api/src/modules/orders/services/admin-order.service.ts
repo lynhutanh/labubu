@@ -3,6 +3,7 @@ import {
   Inject,
   NotFoundException,
   BadRequestException,
+  forwardRef,
 } from "@nestjs/common";
 import { Model } from "mongoose";
 import { QueueMessageService } from "src/kernel";
@@ -18,6 +19,7 @@ import {
   ORDER_PROVIDER,
   ORDER_STATUS,
   PAYMENT_STATUS,
+  PAYMENT_METHOD,
   ORDER_CHANNELS,
 } from "../constants";
 import {
@@ -27,6 +29,10 @@ import {
 } from "../helpers";
 import { ProductModel } from "src/modules/products/models";
 import { PRODUCT_PROVIDER } from "src/modules/products/constants";
+import {
+  GhnService,
+  GhnCreateOrderPayload,
+} from "src/modules/payment/services/ghn.service";
 
 @Injectable()
 export class AdminOrderService {
@@ -36,6 +42,8 @@ export class AdminOrderService {
     @Inject(PRODUCT_PROVIDER)
     private readonly productModel: Model<ProductModel>,
     private readonly queueEventService: QueueMessageService,
+    @Inject(forwardRef(() => GhnService))
+    private readonly ghnService: GhnService,
   ) {}
 
   async findById(orderId: string): Promise<OrderDto | null> {
@@ -228,5 +236,99 @@ export class AdminOrderService {
       cancelledOrders,
       totalRevenue,
     });
+  }
+
+  async confirmAndCreateGhnOrder(orderId: string): Promise<OrderDto> {
+    const order = await this.orderModel.findById(orderId);
+    if (!order) {
+      throw new NotFoundException("Đơn hàng không tồn tại");
+    }
+
+    if (order.status !== ORDER_STATUS.PENDING) {
+      throw new BadRequestException(
+        "Chỉ có thể xác nhận các đơn hàng ở trạng thái chờ xử lý",
+      );
+    }
+
+    if (order.ghnOrderCode) {
+      throw new BadRequestException("Đơn hàng đã được tạo GHN trước đó");
+    }
+
+    if (
+      order.paymentMethod !== PAYMENT_METHOD.COD &&
+      order.paymentStatus !== PAYMENT_STATUS.PAID
+    ) {
+      throw new BadRequestException(
+        "Đơn hàng chưa được thanh toán thành công nên không thể xác nhận",
+      );
+    }
+
+    const shippingAddress = order.shippingAddress as any;
+
+    if (!shippingAddress?.districtId || !shippingAddress?.wardCode) {
+      throw new BadRequestException(
+        "Đơn hàng thiếu thông tin quận/huyện hoặc phường/xã để tạo đơn GHN",
+      );
+    }
+
+    const weight = 500;
+    const length = 20;
+    const width = 20;
+    const height = 10;
+
+    const payload: GhnCreateOrderPayload = {
+      orderCode: order.orderNumber,
+      toName: shippingAddress.fullName,
+      toPhone: shippingAddress.phone,
+      toAddress: shippingAddress.address,
+      toWardCode: shippingAddress.wardCode,
+      toDistrictId: shippingAddress.districtId,
+      weight,
+      length,
+      width,
+      height,
+      codAmount:
+        order.paymentMethod === PAYMENT_METHOD.COD ? Number(order.total) : 0,
+      fromName: shippingAddress.fullName || "Shop",
+      fromPhone: shippingAddress.phone || "",
+      fromAddress: shippingAddress.address || shippingAddress.city || "",
+      fromWardName: shippingAddress.ward || "",
+      fromDistrictName: shippingAddress.district || "",
+      fromProvinceName: shippingAddress.city || "",
+    };
+
+    let ghnResult: any;
+    try {
+      ghnResult = await this.ghnService.createOrder(payload);
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        error?.response?.data?.code_message ||
+        error?.message ||
+        "Không thể tạo đơn GHN";
+      throw new BadRequestException(message);
+    }
+    const ghnData: any = (ghnResult as any).data || ghnResult;
+    const ghnOrderCode =
+      ghnData?.order_code || ghnData?.orderCode || ghnData?.data?.order_code;
+
+    if (!ghnOrderCode) {
+      throw new BadRequestException("Không thể tạo đơn GHN");
+    }
+
+    await this.orderModel.updateOne(
+      { _id: orderId },
+      {
+        $set: {
+          ghnOrderCode,
+        },
+      },
+    );
+
+    const updatedOrder = await this.updateStatus(orderId, {
+      status: ORDER_STATUS.CONFIRMED,
+    } as UpdateOrderStatusPayload);
+
+    return updatedOrder;
   }
 }

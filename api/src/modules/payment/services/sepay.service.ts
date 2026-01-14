@@ -350,16 +350,13 @@ export class SePayService implements OnModuleInit {
                 session,
             );
 
-            // STEP 7: Update order status
             await this.orderModel.updateOne(
                 { _id: order._id },
                 {
                     $set: {
-                        status: ORDER_STATUS.PROCESSING, // Khi thanh toán thành công → "Người bán đang chuẩn bị hàng"
                         paymentStatus: PAYMENT_STATUS.PAID,
                         paidAt: transactionDate,
                         paymentTransactionId: transaction._id,
-                        confirmedAt: new Date(), // Đánh dấu thời điểm xác nhận đơn hàng
                     },
                 },
                 { session },

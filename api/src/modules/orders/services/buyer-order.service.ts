@@ -42,7 +42,6 @@ import {
   ZaloPayService,
   PayPalService,
   TransactionService,
-  GhnService,
 } from "src/modules/payment/services";
 import { WALLET_OWNER_TYPE } from "src/modules/payment/constants";
 import { CreateTransactionDto } from "src/modules/payment/dtos";
@@ -70,8 +69,6 @@ export class BuyerOrderService {
     private readonly payPalService: PayPalService,
     @Inject(forwardRef(() => TransactionService))
     private readonly transactionService: TransactionService,
-    @Inject(forwardRef(() => GhnService))
-    private readonly ghnService: GhnService,
     private readonly configService: ConfigService,
     @Inject(forwardRef(() => SettingService))
     private readonly settingService: SettingService,
@@ -242,8 +239,6 @@ export class BuyerOrderService {
         $inc: { stock: -update.quantity, soldCount: update.quantity },
       });
     }
-
-    await this.createGhnOrder(order, shippingAddress);
 
     const orderDto = new OrderDto(order);
 
@@ -534,85 +529,4 @@ export class BuyerOrderService {
     });
   }
 
-  private async createGhnOrder(order: OrderModel, shippingAddress: any): Promise<void> {
-    try {
-      if (!shippingAddress.wardCode || !shippingAddress.districtId) {
-        console.warn(
-          `❌ Order ${order.orderNumber} missing wardCode or districtId, skipping GHN order creation`,
-        );
-        return;
-      }
-
-      const shopName = await this.settingService.get("siteName");
-      const shopPhoneRaw = await this.settingService.get("contactPhone");
-      const shopAddress = await this.settingService.get("contactAddress");
-      const shopWard = await this.settingService.get("contactWard");
-      const shopDistrict = await this.settingService.get("contactDistrict");
-      const shopProvince = await this.settingService.get("contactProvince");
-
-      if (!shopName || !shopPhoneRaw || !shopAddress) {
-        console.warn("❌ Shop info not configured in settings, skipping GHN order creation");
-        return;
-      }
-
-      const shopPhone = String(shopPhoneRaw).replace(/\s+/g, "").trim();
-      
-      if (!shopPhone || shopPhone.length < 10) {
-        console.warn("❌ Shop phone number invalid, skipping GHN order creation");
-        return;
-      }
-
-      const totalWeight = order.items.reduce((sum, item) => {
-        const estimatedWeight = 200;
-        return sum + estimatedWeight * item.quantity;
-      }, 0);
-
-      const ghnPayload = {
-        orderCode: order.orderNumber,
-        toName: shippingAddress.fullName,
-        toPhone: shippingAddress.phone,
-        toAddress: shippingAddress.address,
-        toWardCode: shippingAddress.wardCode,
-        toDistrictId: shippingAddress.districtId,
-        fromName: shopName || "Shop",
-        fromPhone: shopPhone,
-        fromAddress: shopAddress || "",
-        fromWardName: shopWard || "",
-        fromDistrictName: shopDistrict || "",
-        fromProvinceName: shopProvince || "",
-        weight: Math.max(totalWeight, 100),
-        length: 20,
-        width: 15,
-        height: 10,
-        codAmount:
-          order.paymentMethod === PAYMENT_METHOD.COD ? order.total : 0,
-        serviceTypeId: 2,
-        paymentTypeId: order.paymentMethod === PAYMENT_METHOD.COD ? 2 : 1,
-        requiredNote: "KHONGCHOXEMHANG",
-        content: `Đơn hàng ${order.orderNumber}`,
-      };
-
-      const ghnResponse = await this.ghnService.createOrder(ghnPayload);
-
-      const ghnOrderCode = ghnResponse?.data?.order_code;
-
-      if (ghnOrderCode) {
-        await this.orderModel.updateOne(
-          { _id: order._id },
-          { ghnOrderCode },
-        );
-      } else {
-        console.warn("⚠️ GHN order created but no order_code in response");
-      }
-    } catch (error: any) {
-      console.error("❌ Failed to create GHN order:", {
-        orderNumber: order.orderNumber,
-        error: error?.message,
-        response: error?.response?.data,
-        status: error?.response?.status,
-        statusText: error?.response?.statusText,
-        stack: error?.stack,
-      });
-    }
-  }
 }

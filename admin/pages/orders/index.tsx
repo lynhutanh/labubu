@@ -1,7 +1,16 @@
 import Head from "next/head";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { Search, ShoppingBag, Eye, Filter, Package, Printer } from "lucide-react";
+import {
+  Search,
+  ShoppingBag,
+  Eye,
+  Filter,
+  Package,
+  Printer,
+  CheckCircle2,
+  ExternalLink,
+} from "lucide-react";
 import { orderService } from "../../src/services";
 import { ghnService } from "../../src/services/ghn.service";
 import { OrderResponse } from "../../src/interfaces";
@@ -322,34 +331,46 @@ export default function OrdersPage() {
                 label: "In bill",
                 align: "center",
                 render: (order) => {
+                  if (!order.ghnOrderCode) {
+                    return (
+                      <span className="text-xs text-purple-300">
+                        Chưa tạo GHN
+                      </span>
+                    );
+                  }
+
                   const handlePrintBill = async () => {
                     try {
-                      toast.loading("Đang tạo bill...", { id: "print-bill" });
-                      
-                      let response;
-                      if (order.ghnOrderCode) {
-                        response = await ghnService.getPrintUrlByGhnCode(order.ghnOrderCode);
-                      } else {
-                        response = await ghnService.getPrintUrl(order.orderNumber);
-                      }
-                      
+                      const toastId = `print-bill-${order._id}`;
+                      toast.loading("Đang tạo bill...", { id: toastId });
+
+                      const response = await ghnService.getPrintUrlByGhnCode(
+                        order.ghnOrderCode,
+                      );
+
                       if (response?.printUrl) {
                         window.open(response.printUrl, "_blank");
-                        toast.success("Đã mở bill để in", { id: "print-bill" });
+                        toast.success("Đã mở bill để in", { id: toastId });
                       } else {
-                        toast.error("Không thể tạo bill", { id: "print-bill" });
+                        toast.error("Không thể tạo bill", { id: toastId });
                       }
                     } catch (error: any) {
                       console.error("Error printing bill:", error);
-                      const errorMessage = error?.response?.data?.message || error?.message || "Không thể in bill";
-                      
-                      if (errorMessage.includes("chưa được tạo trên GHN") || errorMessage.includes("không tồn tại")) {
+                      const errorMessage =
+                        error?.response?.data?.message ||
+                        error?.message ||
+                        "Không thể in bill";
+
+                      if (
+                        errorMessage.includes("chưa được tạo trên GHN") ||
+                        errorMessage.includes("không tồn tại")
+                      ) {
                         toast.error(
                           "Đơn hàng chưa được tạo trên GHN. Vui lòng tạo đơn GHN trước khi in bill.",
-                          { id: "print-bill", duration: 5000 }
+                          { duration: 5000 },
                         );
                       } else {
-                        toast.error(errorMessage, { id: "print-bill" });
+                        toast.error(errorMessage);
                       }
                     }
                   };
@@ -370,15 +391,61 @@ export default function OrdersPage() {
                 key: "actions",
                 label: "Thao tác",
                 align: "right",
-                render: (order) => (
-                  <button
-                    onClick={() => router.push(`/orders/${order._id}`)}
-                    className="inline-flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg hover:opacity-90 transition-all text-sm"
-                  >
-                    <Eye className="w-4 h-4" />
-                    Xem
-                  </button>
-                ),
+                render: (order) => {
+                  const handleConfirm = async () => {
+                    try {
+                      const toastId = `confirm-order-${order._id}`;
+                      toast.loading("Đang xác nhận đơn và tạo GHN...", {
+                        id: toastId,
+                      });
+                      await orderService.confirmAndCreateGhn(order._id);
+                      await loadOrders();
+                      toast.success("Đã xác nhận đơn và tạo GHN thành công", {
+                        id: toastId,
+                      });
+                    } catch (error: any) {
+                      console.error("Error confirming order:", error);
+                      const message =
+                        error?.response?.data?.message ||
+                        error?.message ||
+                        "Không thể xác nhận đơn hàng";
+                      toast.error(message);
+                    }
+                  };
+
+                  return (
+                    <div className="flex items-center justify-end gap-2">
+                      {order.status === "pending" && (
+                        <button
+                          onClick={handleConfirm}
+                          className="inline-flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-emerald-500 to-green-500 text-white rounded-lg hover:opacity-90 transition-all text-sm"
+                        >
+                          <CheckCircle2 className="w-4 h-4" />
+                          Xác nhận
+                        </button>
+                      )}
+                      {order.ghnOrderCode && (
+                        <button
+                          onClick={() => {
+                            window.open("https://5sao.ghn.dev/", "_blank");
+                          }}
+                          className="inline-flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg hover:opacity-90 transition-all text-sm"
+                          title="Xem đơn hàng trên GHN"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                          GHN
+                        </button>
+                      )}
+                      <button
+                        onClick={() => router.push(`/orders/${order._id}`)}
+                        className="inline-flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg hover:opacity-90 transition-all text-sm"
+                      >
+                        <Eye className="w-4 h-4" />
+                        Xem
+                      </button>
+                    </div>
+                  );
+                },
               },
             ]}
             data={orders}

@@ -16,6 +16,7 @@ import {
     Truck,
     FileText,
     Copy,
+    ExternalLink,
 } from "lucide-react";
 import { orderService } from "../../src/services";
 import { OrderResponse } from "../../src/interfaces";
@@ -261,6 +262,18 @@ export default function OrderDetailPage() {
                                 </div>
                             </div>
                             <div className="flex items-center gap-3">
+                                {order.ghnOrderCode && (
+                                    <button
+                                        onClick={() => {
+                                            window.open("https://5sao.ghn.dev/", "_blank");
+                                        }}
+                                        className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg hover:opacity-90 transition-all text-sm"
+                                        title="Xem đơn hàng trên GHN"
+                                    >
+                                        <ExternalLink className="w-4 h-4" />
+                                        Xem trên GHN
+                                    </button>
+                                )}
                                 <span
                                     className={`px-4 py-2 text-sm font-medium rounded-full border ${getStatusColor(
                                         order.status,
@@ -489,10 +502,18 @@ export default function OrderDetailPage() {
                                         <select
                                             value={selectedStatus}
                                             onChange={(e) => setSelectedStatus(e.target.value)}
-                                            className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white backdrop-blur-sm"
+                                            className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 text-white backdrop-blur-sm hover:bg-white/15 transition-all cursor-pointer"
+                                            style={{
+                                                background: "rgba(255, 255, 255, 0.05)",
+                                                backdropFilter: "blur(10px)",
+                                            }}
                                         >
                                             {STATUSES.map((status) => (
-                                                <option key={status.value} value={status.value}>
+                                                <option
+                                                    key={status.value}
+                                                    value={status.value}
+                                                    className="bg-gray-900 text-white"
+                                                >
                                                     {status.label}
                                                 </option>
                                             ))}
@@ -514,10 +535,18 @@ export default function OrderDetailPage() {
                                         <select
                                             value={selectedPaymentStatus}
                                             onChange={(e) => setSelectedPaymentStatus(e.target.value)}
-                                            className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white backdrop-blur-sm"
+                                            className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 text-white backdrop-blur-sm hover:bg-white/15 transition-all cursor-pointer"
+                                            style={{
+                                                background: "rgba(255, 255, 255, 0.05)",
+                                                backdropFilter: "blur(10px)",
+                                            }}
                                         >
                                             {PAYMENT_STATUSES.map((status) => (
-                                                <option key={status.value} value={status.value}>
+                                                <option
+                                                    key={status.value}
+                                                    value={status.value}
+                                                    className="bg-gray-900 text-white"
+                                                >
                                                     {status.label}
                                                 </option>
                                             ))}
