@@ -172,8 +172,16 @@ export default function CheckoutPage() {
             toast.error("Vui lòng nhập địa chỉ");
             return false;
         }
-        if (!formData.city.trim()) {
+        if (!formData.city.trim() || !formData.provinceId) {
             toast.error("Vui lòng chọn tỉnh/thành phố");
+            return false;
+        }
+        if (!formData.districtId) {
+            toast.error("Vui lòng chọn quận/huyện");
+            return false;
+        }
+        if (!formData.wardCode) {
+            toast.error("Vui lòng chọn phường/xã");
             return false;
         }
         return true;

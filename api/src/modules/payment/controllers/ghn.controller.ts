@@ -25,7 +25,7 @@ export class GhnController {
     private readonly ghnService: GhnService,
     @Inject(forwardRef(() => SettingService))
     private readonly settingService: SettingService,
-  ) {}
+  ) { }
 
   @Get("provinces")
   @HttpCode(HttpStatus.OK)
@@ -108,14 +108,14 @@ export class GhnController {
       const tokenResponse = await this.ghnService.genPrintToken([ghnOrderCode]);
       const tokenData = tokenResponse?.data || tokenResponse;
       const token = tokenData?.token;
-      
+
       if (!token) {
         throw new BadRequestException("Không thể tạo token để in bill từ GHN");
       }
-      
+
       const baseUrl = await this.settingService.get("GHN_BASE_URL") || "https://dev-online-gateway.ghn.vn";
       const printUrl = `${baseUrl}/a5/public-api/print52x70?token=${token}`;
-      
+
       return DataResponse.ok({ token, printUrl, ghnOrderCode });
     } catch (error: any) {
       throw new BadRequestException(

@@ -47,40 +47,13 @@ export class GhnService {
       return;
     }
     try {
-      console.log("=== Loading GHN Config from Settings ===");
-      
       const ghnBaseUrlRaw = await this.settingService.get("GHN_BASE_URL");
       const ghnTokenRaw = await this.settingService.get("GHN_TOKEN");
       const ghnShopIdRaw = await this.settingService.get("GHN_SHOP_ID");
-      
-      console.log("Direct get() results:", {
-        "GHN_BASE_URL": ghnBaseUrlRaw,
-        "GHN_TOKEN": ghnTokenRaw ? "***EXISTS***" : "NULL/UNDEFINED",
-        "GHN_SHOP_ID": ghnShopIdRaw,
-      });
-
-      console.log("Raw values from settings:", {
-        "GHN_BASE_URL raw": ghnBaseUrlRaw,
-        "GHN_BASE_URL type": typeof ghnBaseUrlRaw,
-        "GHN_TOKEN raw": ghnTokenRaw ? `${String(ghnTokenRaw).substring(0, 10)}...` : "NULL/UNDEFINED",
-        "GHN_TOKEN type": typeof ghnTokenRaw,
-        "GHN_TOKEN length": ghnTokenRaw ? String(ghnTokenRaw).length : 0,
-        "GHN_SHOP_ID raw": ghnShopIdRaw,
-        "GHN_SHOP_ID type": typeof ghnShopIdRaw,
-      });
 
       this.baseUrl = (ghnBaseUrlRaw || GHN_BASE_URL).trim();
       this.token = (ghnTokenRaw ? String(ghnTokenRaw) : "").trim();
       this.shopId = (ghnShopIdRaw ? String(ghnShopIdRaw) : "").trim();
-
-      console.log("Processed values:", {
-        "GHN_BASE_URL": this.baseUrl,
-        "GHN_TOKEN exists": !!this.token,
-        "GHN_TOKEN length": this.token?.length || 0,
-        "GHN_TOKEN preview": this.token ? `${this.token.substring(0, 10)}...` : "MISSING",
-        "GHN_SHOP_ID exists": !!this.shopId,
-        "GHN_SHOP_ID value": this.shopId || "MISSING",
-      });
 
       if (!this.token) {
         console.warn("❌ GHN_TOKEN chưa được cấu hình trong Admin Settings");
@@ -131,13 +104,6 @@ export class GhnService {
       headers.ShopId = this.shopId;
     }
 
-    console.log("Headers created:", {
-      ...headers,
-      Token: headers.Token
-        ? `${headers.Token.substring(0, 10)}...`
-        : "EMPTY",
-    });
-
     return headers;
   }
 
@@ -146,20 +112,9 @@ export class GhnService {
       await this.loadConfig(!this.token);
       const url = `${this.baseUrl}/shiip/public-api/master-data/province`;
       const headers = await this.getHeaders();
-      console.log("GHN getProvinces request:", {
-        url,
-        headers: { ...headers, Token: headers.Token ? "***" : "MISSING" },
-      });
-      
       const resp = await axios.get(url, { headers });
       const responseData = resp.data;
-      
-      console.log("GHN getProvinces response:", {
-        status: resp.status,
-        dataKeys: responseData ? Object.keys(responseData) : [],
-        hasData: !!responseData?.data,
-      });
-      
+
       if (responseData?.data) {
         return responseData.data;
       }
@@ -251,12 +206,6 @@ export class GhnService {
 
   async createOrder(payload: GhnCreateOrderPayload) {
     await this.loadConfig(!this.token);
-    console.log("=== GHN Create Order - Config Check ===");
-    console.log("Token exists:", !!this.token);
-    console.log("Token length:", this.token?.length || 0);
-    console.log("ShopId exists:", !!this.shopId);
-    console.log("BaseUrl:", this.baseUrl);
-    
     const url = `${this.baseUrl}/shiip/public-api/v2/shipping-order/create`;
     const body = {
       client_order_code: payload.orderCode,
@@ -309,13 +258,6 @@ export class GhnService {
       const orderDetail = await this.getOrderDetailByClientCode(clientOrderCode);
       const responseData = orderDetail?.data || orderDetail;
       const ghnOrderCode = responseData?.order_code;
-      
-      console.log("GHN order detail response:", {
-        hasData: !!orderDetail?.data,
-        orderCode: ghnOrderCode,
-        responseKeys: responseData ? Object.keys(responseData) : [],
-      });
-      
       if (!ghnOrderCode) {
         throw new BadRequestException(
           "Không tìm thấy đơn hàng GHN. Đơn hàng có thể chưa được tạo trên GHN hoặc đã bị xóa.",
@@ -325,13 +267,13 @@ export class GhnService {
       const tokenResponse = await this.genPrintToken([ghnOrderCode]);
       const tokenData = tokenResponse?.data || tokenResponse;
       const token = tokenData?.token;
-      
+
       if (!token) {
         throw new BadRequestException(
           "Không thể tạo token để in bill từ GHN",
         );
       }
-      
+
       const printUrl = `${this.baseUrl}/a5/public-api/print52x70?token=${token}`;
       return { token, printUrl, ghnOrderCode };
     } catch (error: any) {
@@ -340,7 +282,7 @@ export class GhnService {
         response: error?.response?.data,
         clientOrderCode,
       });
-      
+
       if (
         error?.response?.data?.code_message === "ORDER_NOT_FOUND" ||
         error?.message?.includes("ORDER_NOT_FOUND") ||
@@ -350,7 +292,7 @@ export class GhnService {
           "Đơn hàng chưa được tạo trên GHN. Vui lòng tạo đơn GHN trước khi in bill.",
         );
       }
-      
+
       throw new BadRequestException(
         error?.response?.data?.message ||
         error?.response?.data?.code_message_value ||

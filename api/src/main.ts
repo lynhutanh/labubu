@@ -56,7 +56,8 @@ async function bootstrap() {
   const port = process.env.HTTP_PORT || 5001;
   await app.listen(port);
 
-  console.log(`Cosmetics API is running on: ${process.env.BASE_URL}`);
+  // eslint-disable-next-line no-console
+  console.info(`Cosmetics API is running on: ${process.env.BASE_URL}`);
 }
 
 bootstrap();
