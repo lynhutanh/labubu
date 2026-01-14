@@ -12,26 +12,31 @@ import {
   Search,
   Globe,
 } from "lucide-react";
+import { useTranslation } from "next-i18next";
 import { storage } from "../../utils/storage";
 import { cartService } from "../../services/cart.service";
 import { TOKEN } from "../../services/api-request";
 
 export default function Header() {
   const router = useRouter();
+  const { t, i18n } = useTranslation("common");
   const [user, setUser] = useState<any>(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [cartItemCount, setCartItemCount] = useState(0);
-  const [currentLanguage, setCurrentLanguage] = useState("VI");
 
   const languages = [
-    { code: "VI", name: "Tiếng Việt", flag: "🇻🇳" },
-    { code: "EN", name: "English", flag: "🇺🇸" },
-    { code: "ZH", name: "中文", flag: "🇨🇳" },
-    { code: "JA", name: "日本語", flag: "🇯🇵" },
+    { code: "vi", name: t("language.vi"), flag: "🇻🇳" },
+    { code: "en", name: t("language.en"), flag: "🇺🇸" },
   ];
+
+  const changeLanguage = async (locale: string) => {
+    setShowLanguageMenu(false);
+    await i18n.changeLanguage(locale);
+    router.push(router.pathname, router.asPath, { locale });
+  };
 
   useEffect(() => {
     // Load user from storage
@@ -126,7 +131,7 @@ export default function Header() {
                 : "text-white hover:text-yellow-400"
                 }`}
             >
-              HOME
+              {t("header.home")}
             </Link>
             <span className="text-white/30">•</span>
             <Link
@@ -136,7 +141,7 @@ export default function Header() {
                 : "text-white hover:text-yellow-400"
                 }`}
             >
-              PRODUCTS
+              {t("header.products")}
             </Link>
             <span className="text-white/30">•</span>
             <Link
@@ -146,7 +151,7 @@ export default function Header() {
                 : "text-white hover:text-yellow-400"
                 }`}
             >
-              CONTACT US
+              {t("header.contact")}
             </Link>
           </nav>
 
@@ -204,11 +209,8 @@ export default function Header() {
                     {languages.map((lang) => (
                       <button
                         key={lang.code}
-                        onClick={() => {
-                          setCurrentLanguage(lang.code);
-                          setShowLanguageMenu(false);
-                        }}
-                        className={`w-full flex items-center gap-3 px-4 py-2 text-sm transition-colors ${currentLanguage === lang.code
+                        onClick={() => changeLanguage(lang.code)}
+                        className={`w-full flex items-center gap-3 px-4 py-2 text-sm transition-colors ${router.locale === lang.code
                           ? "bg-yellow-400/20 text-yellow-400"
                           : "text-white hover:bg-gray-800"
                           }`}
@@ -252,7 +254,7 @@ export default function Header() {
                         onClick={() => setShowDropdown(false)}
                       >
                         <User className="w-4 h-4" />
-                        Tài khoản
+                        {t("header.account")}
                       </Link>
                       <Link
                         href="/wishlist"
@@ -260,7 +262,7 @@ export default function Header() {
                         onClick={() => setShowDropdown(false)}
                       >
                         <Heart className="w-4 h-4" />
-                        Yêu thích
+                        {t("header.favorites")}
                       </Link>
                       <button
                         onClick={() => {
@@ -270,7 +272,7 @@ export default function Header() {
                         className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-400 hover:bg-gray-800"
                       >
                         <LogOut className="w-4 h-4" />
-                        Đăng xuất
+                        {t("header.logout")}
                       </button>
                     </div>
                   </>
@@ -309,7 +311,7 @@ export default function Header() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
                 type="text"
-                placeholder="Tìm kiếm sản phẩm..."
+                placeholder={t("header.search")}
                 className="w-full pl-10 pr-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-yellow-400"
                 autoFocus
               />
@@ -335,7 +337,7 @@ export default function Header() {
                   : "text-white hover:bg-gray-800"
                   }`}
               >
-                HOME
+                {t("header.home")}
               </Link>
               <Link
                 href="/products"
@@ -345,7 +347,7 @@ export default function Header() {
                   : "text-white hover:bg-gray-800"
                   }`}
               >
-                PRODUCTS
+                {t("header.products")}
               </Link>
               <Link
                 href="/contact"
@@ -355,7 +357,7 @@ export default function Header() {
                   : "text-white hover:bg-gray-800"
                   }`}
               >
-                CONTACT US
+                {t("header.contact")}
               </Link>
               {user && (
                 <>
@@ -366,7 +368,7 @@ export default function Header() {
                     className="flex items-center gap-3 px-4 py-3 text-white hover:bg-gray-800 rounded-lg transition-colors"
                   >
                     <User className="w-5 h-5" />
-                    Tài khoản
+                    {t("header.account")}
                   </Link>
                   <Link
                     href="/wishlist"
@@ -374,7 +376,7 @@ export default function Header() {
                     className="flex items-center gap-3 px-4 py-3 text-white hover:bg-gray-800 rounded-lg transition-colors"
                   >
                     <Heart className="w-5 h-5" />
-                    Yêu thích
+                    {t("header.favorites")}
                   </Link>
                   <div className="border-t border-gray-700 my-2" />
                   <button
@@ -385,7 +387,7 @@ export default function Header() {
                     className="w-full flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-gray-800 rounded-lg transition-colors"
                   >
                     <LogOut className="w-5 h-5" />
-                    Đăng xuất
+                    {t("header.logout")}
                   </button>
                 </>
               )}
@@ -395,7 +397,7 @@ export default function Header() {
                   onClick={() => setShowMobileMenu(false)}
                   className="block px-4 py-3 bg-yellow-400 text-black rounded-lg text-center font-medium mt-2"
                 >
-                  Đăng nhập
+                  {t("header.login")}
                 </Link>
               )}
             </nav>

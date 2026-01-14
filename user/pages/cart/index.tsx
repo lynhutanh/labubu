@@ -13,6 +13,8 @@ import {
   CreditCard,
   Loader2,
 } from "lucide-react";
+import { useTranslation } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Layout from "../../src/components/layout/Layout";
 import Image from "next/image";
 import { cartService, Cart, CartItem } from "../../src/services/cart.service";
@@ -22,6 +24,7 @@ import { formatCurrency } from "../../src/lib/string";
 
 export default function CartPage() {
   const router = useRouter();
+  const { t } = useTranslation("common");
   const [cart, setCart] = useState<Cart | null>(null);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
@@ -31,7 +34,7 @@ export default function CartPage() {
     const loadCart = async () => {
       const user = storage.getUser();
       if (!user) {
-        toast.error("Vui lòng đăng nhập để xem giỏ hàng");
+        toast.error(t("cart.loginRequired"));
         router.push("/login");
         return;
       }
@@ -42,7 +45,7 @@ export default function CartPage() {
         setCart(data);
       } catch (error: any) {
         console.error("Failed to load cart:", error);
-        toast.error("Không thể tải giỏ hàng");
+        toast.error(t("cart.loadError"));
       } finally {
         setLoading(false);
       }
@@ -61,11 +64,11 @@ export default function CartPage() {
         quantity: newQuantity,
       });
       setCart(updatedCart);
-      toast.success("Đã cập nhật số lượng");
+      toast.success(t("cart.updateQuantity"));
     } catch (error: any) {
       console.error("Failed to update quantity:", error);
       const message =
-        error?.response?.data?.message || "Không thể cập nhật số lượng";
+        error?.response?.data?.message || t("cart.updateQuantity");
       toast.error(message);
     } finally {
       setUpdatingId(null);
@@ -77,10 +80,10 @@ export default function CartPage() {
     try {
       const updatedCart = await cartService.removeFromCart({ productId });
       setCart(updatedCart);
-      toast.success("Đã xóa sản phẩm khỏi giỏ hàng");
+      toast.success(t("cart.removeSuccess"));
     } catch (error: any) {
       console.error("Failed to remove item:", error);
-      toast.error("Không thể xóa sản phẩm");
+      toast.error(t("cart.removeSuccess"));
     } finally {
       setRemovingId(null);
     }
@@ -110,8 +113,8 @@ export default function CartPage() {
   return (
     <Layout>
       <Head>
-        <title>Giỏ Hàng - Labubu</title>
-        <meta name="description" content="Xem và quản lý giỏ hàng của bạn" />
+        <title>{t("cart.title")}</title>
+        <meta name="description" content={t("cart.description")} />
       </Head>
 
       {/* Galaxy Background */}
@@ -187,7 +190,7 @@ export default function CartPage() {
               backgroundClip: "text",
             }}
           >
-            Giỏ Hàng
+            {t("cart.pageTitle")}
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: -20 }}
@@ -196,8 +199,8 @@ export default function CartPage() {
             className="text-xl md:text-2xl text-purple-200 max-w-2xl mx-auto"
           >
             {cartItems.length > 0
-              ? `${cartItems.length} sản phẩm trong giỏ hàng của bạn`
-              : "Giỏ hàng của bạn đang trống"}
+              ? `${cartItems.length} ${t("cart.itemsInCart")}`
+              : t("cart.emptyCart")}
           </motion.p>
         </div>
       </section>
@@ -225,10 +228,10 @@ export default function CartPage() {
                       backgroundClip: "text",
                     }}
                   >
-                    Sản phẩm trong giỏ hàng
+                    {t("cart.cartItems")}
                   </h2>
                   <p className="text-purple-200">
-                    Tổng cộng {cartItems.length} sản phẩm
+                    {t("cart.totalItems")} {cartItems.length} {t("cart.items")}
                   </p>
                 </motion.div>
 
@@ -311,7 +314,7 @@ export default function CartPage() {
                               )}
                             </div>
                             <p className="text-sm text-purple-300">
-                              Còn lại: {product.stock || 0} sản phẩm
+                              {t("cart.remaining")} {product.stock || 0} {t("cart.remainingItems")}
                             </p>
                           </div>
 
@@ -349,7 +352,7 @@ export default function CartPage() {
                             {/* Subtotal */}
                             <div className="text-right">
                               <p className="text-sm text-purple-300 mb-1">
-                                Thành tiền
+                                {t("cart.subtotal")}
                               </p>
                               <p
                                 className="text-lg font-bold"
@@ -369,7 +372,7 @@ export default function CartPage() {
                             <button
                               onClick={() => handleRemoveItem(item.productId)}
                               className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
-                              title="Xóa sản phẩm"
+                              title={t("cart.removeItem")}
                             >
                               <Trash2 className="w-5 h-5" />
                             </button>
@@ -399,20 +402,19 @@ export default function CartPage() {
                       backgroundClip: "text",
                     }}
                   >
-                    Tóm tắt đơn hàng
+                    {t("cart.orderSummary")}
                   </h2>
 
-                  {/* Summary Details */}
                   <div className="space-y-4 mb-6">
                     <div className="flex justify-between text-purple-200">
-                      <span>Tạm tính:</span>
+                      <span>{t("cart.subtotalLabel")}</span>
                       <span className="font-semibold text-white">
                         {formatCurrency(subtotal)}₫
                       </span>
                     </div>
                     <div className="border-t border-purple-500/30 pt-4">
                       <div className="flex justify-between text-lg font-bold text-white">
-                        <span>Tổng cộng:</span>
+                        <span>{t("cart.total")}</span>
                         <span
                           className="text-2xl"
                           style={{
@@ -435,19 +437,18 @@ export default function CartPage() {
                     className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-4 rounded-lg font-bold text-lg hover:opacity-90 transition-all flex items-center justify-center gap-2 mb-4 shadow-lg shadow-pink-500/50"
                   >
                     <CreditCard className="w-5 h-5" />
-                    Thanh toán
+                    {t("cart.checkout")}
                     <ArrowRight className="w-5 h-5" />
                   </button>
 
-                  {/* Security Badges */}
                   <div className="space-y-3 pt-4 border-t border-purple-500/30">
                     <div className="flex items-center gap-3 text-sm text-purple-200">
                       <Shield className="w-5 h-5 text-green-400 flex-shrink-0" />
-                      <span>Thanh toán an toàn và bảo mật</span>
+                      <span>{t("cart.securePayment")}</span>
                     </div>
                     <div className="flex items-center gap-3 text-sm text-purple-200">
                       <Truck className="w-5 h-5 text-blue-400 flex-shrink-0" />
-                      <span>Giao hàng nhanh trong 24-48h</span>
+                      <span>{t("cart.fastDelivery")}</span>
                     </div>
                   </div>
                 </motion.div>
@@ -474,18 +475,17 @@ export default function CartPage() {
                     backgroundClip: "text",
                   }}
                 >
-                  Giỏ hàng trống
+                  {t("cart.emptyTitle")}
                 </h3>
                 <p className="text-purple-200 mb-6">
-                  Bạn chưa có sản phẩm nào trong giỏ hàng. Hãy khám phá và thêm
-                  sản phẩm vào giỏ hàng!
+                  {t("cart.emptyDesc")}
                 </p>
                 <a
                   href="/products"
                   className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg font-semibold hover:opacity-90 transition-all shadow-lg shadow-pink-500/50"
                 >
                   <ArrowRight className="w-5 h-5" />
-                  Xem sản phẩm
+                  {t("cart.viewProducts")}
                 </a>
               </motion.div>
             </div>
@@ -494,4 +494,12 @@ export default function CartPage() {
       </section>
     </Layout>
   );
+}
+
+export async function getServerSideProps({ locale }: { locale: string }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ["common"])),
+    },
+  };
 }

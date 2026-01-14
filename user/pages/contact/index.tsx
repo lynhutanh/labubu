@@ -9,16 +9,19 @@ import {
   Instagram,
 } from "lucide-react";
 import Image from "next/image";
+import { useTranslation } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Layout from "../../src/components/layout/Layout";
 
 export default function ContactPage() {
+  const { t } = useTranslation("common");
   return (
     <Layout>
       <Head>
-        <title>Liên Hệ - Labubu Store</title>
+        <title>{t("contact.title")}</title>
         <meta
           name="description"
-          content="Liên hệ với chúng tôi để được tư vấn và hỗ trợ"
+          content={t("contact.description")}
         />
       </Head>
 
@@ -65,14 +68,13 @@ export default function ContactPage() {
               {/* Name */}
               <div>
                 <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-4">
-                  Labubu Store
+                  {t("contact.storeName")}
                 </h1>
               </div>
 
-              {/* Description */}
               <div className="mb-6">
                 <p className="text-base md:text-lg text-white leading-relaxed">
-                  Chúng tôi chuyên cung cấp các sản phẩm Labubu chính hãng, bao gồm Blind Box Series, figures độc đáo và các bộ sưu tập giới hạn. Với phương châm "Chất Lượng Luôn Đặt Hàng Đầu", chúng tôi cam kết mang đến cho bạn những sản phẩm chính hãng, dịch vụ tư vấn tận tình, giao hàng nhanh chóng và hỗ trợ sau bán hàng toàn diện. Hãy liên hệ với chúng tôi để được tư vấn và đặt hàng ngay hôm nay!
+                  {t("contact.descriptionText")}
                 </p>
               </div>
 
@@ -80,18 +82,17 @@ export default function ContactPage() {
               <div className="space-y-3 text-white text-base md:text-lg leading-relaxed">
                 {/* Phone */}
                 <p>
-                  <span className="font-semibold text-white">Hotline:</span> +84 123 456 789 Vui lòng nhấp vào:{" "}
+                  <span className="font-semibold text-white">{t("contact.hotline")}</span> +84 123 456 789 {t("contact.clickHere")}{" "}
                   <a
                     href="tel:+84123456789"
                     className="text-yellow-300 hover:text-yellow-200 underline"
                   >
-                    [Gọi ngay]
+                    {t("contact.callNow")}
                   </a>
                 </p>
 
-                {/* WhatsApp */}
                 <p>
-                  <span className="font-semibold text-white">WhatsApp:</span> +84 123 456 789 Vui lòng nhấp vào:{" "}
+                  <span className="font-semibold text-white">{t("contact.whatsapp")}</span> +84 123 456 789 {t("contact.clickHere")}{" "}
                   <a
                     href="https://wa.me/84123456789"
                     target="_blank"
@@ -102,9 +103,8 @@ export default function ContactPage() {
                   </a>
                 </p>
 
-                {/* Zalo */}
                 <p>
-                  <span className="font-semibold text-white">Zalo</span> - Vui lòng nhấp vào đây:{" "}
+                  <span className="font-semibold text-white">{t("contact.zalo")}</span> {t("contact.zaloClick")}{" "}
                   <a
                     href="https://zalo.me/84123456789"
                     target="_blank"
@@ -115,28 +115,26 @@ export default function ContactPage() {
                   </a>
                 </p>
 
-                {/* Email */}
                 <p>
-                  <span className="font-semibold text-white">Email:</span>{" "}
+                  <span className="font-semibold text-white">{t("contact.email")}</span>{" "}
                   <a
                     href="mailto:contact@labubustore.com"
                     className="text-yellow-300 hover:text-yellow-200 underline"
                   >
                     contact@labubustore.com
                   </a>{" "}
-                  • Tiếng Việt, Tiếng Anh
+                  {t("contact.languages")}
                 </p>
 
-                {/* Social Media */}
                 <p>
-                  Các tài khoản mạng xã hội, vui lòng nhấp vào:{" "}
+                  {t("contact.socialMedia")}{" "}
                   <a
                     href="#"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-yellow-300 hover:text-yellow-200 underline"
                   >
-                    [FACEBOOK]
+                    {t("contact.facebook")}
                   </a>{" "}
                   <a
                     href="#"
@@ -144,7 +142,7 @@ export default function ContactPage() {
                     rel="noopener noreferrer"
                     className="text-yellow-300 hover:text-yellow-200 underline"
                   >
-                    [INS]
+                    {t("contact.instagram")}
                   </a>
                 </p>
               </div>
@@ -154,4 +152,12 @@ export default function ContactPage() {
       </section>
     </Layout>
   );
+}
+
+export async function getStaticProps({ locale }: { locale: string }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ["common"])),
+    },
+  };
 }

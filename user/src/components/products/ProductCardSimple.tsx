@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
+import { useTranslation } from "next-i18next";
 import { cartService } from "../../services/cart.service";
 import { wishlistService } from "../../services/wishlist.service";
 import { storage } from "../../utils/storage";
@@ -38,6 +39,7 @@ export default function ProductCardSimple({
     stock,
 }: ProductCardSimpleProps) {
     const router = useRouter();
+    const { t } = useTranslation("common");
     const [isInWishlist, setIsInWishlist] = useState(false);
     const [isAddingToCart, setIsAddingToCart] = useState(false);
     const [isTogglingWishlist, setIsTogglingWishlist] = useState(false);
@@ -65,16 +67,15 @@ export default function ProductCardSimple({
         e.preventDefault();
         e.stopPropagation();
 
-        // Check if user is logged in
         const user = storage.getUser();
         if (!user) {
-            toast.error("Vui lòng đăng nhập để thêm vào giỏ hàng");
+            toast.error(t("productDetail.loginRequired"));
             router.push("/login");
             return;
         }
 
         if (!isInStock) {
-            toast.error("Sản phẩm đã hết hàng");
+            toast.error(t("productDetail.outOfStock"));
             return;
         }
 
@@ -86,10 +87,10 @@ export default function ProductCardSimple({
                 productId: actualProductId,
                 quantity: 1,
             });
-            toast.success("Đã thêm vào giỏ hàng!");
+            toast.success(t("productDetail.addToCartSuccess"));
         } catch (error: any) {
             console.error("Error adding to cart:", error);
-            const message = error?.response?.data?.message || error?.message || "Không thể thêm vào giỏ hàng";
+            const message = error?.response?.data?.message || error?.message || t("productDetail.addToCartError");
             toast.error(message);
         } finally {
             setIsAddingToCart(false);
@@ -100,38 +101,34 @@ export default function ProductCardSimple({
         e.preventDefault();
         e.stopPropagation();
 
-        // Check if user is logged in
         const user = storage.getUser();
         if (!user) {
-            toast.error("Vui lòng đăng nhập để thêm vào danh sách yêu thích");
+            toast.error(t("wishlist.loginRequired"));
             router.push("/login");
             return;
         }
 
-        // Use productId if provided, otherwise use id (might be _id or slug)
         const actualProductId = productId || (typeof id === "string" ? id : String(id));
         
         if (!actualProductId) {
-            toast.error("Không tìm thấy ID sản phẩm");
+            toast.error(t("common.error"));
             return;
         }
 
         setIsTogglingWishlist(true);
         try {
             if (isInWishlist) {
-                // Remove from wishlist
                 await wishlistService.removeFromWishlist({ productId: actualProductId });
                 setIsInWishlist(false);
-                toast.success("Đã xóa khỏi danh sách yêu thích");
+                toast.success(t("wishlist.removeSuccess"));
             } else {
-                // Add to wishlist
                 await wishlistService.addToWishlist({ productId: actualProductId });
                 setIsInWishlist(true);
-                toast.success("Đã thêm vào danh sách yêu thích");
+                toast.success(t("wishlist.addToCartSuccess"));
             }
         } catch (error: any) {
             console.error("Error toggling wishlist:", error);
-            const message = error?.response?.data?.message || error?.message || "Không thể cập nhật danh sách yêu thích";
+            const message = error?.response?.data?.message || error?.message || t("wishlist.removeError");
             toast.error(message);
         } finally {
             setIsTogglingWishlist(false);
@@ -187,7 +184,7 @@ export default function ProductCardSimple({
                             ? "bg-pink-500/80 border-2 border-pink-400 shadow-lg shadow-pink-500/50"
                             : "bg-white/10 border border-white/20 hover:bg-white/20"
                         }`}
-                    title={isInWishlist ? "Xóa khỏi yêu thích" : "Thêm vào yêu thích"}
+                    title={isInWishlist ? t("wishlist.removeFromWishlist") : t("header.favorites")}
                 >
                     <Heart
                         className={`w-5 h-5 transition-all ${isInWishlist
@@ -243,7 +240,7 @@ export default function ProductCardSimple({
                                 className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-2 rounded-lg font-semibold text-sm hover:from-purple-500 hover:to-indigo-500 transition-all flex items-center justify-center gap-2 shadow-lg shadow-purple-500/50"
                             >
                                 <Eye className="w-4 h-4" />
-                                Xem nhanh sản phẩm
+                                {t("productDetail.viewQuick")}
                             </button>
                         </Link>
                         <button
@@ -253,10 +250,10 @@ export default function ProductCardSimple({
                         >
                             <ShoppingCart className="w-4 h-4" />
                             {isAddingToCart
-                                ? "Đang thêm..."
+                                ? t("productDetail.adding")
                                 : isInStock
-                                    ? "Thêm vào giỏ hàng"
-                                    : "Hết hàng"}
+                                    ? t("productDetail.addToCart")
+                                    : t("productDetail.outOfStockLabel")}
                         </button>
                     </div>
                 </div>
@@ -286,7 +283,7 @@ export default function ProductCardSimple({
                                 boxShadow: "0 0 8px rgba(34, 197, 94, 0.3)",
                             }}
                         >
-                            Hàng sẵn
+                            {t("productDetail.inStock")}
                         </span>
                     ) : (
                         <span
@@ -296,7 +293,7 @@ export default function ProductCardSimple({
                                 boxShadow: "0 0 8px rgba(239, 68, 68, 0.3)",
                             }}
                         >
-                            Hết hàng
+                            {t("productDetail.outOfStockLabel")}
                         </span>
                     )}
                 </div>

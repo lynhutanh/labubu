@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
+import { useTranslation } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Layout from "../../src/components/layout/Layout";
 import ProfileLayout from "../../src/components/profile/ProfileLayout";
 import { storage } from "../../src/utils/storage";
@@ -9,6 +11,7 @@ import { toast } from "react-hot-toast";
 
 export default function ProfilePage() {
     const router = useRouter();
+    const { t } = useTranslation("common");
     const [user, setUser] = useState<any>(null);
     const [isEditingEmail, setIsEditingEmail] = useState(false);
     const [formData, setFormData] = useState({
@@ -37,25 +40,23 @@ export default function ProfilePage() {
 
     const handleSavePersonalInfo = async () => {
         try {
-            // TODO: Call API to update user info
-            toast.success("Đã lưu thông tin cá nhân");
+            toast.success(t("profile.saveSuccess"));
         } catch {
-            toast.error("Có lỗi xảy ra khi lưu thông tin");
+            toast.error(t("profile.saveError"));
         }
     };
 
     const handleChangePassword = async () => {
         if (formData.newPassword !== formData.confirmPassword) {
-            toast.error("Mật khẩu mới không khớp");
+            toast.error(t("profile.passwordNotMatch"));
             return;
         }
         if (formData.newPassword.length < 6) {
-            toast.error("Mật khẩu phải có ít nhất 6 ký tự");
+            toast.error(t("profile.passwordMinLength"));
             return;
         }
         try {
-            // TODO: Call API to change password
-            toast.success("Đã thay đổi mật khẩu thành công");
+            toast.success(t("profile.changePasswordSuccess"));
             setFormData({
                 ...formData,
                 currentPassword: "",
@@ -63,7 +64,7 @@ export default function ProfilePage() {
                 confirmPassword: "",
             });
         } catch {
-            toast.error("Có lỗi xảy ra khi thay đổi mật khẩu");
+            toast.error(t("profile.changePasswordError"));
         }
     };
 
@@ -74,23 +75,21 @@ export default function ProfilePage() {
     return (
         <Layout>
             <Head>
-                <title>Tài khoản - Labubu Store</title>
+                <title>{t("profile.title")}</title>
             </Head>
             <ProfileLayout>
                 <div className="bg-white rounded-lg shadow-sm p-6 space-y-8">
-                    {/* Personal Information Section */}
                     <div>
                         <h2 className="text-xl font-bold text-gray-900 mb-6">
-                            Thông tin cá nhân
+                            {t("profile.personalInfo")}
                         </h2>
 
-                        {/* Nickname Field */}
                         <div className="mb-6">
                             <label
                                 htmlFor="nickname"
                                 className="block text-sm font-medium text-gray-700 mb-2"
                             >
-                                Biệt danh *
+                                {t("profile.nickname")} *
                             </label>
                             <input
                                 type="text"
@@ -103,20 +102,19 @@ export default function ProfilePage() {
                                     })
                                 }
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400"
-                                placeholder="Nhập biệt danh"
+                                placeholder={t("profile.nicknamePlaceholder")}
                             />
                             <p className="mt-1 text-xs text-gray-500">
-                                Đây là tên sẽ được hiển thị cho người dùng khác
+                                {t("profile.nicknameDesc")}
                             </p>
                         </div>
 
-                        {/* Email Field */}
                         <div className="mb-6">
                             <label
                                 htmlFor="email"
                                 className="block text-sm font-medium text-gray-700 mb-2"
                             >
-                                Địa chỉ email *
+                                {t("profile.email")} *
                             </label>
                             <div className="flex items-center gap-3">
                                 <input
@@ -135,39 +133,36 @@ export default function ProfilePage() {
                                             ? "bg-gray-100 cursor-not-allowed"
                                             : ""
                                     }`}
-                                    placeholder="Nhập email"
+                                    placeholder={t("profile.emailPlaceholder")}
                                 />
                                 <button
                                     onClick={() => setIsEditingEmail(!isEditingEmail)}
                                     className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
                                 >
-                                    {isEditingEmail ? "Hủy" : "Chỉnh sửa"}
+                                    {isEditingEmail ? t("profile.cancel") : t("profile.edit")}
                                 </button>
                             </div>
                         </div>
 
-                        {/* Save Button */}
                         <button
                             onClick={handleSavePersonalInfo}
                             className="px-6 py-3 bg-black text-white rounded-lg font-semibold hover:bg-gray-800 transition-colors"
                         >
-                            Lưu thay đổi
+                            {t("profile.save")}
                         </button>
                     </div>
 
-                    {/* Change Password Section */}
                     <div className="border-t border-gray-200 pt-8">
                         <h2 className="text-xl font-bold text-gray-900 mb-6">
-                            Thay đổi mật khẩu
+                            {t("profile.changePassword")}
                         </h2>
 
-                        {/* Current Password */}
                         <div className="mb-4">
                             <label
                                 htmlFor="currentPassword"
                                 className="block text-sm font-medium text-gray-700 mb-2"
                             >
-                                Mật khẩu hiện tại
+                                {t("profile.currentPassword")}
                             </label>
                             <input
                                 type="password"
@@ -180,17 +175,16 @@ export default function ProfilePage() {
                                     })
                                 }
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400"
-                                placeholder="Nhập mật khẩu hiện tại"
+                                placeholder={t("profile.currentPasswordPlaceholder")}
                             />
                         </div>
 
-                        {/* New Password */}
                         <div className="mb-4">
                             <label
                                 htmlFor="newPassword"
                                 className="block text-sm font-medium text-gray-700 mb-2"
                             >
-                                Mật khẩu mới
+                                {t("profile.newPassword")}
                             </label>
                             <input
                                 type="password"
@@ -203,17 +197,16 @@ export default function ProfilePage() {
                                     })
                                 }
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400"
-                                placeholder="Nhập mật khẩu mới"
+                                placeholder={t("profile.newPasswordPlaceholder")}
                             />
                         </div>
 
-                        {/* Confirm Password */}
                         <div className="mb-6">
                             <label
                                 htmlFor="confirmPassword"
                                 className="block text-sm font-medium text-gray-700 mb-2"
                             >
-                                Xác nhận mật khẩu mới
+                                {t("profile.confirmPassword")}
                             </label>
                             <input
                                 type="password"
@@ -226,21 +219,28 @@ export default function ProfilePage() {
                                     })
                                 }
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400"
-                                placeholder="Nhập lại mật khẩu mới"
+                                placeholder={t("profile.confirmPasswordPlaceholder")}
                             />
                         </div>
 
-                        {/* Change Password Button */}
                         <button
                             onClick={handleChangePassword}
                             className="px-6 py-3 bg-black text-white rounded-lg font-semibold hover:bg-gray-800 transition-colors flex items-center gap-2"
                         >
                             <Lock className="w-5 h-5" />
-                            Thay đổi mật khẩu
+                            {t("profile.changePassword")}
                         </button>
                     </div>
                 </div>
             </ProfileLayout>
         </Layout>
     );
+}
+
+export async function getServerSideProps({ locale }: { locale: string }) {
+    return {
+        props: {
+            ...(await serverSideTranslations(locale, ["common"])),
+        },
+    };
 }

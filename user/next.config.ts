@@ -1,9 +1,11 @@
 import type { NextConfig } from 'next';
+const { i18n } = require('./next-i18next.config');
 
 const nextConfig: NextConfig = {
   compress: true,
   reactStrictMode: false,
   distDir: '.next',
+  i18n,
   eslint: {
     ignoreDuringBuilds: true
   },

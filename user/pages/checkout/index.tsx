@@ -16,6 +16,8 @@ import {
     User,
     AlertCircle,
 } from "lucide-react";
+import { useTranslation } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Layout from "../../src/components/layout/Layout";
 import { cartService, Cart } from "../../src/services/cart.service";
 import { orderService, CreateOrderPayload } from "../../src/services/order.service";
@@ -35,6 +37,7 @@ interface PaymentInfo {
 
 export default function CheckoutPage() {
     const router = useRouter();
+    const { t } = useTranslation("common");
     const [cart, setCart] = useState<Cart | null>(null);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
@@ -68,7 +71,7 @@ export default function CheckoutPage() {
         const loadCart = async () => {
             const user = storage.getUser();
             if (!user) {
-                toast.error("Vui lòng đăng nhập để thanh toán");
+                toast.error(t("checkout.loginRequired"));
                 router.push("/login");
                 return;
             }
@@ -78,13 +81,12 @@ export default function CheckoutPage() {
                 const data = await cartService.getCart();
                 setCart(data);
 
-                // Pre-fill form with user data if available
                 if (user.name) setFormData((prev) => ({ ...prev, fullName: user.name }));
                 if (user.phone) setFormData((prev) => ({ ...prev, phone: user.phone }));
                 if (user.address) setFormData((prev) => ({ ...prev, address: user.address }));
             } catch (error: any) {
                 console.error("Failed to load cart:", error);
-                toast.error("Không thể tải giỏ hàng");
+                toast.error(t("checkout.loadError"));
                 router.push("/cart");
             } finally {
                 setLoading(false);
@@ -137,9 +139,8 @@ export default function CheckoutPage() {
                 if (paymentStatus === "paid") {
                     setPolling(false);
                     clearInterval(pollInterval);
-                    toast.success("🎉 Thanh toán thành công! Đơn hàng của bạn đã được xác nhận.");
+                    toast.success(t("checkout.paymentSuccess"));
 
-                    // Wait a bit before redirecting to show the toast
                     setTimeout(() => {
                         router.push(`/profile/order`);
                     }, 1500);
@@ -161,27 +162,27 @@ export default function CheckoutPage() {
 
     const validateForm = (): boolean => {
         if (!formData.fullName.trim()) {
-            toast.error("Vui lòng nhập họ tên");
+            toast.error(t("checkout.validation.fullName"));
             return false;
         }
         if (!formData.phone.trim()) {
-            toast.error("Vui lòng nhập số điện thoại");
+            toast.error(t("checkout.validation.phone"));
             return false;
         }
         if (!formData.address.trim()) {
-            toast.error("Vui lòng nhập địa chỉ");
+            toast.error(t("checkout.validation.address"));
             return false;
         }
         if (!formData.city.trim() || !formData.provinceId) {
-            toast.error("Vui lòng chọn tỉnh/thành phố");
+            toast.error(t("checkout.validation.province"));
             return false;
         }
         if (!formData.districtId) {
-            toast.error("Vui lòng chọn quận/huyện");
+            toast.error(t("checkout.validation.district"));
             return false;
         }
         if (!formData.wardCode) {
-            toast.error("Vui lòng chọn phường/xã");
+            toast.error(t("checkout.validation.ward"));
             return false;
         }
         return true;
@@ -275,7 +276,7 @@ export default function CheckoutPage() {
         if (!validateForm()) return;
 
         if (!cart || cart.items.length === 0) {
-            toast.error("Giỏ hàng trống");
+            toast.error(t("checkout.emptyCart"));
             return;
         }
 
@@ -319,17 +320,16 @@ export default function CheckoutPage() {
                     setCountdown(diff > 0 ? diff : 0);
                 } catch (error: any) {
                     console.error("Failed to get payment info:", error);
-                    toast.error("Không thể lấy thông tin thanh toán");
+                    toast.error(t("checkout.paymentInfoError"));
                 }
             } else {
-                // For other payment methods, redirect or show success
-                toast.success("Đơn hàng đã được tạo thành công!");
+                toast.success(t("checkout.orderCreated"));
                 router.push(`/profile/order/${order._id}`);
             }
         } catch (error: any) {
             console.error("Failed to create order:", error);
             const message =
-                error?.response?.data?.message || "Không thể tạo đơn hàng";
+                error?.response?.data?.message || t("checkout.orderError");
             toast.error(message);
         } finally {
             setSubmitting(false);
@@ -349,15 +349,15 @@ export default function CheckoutPage() {
     if (!cart || cart.items.length === 0) {
         return (
             <Layout>
-                <div className="text-center py-20">
-                    <p className="text-purple-200 mb-4">Giỏ hàng trống</p>
-                    <button
-                        onClick={() => router.push("/cart")}
-                        className="px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg"
-                    >
-                        Quay lại giỏ hàng
-                    </button>
-                </div>
+                    <div className="text-center py-20">
+                        <p className="text-purple-200 mb-4">{t("checkout.emptyCart")}</p>
+                        <button
+                            onClick={() => router.push("/cart")}
+                            className="px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg"
+                        >
+                            {t("checkout.backToCart")}
+                        </button>
+                    </div>
             </Layout>
         );
     }
@@ -368,33 +368,32 @@ export default function CheckoutPage() {
     }, 0);
     const total = subtotal;
 
-    // Payment method options
     const paymentMethods = [
         {
             id: "sepay" as PaymentMethod,
-            name: "Chuyển khoản ngân hàng",
+            name: t("checkout.bankTransfer"),
             icon: Building2,
-            description: "Thanh toán qua QR chuyển khoản",
+            description: t("checkout.bankTransferDesc"),
         },
         {
             id: "cod" as PaymentMethod,
-            name: "Thanh toán khi nhận hàng",
+            name: t("checkout.cod"),
             icon: CreditCard,
-            description: "Thanh toán khi nhận được hàng",
+            description: t("checkout.codDesc"),
         },
         {
             id: "wallet" as PaymentMethod,
-            name: "Ví điện tử",
+            name: t("checkout.wallet"),
             icon: Wallet,
-            description: "Thanh toán bằng ví của bạn",
+            description: t("checkout.walletDesc"),
         },
     ];
 
     return (
         <Layout>
             <Head>
-                <title>Thanh Toán - Labubu</title>
-                <meta name="description" content="Thanh toán đơn hàng của bạn" />
+                <title>{t("checkout.title")}</title>
+                <meta name="description" content={t("checkout.description")} />
             </Head>
 
             {/* Galaxy Background */}
@@ -427,7 +426,7 @@ export default function CheckoutPage() {
                             className="flex items-center gap-2 text-purple-200 hover:text-white mb-4"
                         >
                             <ArrowLeft className="w-5 h-5" />
-                            Quay lại
+                            {t("checkout.back")}
                         </button>
                         <h1
                             className="text-4xl font-bold mb-2"
@@ -439,7 +438,7 @@ export default function CheckoutPage() {
                                 backgroundClip: "text",
                             }}
                         >
-                            Thanh Toán
+                            {t("checkout.pageTitle")}
                         </h1>
                     </motion.div>
 
@@ -453,10 +452,10 @@ export default function CheckoutPage() {
                             <div className="galaxy-card rounded-2xl p-8 backdrop-blur-sm text-center">
                                 <QrCode className="w-16 h-16 text-pink-400 mx-auto mb-4" />
                                 <h2 className="text-2xl font-bold text-white mb-2">
-                                    Quét mã QR để thanh toán
+                                    {t("checkout.qrTitle")}
                                 </h2>
                                 <p className="text-purple-200 mb-6">
-                                    Vui lòng quét mã QR bằng ứng dụng ngân hàng của bạn
+                                    {t("checkout.qrDesc")}
                                 </p>
 
                                 {/* QR Code */}
@@ -471,13 +470,13 @@ export default function CheckoutPage() {
                                 {/* Payment Info */}
                                 <div className="space-y-3 mb-6 text-left max-w-md mx-auto">
                                     <div className="flex justify-between text-purple-200">
-                                        <span>Số tiền:</span>
+                                        <span>{t("checkout.amount")}</span>
                                         <span className="font-bold text-white text-lg">
                                             {formatCurrency(paymentInfo.amount)}₫
                                         </span>
                                     </div>
                                     <div className="flex justify-between text-purple-200">
-                                        <span>Nội dung CK:</span>
+                                        <span>{t("checkout.transferContent")}</span>
                                         <span className="font-mono text-white">
                                             {paymentInfo.paymentRef}
                                         </span>
@@ -486,7 +485,7 @@ export default function CheckoutPage() {
                                         <div className="flex items-center justify-center gap-2 text-pink-300 mt-4">
                                             <Clock className="w-5 h-5" />
                                             <span>
-                                                Còn lại: {Math.floor(countdown / 60)}:
+                                                {t("checkout.timeRemaining")} {Math.floor(countdown / 60)}:
                                                 {(countdown % 60).toString().padStart(2, "0")}
                                             </span>
                                         </div>
@@ -496,7 +495,7 @@ export default function CheckoutPage() {
                                 {polling && (
                                     <div className="flex items-center justify-center gap-2 text-purple-200">
                                         <Loader2 className="w-5 h-5 animate-spin" />
-                                        <span>Đang kiểm tra thanh toán...</span>
+                                        <span>{t("checkout.checkingPayment")}</span>
                                     </div>
                                 )}
                             </div>
@@ -514,12 +513,12 @@ export default function CheckoutPage() {
                                 >
                                     <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
                                         <MapPin className="w-5 h-5 text-pink-400" />
-                                        Địa chỉ giao hàng
+                                        {t("checkout.shippingAddress")}
                                     </h2>
                                     <div className="space-y-4">
                                         <div>
                                             <label className="block text-purple-200 mb-2">
-                                                Họ và tên <span className="text-red-400">*</span>
+                                                {t("checkout.fullName")} <span className="text-red-400">{t("checkout.required")}</span>
                                             </label>
                                             <input
                                                 type="text"
@@ -528,12 +527,12 @@ export default function CheckoutPage() {
                                                 onChange={handleInputChange}
                                                 required
                                                 className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white placeholder-purple-400 focus:outline-none focus:ring-2 focus:ring-pink-500"
-                                                placeholder="Nhập họ và tên"
+                                                placeholder={t("checkout.fullNamePlaceholder")}
                                             />
                                         </div>
                                         <div>
                                             <label className="block text-purple-200 mb-2">
-                                                Số điện thoại <span className="text-red-400">*</span>
+                                                {t("checkout.phone")} <span className="text-red-400">{t("checkout.required")}</span>
                                             </label>
                                             <input
                                                 type="tel"
@@ -542,12 +541,12 @@ export default function CheckoutPage() {
                                                 onChange={handleInputChange}
                                                 required
                                                 className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white placeholder-purple-400 focus:outline-none focus:ring-2 focus:ring-pink-500"
-                                                placeholder="Nhập số điện thoại"
+                                                placeholder={t("checkout.phonePlaceholder")}
                                             />
                                         </div>
                                         <div>
                                             <label className="block text-purple-200 mb-2">
-                                                Địa chỉ <span className="text-red-400">*</span>
+                                                {t("checkout.address")} <span className="text-red-400">{t("checkout.required")}</span>
                                             </label>
                                             <input
                                                 type="text"
@@ -556,13 +555,13 @@ export default function CheckoutPage() {
                                                 onChange={handleInputChange}
                                                 required
                                                 className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white placeholder-purple-400 focus:outline-none focus:ring-2 focus:ring-pink-500"
-                                                placeholder="Số nhà, tên đường"
+                                                placeholder={t("checkout.addressPlaceholder")}
                                             />
                                         </div>
                                         <div className="grid grid-cols-2 gap-4">
                                             <div>
                                                 <label className="block text-purple-200 mb-2">
-                                                    Tỉnh/Thành phố <span className="text-red-400">*</span>
+                                                    {t("checkout.province")} <span className="text-red-400">{t("checkout.required")}</span>
                                                 </label>
                                                 <select
                                                     name="city"
@@ -571,7 +570,7 @@ export default function CheckoutPage() {
                                                     className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
                                                 >
                                                     <option value="" className="bg-gray-900 text-purple-200">
-                                                        Chọn tỉnh/thành phố
+                                                        {t("checkout.selectProvince")}
                                                     </option>
                                                     {provinces.map((p: any) => (
                                                         <option
@@ -586,7 +585,7 @@ export default function CheckoutPage() {
                                             </div>
                                             <div>
                                                 <label className="block text-purple-200 mb-2">
-                                                    Quận/Huyện
+                                                    {t("checkout.district")}
                                                 </label>
                                                 <select
                                                     name="district"
@@ -596,7 +595,7 @@ export default function CheckoutPage() {
                                                     className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-pink-500 disabled:opacity-50"
                                                 >
                                                     <option value="" className="bg-gray-900 text-purple-200">
-                                                        Chọn quận/huyện
+                                                        {t("checkout.selectDistrict")}
                                                     </option>
                                                     {districts.map((d: any) => (
                                                         <option
@@ -612,7 +611,7 @@ export default function CheckoutPage() {
                                         </div>
                                         <div>
                                             <label className="block text-purple-200 mb-2">
-                                                Phường/Xã
+                                                {t("checkout.ward")}
                                             </label>
                                             <select
                                                 name="ward"
@@ -622,7 +621,7 @@ export default function CheckoutPage() {
                                                 className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-pink-500 disabled:opacity-50"
                                             >
                                                 <option value="" className="bg-gray-900 text-purple-200">
-                                                    Chọn phường/xã
+                                                    {t("checkout.selectWard")}
                                                 </option>
                                                 {wards.map((w: any) => (
                                                     <option
@@ -637,7 +636,7 @@ export default function CheckoutPage() {
                                         </div>
                                         <div>
                                             <label className="block text-purple-200 mb-2">
-                                                Ghi chú
+                                                {t("checkout.note")}
                                             </label>
                                             <textarea
                                                 name="note"
@@ -645,7 +644,7 @@ export default function CheckoutPage() {
                                                 onChange={handleInputChange}
                                                 rows={3}
                                                 className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white placeholder-purple-400 focus:outline-none focus:ring-2 focus:ring-pink-500"
-                                                placeholder="Ghi chú thêm (tùy chọn)"
+                                                placeholder={t("checkout.notePlaceholder")}
                                             />
                                         </div>
                                     </div>
@@ -660,7 +659,7 @@ export default function CheckoutPage() {
                                 >
                                     <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
                                         <CreditCard className="w-5 h-5 text-pink-400" />
-                                        Phương thức thanh toán
+                                        {t("checkout.paymentMethod")}
                                     </h2>
                                     <div className="space-y-3">
                                         {paymentMethods.map((method) => {
@@ -760,4 +759,12 @@ export default function CheckoutPage() {
             </section>
         </Layout>
     );
+}
+
+export async function getServerSideProps({ locale }: { locale: string }) {
+    return {
+        props: {
+            ...(await serverSideTranslations(locale, ["common"])),
+        },
+    };
 }

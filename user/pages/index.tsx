@@ -13,6 +13,8 @@ import {
     Award,
     Headphones,
 } from "lucide-react";
+import { useTranslation } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Layout from "../src/components/layout/Layout";
 import ProductCardSimple from "../src/components/products/ProductCardSimple";
 import { productService, Product } from "../src/services/product.service";
@@ -53,6 +55,7 @@ const mapProductToCard = (product: Product) => {
 };
 
 export default function HomePage() {
+    const { t } = useTranslation("common");
     const [newProducts, setNewProducts] = useState<Product[]>([]);
     const [bestSellers, setBestSellers] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
@@ -78,10 +81,10 @@ export default function HomePage() {
     return (
         <Layout>
             <Head>
-                <title>Trang chủ - Labubu Store</title>
+                <title>{t("home.title")}</title>
                 <meta
                     name="description"
-                    content="Khám phá kiểu Sticker phù hợp cho mọi ý tưởng - Sáng tạo không giới hạn!"
+                    content={t("home.description")}
                 />
             </Head>
 
@@ -136,9 +139,8 @@ export default function HomePage() {
                                     delay: 0.4,
                                 }}
                             >
-                                LABUBU STORE
+                                {t("home.storeName")}
                             </motion.h1>
-                            {/* Slogan */}
                             <motion.h2
                                 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-8"
                                 style={{
@@ -154,10 +156,9 @@ export default function HomePage() {
                                     delay: 0.6,
                                 }}
                             >
-                                Phương châm &quot;Chất Lượng Luôn Đặt Hàng Đầu&quot;
+                                {t("home.slogan")}
                             </motion.h2>
 
-                            {/* Body Text */}
                             <motion.p
                                 className="text-lg md:text-xl text-white mb-8 leading-relaxed max-w-2xl mx-auto lg:mx-0"
                                 style={{
@@ -172,10 +173,7 @@ export default function HomePage() {
                                     delay: 0.8,
                                 }}
                             >
-                                mong rằng tất cả khách hàng của Labubu Store hài lòng với tất cả
-                                dịch vụ của chúng tôi , hỗ trợ tận tình và nhiều ưu đãi giành
-                                đến khách hàng , Cảm ơn quý khách hàng đã luôn đồng hành cùng
-                                Labubu Store !
+                                {t("home.descriptionText")}
                             </motion.p>
 
                             {/* CTA Button */}
@@ -195,7 +193,7 @@ export default function HomePage() {
                                     href="/products"
                                     className="inline-flex items-center gap-3 px-8 py-4 bg-black text-white rounded-full font-semibold text-lg hover:bg-gray-800 transition-all shadow-xl hover:shadow-2xl"
                                 >
-                                    Khám phá ngay
+                                    {t("home.exploreNow")}
                                     <motion.span
                                         animate={{ x: [0, 5, 0] }}
                                         transition={{
@@ -222,19 +220,19 @@ export default function HomePage() {
                                 {[
                                     {
                                         icon: Sparkles,
-                                        text: "Thiết kế độc đáo",
+                                        text: t("home.features.uniqueDesign"),
                                     },
                                     {
                                         icon: Zap,
-                                        text: "Giao hàng nhanh",
+                                        text: t("home.features.fastDelivery"),
                                     },
                                     {
                                         icon: Shield,
-                                        text: "Chất lượng cao",
+                                        text: t("home.features.highQuality"),
                                     },
                                     {
                                         icon: Sparkles,
-                                        text: "Giá tốt nhất",
+                                        text: t("home.features.bestPrice"),
                                     },
                                 ].map((feature, index) => (
                                     <motion.div
@@ -310,9 +308,9 @@ export default function HomePage() {
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="flex flex-wrap justify-center items-center gap-4 md:gap-6 text-sm md:text-base font-bold">
                             {[
-                                "HÀNG LIMITED",
-                                "MIỄN PHÍ THIẾT KẾ MẪU",
-                                "GIAO HÀNG TOÀN QUỐC",
+                                t("home.serviceBar.limitedStock"),
+                                t("home.serviceBar.freeDesign"),
+                                t("home.serviceBar.nationwideDelivery"),
                             ].map((item, index, array) => (
                                 <div key={index} className="flex items-center gap-4 md:gap-6">
                                     <motion.span
@@ -403,23 +401,23 @@ export default function HomePage() {
                             {[
                                 {
                                     icon: Truck,
-                                    title: "GIAO HÀNG TOÀN QUỐC",
-                                    description: "Chọn đơn hàng từ 3.000.000 vnđ",
+                                    title: t("home.bannerFeatures.nationwideDelivery"),
+                                    description: t("home.bannerFeatures.nationwideDeliveryDesc"),
                                 },
                                 {
                                     icon: Gift,
-                                    title: "QUÀ TẶNG KÈM",
-                                    description: "Nhiều ưu đãi hấp dẫn",
+                                    title: t("home.bannerFeatures.gift"),
+                                    description: t("home.bannerFeatures.giftDesc"),
                                 },
                                 {
                                     icon: Award,
-                                    title: "CHẤT LIỆU CAO CẤP",
-                                    description: "Chống nước và thời gian",
+                                    title: t("home.bannerFeatures.premiumMaterial"),
+                                    description: t("home.bannerFeatures.premiumMaterialDesc"),
                                 },
                                 {
                                     icon: Headphones,
-                                    title: "HỖ TRỢ 24/7",
-                                    description: "Luôn sẵn sàng hỗ trợ bạn",
+                                    title: t("home.bannerFeatures.support247"),
+                                    description: t("home.bannerFeatures.support247Desc"),
                                 },
                             ].map((feature, index) => (
                                 <motion.div
@@ -581,7 +579,7 @@ export default function HomePage() {
                             }}
                         >
                             <h2 className="text-3xl md:text-4xl lg:text-5xl galaxy-glow-text mb-4">
-                                SẢN PHẨM MỚI
+                                {t("home.newProducts.title")}
                             </h2>
                         </motion.div>
                         <motion.div
@@ -595,7 +593,7 @@ export default function HomePage() {
                             }}
                         >
                             <p className="text-lg md:text-xl galaxy-glow-subtitle max-w-2xl mx-auto">
-                                Khám phá những sản phẩm sticker mới nhất với thiết kế độc đáo
+                                {t("home.newProducts.subtitle")}
                             </p>
                         </motion.div>
                     </div>
@@ -603,7 +601,7 @@ export default function HomePage() {
                     {loading ? (
                         <div className="text-center py-12">
                             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-400"></div>
-                            <p className="mt-4 text-white">Đang tải sản phẩm...</p>
+                            <p className="mt-4 text-white">{t("home.newProducts.loading")}</p>
                         </div>
                     ) : newProducts.length > 0 ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
@@ -613,7 +611,7 @@ export default function HomePage() {
                         </div>
                     ) : (
                         <div className="text-center py-12 text-white">
-                            <p>Chưa có sản phẩm mới</p>
+                            <p>{t("home.newProducts.noProducts")}</p>
                         </div>
                     )}
                 </div>
@@ -633,7 +631,7 @@ export default function HomePage() {
                             }}
                         >
                             <h2 className="text-3xl md:text-4xl lg:text-5xl galaxy-glow-text mb-4">
-                                CHỌN HÀNG TUẦN
+                                {t("home.bestSellers.title")}
                             </h2>
                         </motion.div>
                         <motion.div
@@ -647,7 +645,7 @@ export default function HomePage() {
                             }}
                         >
                             <p className="text-lg md:text-xl galaxy-glow-subtitle max-w-2xl mx-auto">
-                                Top bán chạy - Những sản phẩm được yêu thích nhất tuần này
+                                {t("home.bestSellers.subtitle")}
                             </p>
                         </motion.div>
                     </div>
@@ -655,7 +653,7 @@ export default function HomePage() {
                     {loading ? (
                         <div className="text-center py-12">
                             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-400"></div>
-                            <p className="mt-4 text-white">Đang tải sản phẩm...</p>
+                            <p className="mt-4 text-white">{t("home.bestSellers.loading")}</p>
                         </div>
                     ) : bestSellers.length > 0 ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
@@ -665,7 +663,7 @@ export default function HomePage() {
                         </div>
                     ) : (
                         <div className="text-center py-12 text-white">
-                            <p>Chưa có sản phẩm bán chạy</p>
+                            <p>{t("home.bestSellers.noProducts")}</p>
                         </div>
                     )}
                 </div>
@@ -687,25 +685,20 @@ export default function HomePage() {
                 <div className="relative z-10 bg-black text-white py-3">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                         <p className="text-sm md:text-base font-medium">
-                            Chú ý: TÔI CAM KẾT MANG ĐẾN CHO BẠN SỰ HÀI LÒNG VÀ TỐI ƯU CHI PHÍ
-                            CHO CÁC CHIẾN DỊCH CỦA BẠN.
+                            {t("home.diecutSection.notice")}
                         </p>
                     </div>
                 </div>
 
-                {/* Main Content */}
                 <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                    {/* Main Title */}
                     <div className="text-center mb-8">
                         <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-black mb-4 flex items-center justify-center gap-3">
                             <Sparkles className="w-8 h-8 text-yellow-600" />
-                            In Sticker Diecut, Cắt Bế Mọi Hình Dạng - Phù hợp cho làm sự kiện,
-                            quà tặng và kinh doanh
+                            {t("home.diecutSection.title")}
                             <Sparkles className="w-8 h-8 text-yellow-600" />
                         </h2>
                         <p className="text-lg md:text-xl text-black max-w-4xl mx-auto mt-4">
-                            Sticker bền đẹp, nổi bật, phù hợp cho quà tặng tiếp thị, sự kiện
-                            và bán lại. Nhanh chóng, hợp lý, hỗ trợ thiết kế miễn phí.
+                            {t("home.diecutSection.description")}
                         </p>
                     </div>
 
@@ -727,23 +720,20 @@ export default function HomePage() {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
                         {[
                             {
-                                title: "Thiết Kế Miễn Phí, Tư Vấn Tận Tình",
-                                description:
-                                    "Đưa ý tưởng, nhận file mẫu miễn phí - đội ngũ hỗ trợ nhanh, nhiệt tình.",
+                                title: t("home.diecutSection.blocks.freeDesign.title"),
+                                description: t("home.diecutSection.blocks.freeDesign.description"),
                                 image:
                                     "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=600&h=400&fit=crop",
                             },
                             {
-                                title: "Không Phân Biệt Đơn Hàng Ít Nhiều",
-                                description:
-                                    "In từ 1 tờ đến hàng ngàn lá - vẫn được phục vụ như nhau chất lượng không đổi",
+                                title: t("home.diecutSection.blocks.noMinimum.title"),
+                                description: t("home.diecutSection.blocks.noMinimum.description"),
                                 image:
                                     "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=600&h=400&fit=crop",
                             },
                             {
-                                title: "In Nhanh - Bảo Đảm Tiến Độ",
-                                description:
-                                    "Đáp ứng sự kiện kịp thời, giao hàng nhanh toàn quốc và quốc tế.",
+                                title: t("home.diecutSection.blocks.fastPrint.title"),
+                                description: t("home.diecutSection.blocks.fastPrint.description"),
                                 image:
                                     "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=600&h=400&fit=crop",
                             },
@@ -777,7 +767,7 @@ export default function HomePage() {
                                         {block.description}
                                     </p>
                                     <button className="w-full py-3 border-2 border-black text-black font-bold rounded-lg hover:bg-black hover:text-white transition-colors">
-                                        TƯ VẤN IN STICKER
+                                        {t("home.diecutSection.consultButton")}
                                     </button>
                                 </div>
                             </motion.div>
@@ -787,4 +777,12 @@ export default function HomePage() {
             </section>
         </Layout>
     );
+}
+
+export async function getStaticProps({ locale }: { locale: string }) {
+    return {
+        props: {
+            ...(await serverSideTranslations(locale, ["common"])),
+        },
+    };
 }

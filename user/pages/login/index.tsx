@@ -7,6 +7,8 @@ import { User, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { useRouter } from "next/router";
+import { useTranslation } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { authService } from "@services/auth.service";
 import { CredentialResponse, GoogleLogin } from "@react-oauth/google";
 import FacebookLogin from "react-facebook-login";
@@ -25,6 +27,7 @@ interface RegisterFormData {
 
 export default function LoginPage() {
   const router = useRouter();
+  const { t } = useTranslation("common");
   const [isLoginMode, setIsLoginMode] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -714,4 +717,12 @@ export default function LoginPage() {
   );
 
   return pageContent;
+}
+
+export async function getServerSideProps({ locale }: { locale: string }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ["common"])),
+    },
+  };
 }

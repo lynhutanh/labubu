@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { motion } from "framer-motion";
 import { Heart, Trash2, ShoppingCart, Eye, Loader2 } from "lucide-react";
+import { useTranslation } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Layout from "../../src/components/layout/Layout";
 import ProductCardSimple from "../../src/components/products/ProductCardSimple";
 import { wishlistService, Wishlist, WishlistItem } from "../../src/services/wishlist.service";
@@ -13,6 +15,7 @@ import toast from "react-hot-toast";
 
 export default function WishlistPage() {
   const router = useRouter();
+  const { t } = useTranslation("common");
   const [wishlist, setWishlist] = useState<Wishlist | null>(null);
   const [loading, setLoading] = useState(true);
   const [removingId, setRemovingId] = useState<string | null>(null);
@@ -22,7 +25,7 @@ export default function WishlistPage() {
     const loadWishlist = async () => {
       const user = storage.getUser();
       if (!user) {
-        toast.error("Vui lòng đăng nhập để xem danh sách yêu thích");
+        toast.error(t("wishlist.loginRequired"));
         router.push("/login");
         return;
       }
@@ -32,14 +35,13 @@ export default function WishlistPage() {
         const data = await wishlistService.getWishlist();
         setWishlist(data);
         
-        // Load suggested products
         if (data.items.length > 0) {
           const suggested = await productService.getFeatured(4);
           setSuggestedProducts(suggested);
         }
       } catch (error: any) {
         console.error("Failed to load wishlist:", error);
-        toast.error("Không thể tải danh sách yêu thích");
+        toast.error(t("wishlist.loadError"));
       } finally {
         setLoading(false);
       }
@@ -53,10 +55,10 @@ export default function WishlistPage() {
     try {
       const updatedWishlist = await wishlistService.removeFromWishlist({ productId });
       setWishlist(updatedWishlist);
-      toast.success("Đã xóa khỏi danh sách yêu thích");
+      toast.success(t("wishlist.removeSuccess"));
     } catch (error: any) {
       console.error("Failed to remove from wishlist:", error);
-      toast.error("Không thể xóa khỏi danh sách yêu thích");
+      toast.error(t("wishlist.removeError"));
     } finally {
       setRemovingId(null);
     }
@@ -74,26 +76,26 @@ export default function WishlistPage() {
           });
         }
       }
-      toast.success(`Đã thêm ${wishlist.items.length} sản phẩm vào giỏ hàng!`);
+      toast.success(t("wishlist.addToCartSuccess"));
     } catch (error: any) {
       console.error("Failed to add to cart:", error);
-      toast.error("Không thể thêm vào giỏ hàng");
+      toast.error(t("wishlist.addToCartError"));
     }
   };
 
   const handleClearWishlist = async () => {
     if (
       confirm(
-        "Bạn có chắc chắn muốn xóa tất cả sản phẩm khỏi danh sách yêu thích?",
+        t("wishlist.clearConfirm"),
       )
     ) {
       try {
         const updatedWishlist = await wishlistService.clearWishlist();
         setWishlist(updatedWishlist);
-        toast.success("Đã xóa tất cả sản phẩm");
+        toast.success(t("wishlist.clearSuccess"));
       } catch (error: any) {
         console.error("Failed to clear wishlist:", error);
-        toast.error("Không thể xóa danh sách yêu thích");
+        toast.error(t("wishlist.clearError"));
       }
     }
   };
@@ -199,10 +201,10 @@ export default function WishlistPage() {
   return (
     <Layout>
       <Head>
-        <title>Danh Sách Yêu Thích - Labubu</title>
+        <title>{t("wishlist.title")}</title>
         <meta
           name="description"
-          content="Xem lại các sản phẩm bạn đã yêu thích"
+          content={t("wishlist.description")}
         />
       </Head>
 
@@ -279,7 +281,7 @@ export default function WishlistPage() {
               backgroundClip: "text",
             }}
           >
-            Danh Sách Yêu Thích
+            {t("wishlist.pageTitle")}
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: -20 }}
@@ -288,8 +290,8 @@ export default function WishlistPage() {
             className="text-xl md:text-2xl text-purple-200 max-w-2xl mx-auto"
           >
             {wishlistItems.length > 0
-              ? `${wishlistItems.length} sản phẩm trong danh sách yêu thích của bạn`
-              : "Danh sách yêu thích của bạn đang trống"}
+              ? `${wishlistItems.length} ${t("wishlist.itemsInWishlist")}`
+              : t("wishlist.emptyWishlist")}
           </motion.p>
         </div>
       </section>
@@ -307,7 +309,7 @@ export default function WishlistPage() {
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                   <span className="text-purple-200 font-medium">
-                    Tổng cộng:{" "}
+                    {t("wishlist.total")}{" "}
                     <span
                       className="font-bold"
                       style={{
@@ -318,7 +320,7 @@ export default function WishlistPage() {
                         backgroundClip: "text",
                       }}
                     >
-                      {wishlistItems.length} sản phẩm
+                      {wishlistItems.length} {t("wishlist.items")}
                     </span>
                   </span>
                 </div>
@@ -328,14 +330,14 @@ export default function WishlistPage() {
                     className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg font-semibold hover:opacity-90 transition-all shadow-lg shadow-pink-500/50"
                   >
                     <ShoppingCart className="w-5 h-5" />
-                    Thêm tất cả vào giỏ hàng
+                    {t("wishlist.addAllToCart")}
                   </button>
                   <button
                     onClick={handleClearWishlist}
                     className="flex items-center gap-2 px-6 py-3 bg-white/10 border border-red-500/30 text-red-300 rounded-lg font-semibold hover:bg-red-500/20 transition-all backdrop-blur-sm"
                   >
                     <Trash2 className="w-5 h-5" />
-                    Xóa tất cả
+                    {t("wishlist.clearAll")}
                   </button>
                 </div>
               </div>
@@ -369,7 +371,7 @@ export default function WishlistPage() {
                     <button
                       onClick={() => handleRemoveFromWishlist(item.productId)}
                       className="absolute top-4 right-4 z-20 w-10 h-10 bg-white/20 backdrop-blur-md rounded-full border border-red-500/30 flex items-center justify-center hover:bg-red-500/30 transition-all opacity-0 group-hover:opacity-100"
-                      title="Xóa khỏi danh sách yêu thích"
+                      title={t("wishlist.removeFromWishlist")}
                     >
                       <Trash2 className="w-5 h-5 text-red-300" />
                     </button>
@@ -403,18 +405,17 @@ export default function WishlistPage() {
                     backgroundClip: "text",
                   }}
                 >
-                  Danh sách yêu thích trống
+                  {t("wishlist.emptyTitle")}
                 </h3>
                 <p className="text-purple-200 mb-6">
-                  Bạn chưa có sản phẩm nào trong danh sách yêu thích. Hãy khám
-                  phá và thêm sản phẩm bạn yêu thích!
+                  {t("wishlist.emptyDesc")}
                 </p>
                 <a
                   href="/products"
                   className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg font-semibold hover:opacity-90 transition-all shadow-lg shadow-pink-500/50"
                 >
                   <Eye className="w-5 h-5" />
-                  Xem sản phẩm
+                  {t("wishlist.viewProducts")}
                 </a>
               </motion.div>
             </div>
@@ -433,7 +434,7 @@ export default function WishlistPage() {
                   backgroundClip: "text",
                 }}
               >
-                Có thể bạn cũng thích
+                {t("wishlist.suggested")}
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {suggestedProducts.map((product, index) => {
@@ -460,4 +461,12 @@ export default function WishlistPage() {
       </section>
     </Layout>
   );
+}
+
+export async function getServerSideProps({ locale }: { locale: string }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ["common"])),
+    },
+  };
 }
