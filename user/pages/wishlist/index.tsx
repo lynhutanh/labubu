@@ -3,8 +3,6 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { motion } from "framer-motion";
 import { Heart, Trash2, ShoppingCart, Eye, Loader2 } from "lucide-react";
-import { useTranslation } from "next-i18next";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Layout from "../../src/components/layout/Layout";
 import ProductCardSimple from "../../src/components/products/ProductCardSimple";
 import { wishlistService, Wishlist, WishlistItem } from "../../src/services/wishlist.service";
@@ -12,10 +10,11 @@ import { cartService } from "../../src/services/cart.service";
 import { storage } from "../../src/utils/storage";
 import { productService, Product } from "../../src/services/product.service";
 import toast from "react-hot-toast";
+import { useTrans } from "../../src/hooks/useTrans";
 
 export default function WishlistPage() {
   const router = useRouter();
-  const { t } = useTranslation("common");
+  const t = useTrans();
   const [wishlist, setWishlist] = useState<Wishlist | null>(null);
   const [loading, setLoading] = useState(true);
   const [removingId, setRemovingId] = useState<string | null>(null);
@@ -25,7 +24,7 @@ export default function WishlistPage() {
     const loadWishlist = async () => {
       const user = storage.getUser();
       if (!user) {
-        toast.error(t("wishlist.loginRequired"));
+        toast.error(t.wishlist.loginRequired);
         router.push("/login");
         return;
       }
@@ -34,14 +33,14 @@ export default function WishlistPage() {
         setLoading(true);
         const data = await wishlistService.getWishlist();
         setWishlist(data);
-        
+
         if (data.items.length > 0) {
           const suggested = await productService.getFeatured(4);
           setSuggestedProducts(suggested);
         }
       } catch (error: any) {
         console.error("Failed to load wishlist:", error);
-        toast.error(t("wishlist.loadError"));
+        toast.error(t.wishlist.loadError);
       } finally {
         setLoading(false);
       }
@@ -55,10 +54,10 @@ export default function WishlistPage() {
     try {
       const updatedWishlist = await wishlistService.removeFromWishlist({ productId });
       setWishlist(updatedWishlist);
-      toast.success(t("wishlist.removeSuccess"));
+      toast.success(t.wishlist.removeSuccess);
     } catch (error: any) {
       console.error("Failed to remove from wishlist:", error);
-      toast.error(t("wishlist.removeError"));
+      toast.error(t.wishlist.removeError);
     } finally {
       setRemovingId(null);
     }
@@ -76,26 +75,26 @@ export default function WishlistPage() {
           });
         }
       }
-      toast.success(t("wishlist.addToCartSuccess"));
+      toast.success(t.wishlist.addToCartSuccess);
     } catch (error: any) {
       console.error("Failed to add to cart:", error);
-      toast.error(t("wishlist.addToCartError"));
+      toast.error(t.wishlist.addToCartError);
     }
   };
 
   const handleClearWishlist = async () => {
     if (
       confirm(
-        t("wishlist.clearConfirm"),
+        t.wishlist.clearConfirm,
       )
     ) {
       try {
         const updatedWishlist = await wishlistService.clearWishlist();
         setWishlist(updatedWishlist);
-        toast.success(t("wishlist.clearSuccess"));
+        toast.success(t.wishlist.clearSuccess);
       } catch (error: any) {
         console.error("Failed to clear wishlist:", error);
-        toast.error(t("wishlist.clearError"));
+        toast.error(t.wishlist.clearError);
       }
     }
   };
@@ -201,10 +200,10 @@ export default function WishlistPage() {
   return (
     <Layout>
       <Head>
-        <title>{t("wishlist.title")}</title>
+        <title>{t.wishlist.title}</title>
         <meta
           name="description"
-          content={t("wishlist.description")}
+          content={t.wishlist.description}
         />
       </Head>
 
@@ -281,7 +280,7 @@ export default function WishlistPage() {
               backgroundClip: "text",
             }}
           >
-            {t("wishlist.pageTitle")}
+            {t.wishlist.pageTitle}
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: -20 }}
@@ -290,8 +289,8 @@ export default function WishlistPage() {
             className="text-xl md:text-2xl text-purple-200 max-w-2xl mx-auto"
           >
             {wishlistItems.length > 0
-              ? `${wishlistItems.length} ${t("wishlist.itemsInWishlist")}`
-              : t("wishlist.emptyWishlist")}
+              ? `${wishlistItems.length} ${t.wishlist.itemsInWishlist}`
+              : t.wishlist.emptyWishlist}
           </motion.p>
         </div>
       </section>
@@ -309,7 +308,7 @@ export default function WishlistPage() {
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                   <span className="text-purple-200 font-medium">
-                    {t("wishlist.total")}{" "}
+                    {t.wishlist.total}{" "}
                     <span
                       className="font-bold"
                       style={{
@@ -320,7 +319,7 @@ export default function WishlistPage() {
                         backgroundClip: "text",
                       }}
                     >
-                      {wishlistItems.length} {t("wishlist.items")}
+                      {wishlistItems.length} {t.wishlist.items}
                     </span>
                   </span>
                 </div>
@@ -330,14 +329,14 @@ export default function WishlistPage() {
                     className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg font-semibold hover:opacity-90 transition-all shadow-lg shadow-pink-500/50"
                   >
                     <ShoppingCart className="w-5 h-5" />
-                    {t("wishlist.addAllToCart")}
+                    {t.wishlist.addAllToCart}
                   </button>
                   <button
                     onClick={handleClearWishlist}
                     className="flex items-center gap-2 px-6 py-3 bg-white/10 border border-red-500/30 text-red-300 rounded-lg font-semibold hover:bg-red-500/20 transition-all backdrop-blur-sm"
                   >
                     <Trash2 className="w-5 h-5" />
-                    {t("wishlist.clearAll")}
+                    {t.wishlist.clearAll}
                   </button>
                 </div>
               </div>
@@ -371,7 +370,7 @@ export default function WishlistPage() {
                     <button
                       onClick={() => handleRemoveFromWishlist(item.productId)}
                       className="absolute top-4 right-4 z-20 w-10 h-10 bg-white/20 backdrop-blur-md rounded-full border border-red-500/30 flex items-center justify-center hover:bg-red-500/30 transition-all opacity-0 group-hover:opacity-100"
-                      title={t("wishlist.removeFromWishlist")}
+                      title={t.wishlist.removeFromWishlist}
                     >
                       <Trash2 className="w-5 h-5 text-red-300" />
                     </button>
@@ -405,17 +404,17 @@ export default function WishlistPage() {
                     backgroundClip: "text",
                   }}
                 >
-                  {t("wishlist.emptyTitle")}
+                  {t.wishlist.emptyTitle}
                 </h3>
                 <p className="text-purple-200 mb-6">
-                  {t("wishlist.emptyDesc")}
+                  {t.wishlist.emptyDesc}
                 </p>
                 <a
                   href="/products"
                   className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg font-semibold hover:opacity-90 transition-all shadow-lg shadow-pink-500/50"
                 >
                   <Eye className="w-5 h-5" />
-                  {t("wishlist.viewProducts")}
+                  {t.wishlist.viewProducts}
                 </a>
               </motion.div>
             </div>
@@ -434,7 +433,7 @@ export default function WishlistPage() {
                   backgroundClip: "text",
                 }}
               >
-                {t("wishlist.suggested")}
+                {t.wishlist.suggested}
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {suggestedProducts.map((product, index) => {
@@ -463,10 +462,3 @@ export default function WishlistPage() {
   );
 }
 
-export async function getServerSideProps({ locale }: { locale: string }) {
-  return {
-    props: {
-      ...(await serverSideTranslations(locale, ["common"])),
-    },
-  };
-}

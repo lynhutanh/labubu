@@ -7,11 +7,10 @@ import { User, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { useRouter } from "next/router";
-import { useTranslation } from "next-i18next";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { authService } from "@services/auth.service";
 import { CredentialResponse, GoogleLogin } from "@react-oauth/google";
 import FacebookLogin from "react-facebook-login";
+import { useTrans } from "../../src/hooks/useTrans";
 
 interface LoginFormData {
   username: string;
@@ -27,7 +26,7 @@ interface RegisterFormData {
 
 export default function LoginPage() {
   const router = useRouter();
-  const { t } = useTranslation("common");
+  const t = useTrans();
   const [isLoginMode, setIsLoginMode] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -63,12 +62,12 @@ export default function LoginPage() {
         password: data.password,
         remember: false,
       });
-      toast.success("Login successful!");
+      toast.success(t.login.loginSuccess);
       // Redirect to home page or dashboard
       router.push("/");
     } catch (error: any) {
       // Backend trả về lỗi dạng { statusCode: number, message: string | string[] }
-      let errorMessage = "Login failed. Please try again.";
+      let errorMessage = t.login.loginFailed;
       if (error?.message) {
         errorMessage = Array.isArray(error.message)
           ? error.message[0]
@@ -86,7 +85,7 @@ export default function LoginPage() {
 
   const onRegisterSubmit = async (data: RegisterFormData) => {
     if (data.password !== data.confirmPassword) {
-      toast.error("Passwords do not match!");
+      toast.error(t.login.passwordsNotMatch);
       return;
     }
 
@@ -97,7 +96,7 @@ export default function LoginPage() {
         email: data.email,
         password: data.password,
       });
-      toast.success("Registration successful!");
+      toast.success(t.login.registerSuccess);
       // Auto login after registration
       setIsLoginMode(true);
       // Optionally auto-login
@@ -109,11 +108,11 @@ export default function LoginPage() {
         router.push("/");
       } catch {
         // If auto-login fails, just show success message
-        toast.success("Please login with your new account");
+        toast.success(t.login.pleaseLogin);
       }
     } catch (error: any) {
       // Backend trả về lỗi dạng { statusCode: number, message: string | string[] }
-      let errorMessage = "Registration failed. Please try again.";
+      let errorMessage = t.login.registerFailed;
       if (error?.message) {
         errorMessage = Array.isArray(error.message)
           ? error.message[0]
@@ -137,20 +136,20 @@ export default function LoginPage() {
     credentialResponse: CredentialResponse | { credential?: string },
   ) => {
     if (!credentialResponse?.credential) {
-      toast.error("Google login failed. Please try again.");
+      toast.error(t.login.googleLoginFailed);
       return;
     }
 
     setIsLoading(true);
     try {
       await authService.loginWithGoogle(credentialResponse.credential);
-      toast.success("Login successful!");
+      toast.success(t.login.loginSuccess);
       router.push("/");
     } catch (error: any) {
       const errorMessage =
         error?.message ||
         error?.data?.message ||
-        "Google login failed. Please try again.";
+        t.login.googleLoginFailed;
       toast.error(Array.isArray(errorMessage) ? errorMessage[0] : errorMessage);
     } finally {
       setIsLoading(false);
@@ -163,7 +162,7 @@ export default function LoginPage() {
 
   const handleFacebookLogin = async (response: any) => {
     if (!response.accessToken) {
-      toast.error("Facebook login failed. Please try again.");
+      toast.error(t.login.facebookLoginFailed);
       return;
     }
 
@@ -173,13 +172,13 @@ export default function LoginPage() {
         accessToken: response.accessToken,
         userID: response.userID,
       });
-      toast.success("Login successful!");
+      toast.success(t.login.loginSuccess);
       router.push("/");
     } catch (error: any) {
       const errorMessage =
         error?.message ||
         error?.data?.message ||
-        "Facebook login failed. Please try again.";
+        t.login.facebookLoginFailed;
       toast.error(Array.isArray(errorMessage) ? errorMessage[0] : errorMessage);
     } finally {
       setIsLoading(false);
@@ -200,7 +199,7 @@ export default function LoginPage() {
               userID: response.authResponse.userID,
             });
           } else {
-            toast.error("Facebook login was cancelled.");
+            toast.error(t.login.facebookCancelled);
           }
         },
         { scope: "email,public_profile" }
@@ -213,7 +212,7 @@ export default function LoginPage() {
       if (hiddenButton) {
         hiddenButton.click();
       } else {
-        toast.error("Facebook SDK is not loaded. Please refresh the page.");
+        toast.error(t.login.facebookNotLoaded);
       }
     }
   };
@@ -309,9 +308,9 @@ export default function LoginPage() {
                       <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[hsl(220,10%,60%)] transition-colors" />
                       <input
                         type="text"
-                        placeholder="Username"
+                        placeholder={t.login.username}
                         {...registerRegister("username", {
-                          required: "Username is required",
+                          required: t.login.usernameRequired,
                         })}
                         className="w-full h-12 pl-12 pr-4 rounded-lg bg-[hsla(220,20%,18%,0.5)] border border-[hsla(220,15%,25%,0.5)] text-white text-sm placeholder:text-[hsl(220,10%,60%)] focus:outline-none focus:border-[hsl(16,85%,60%)] focus:shadow-[0_0_0_2px_hsla(16,85%,60%,0.2)] transition-all hover:bg-[hsla(220,20%,18%,0.7)]"
                       />
@@ -326,12 +325,12 @@ export default function LoginPage() {
                       <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[hsl(220,10%,60%)] transition-colors" />
                       <input
                         type="email"
-                        placeholder="Email"
+                        placeholder={t.login.email}
                         {...registerRegister("email", {
-                          required: "Email is required",
+                          required: t.login.emailRequired,
                           pattern: {
                             value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                            message: "Invalid email address",
+                            message: t.login.invalidEmail,
                           },
                         })}
                         className="w-full h-12 pl-12 pr-4 rounded-lg bg-[hsla(220,20%,18%,0.5)] border border-[hsl(220,15%,25%,0.5)] text-white text-sm placeholder:text-[hsl(220,10%,60%)] focus:outline-none focus:border-[hsl(16,85%,60%)] focus:shadow-[0_0_0_2px_hsla(16,85%,60%,0.2)] transition-all hover:bg-[hsla(220,20%,18%,0.7)]"
@@ -347,12 +346,12 @@ export default function LoginPage() {
                       <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[hsl(220,10%,60%)] transition-colors" />
                       <input
                         type={showPassword ? "text" : "password"}
-                        placeholder="Password"
+                        placeholder={t.login.password}
                         {...registerRegister("password", {
-                          required: "Password is required",
+                          required: t.login.passwordRequired,
                           minLength: {
                             value: 8,
-                            message: "Password must be at least 8 characters",
+                            message: t.login.passwordMinLength,
                           },
                         })}
                         className="w-full h-12 pl-12 pr-12 rounded-lg bg-[hsla(220,20%,18%,0.5)] border border-[hsl(220,15%,25%,0.5)] text-white text-sm placeholder:text-[hsl(220,10%,60%)] focus:outline-none focus:border-[hsl(16,85%,60%)] focus:shadow-[0_0_0_2px_hsla(16,85%,60%,0.2)] transition-all hover:bg-[hsla(220,20%,18%,0.7)]"
@@ -379,11 +378,11 @@ export default function LoginPage() {
                       <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[hsl(220,10%,60%)] transition-colors" />
                       <input
                         type={showConfirmPassword ? "text" : "password"}
-                        placeholder="Confirm Password"
+                        placeholder={t.login.confirmPassword}
                         {...registerRegister("confirmPassword", {
-                          required: "Please confirm your password",
+                          required: t.login.confirmPasswordRequired,
                           validate: (value) =>
-                            value === password || "Passwords do not match",
+                            value === password || t.login.passwordsNotMatch,
                         })}
                         className="w-full h-12 pl-12 pr-12 rounded-lg bg-[hsla(220,20%,18%,0.5)] border border-[hsl(220,15%,25%,0.5)] text-white text-sm placeholder:text-[hsl(220,10%,60%)] focus:outline-none focus:border-[hsl(16,85%,60%)] focus:shadow-[0_0_0_2px_hsla(16,85%,60%,0.2)] transition-all hover:bg-[hsla(220,20%,18%,0.7)]"
                       />
@@ -412,13 +411,13 @@ export default function LoginPage() {
                       disabled={isLoading}
                       className="w-full h-12 rounded-lg bg-[hsl(16,85%,60%)] text-white text-base font-semibold transition-all hover:shadow-[0_0_20px_hsla(16,85%,60%,0.4),0_0_40px_hsla(16,85%,60%,0.2)] hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {isLoading ? "Registering..." : "Register"}
+                      {isLoading ? t.login.registering : t.login.register}
                     </button>
                   </form>
 
                   <div className="mt-3 text-center">
                     <p className="text-sm text-[hsl(220,10%,60%)] mb-4">
-                      or register with social platforms
+                      {t.login.socialRegister}
                     </p>
                     <div className="flex justify-center gap-3">
                       {googleClientId && (
@@ -472,20 +471,20 @@ export default function LoginPage() {
                     </div>
                     {!googleClientId && !facebookAppId && (
                       <p className="text-xs text-red-300">
-                        Missing social login configuration
+                        {t.login.missingConfig}
                       </p>
                     )}
                   </div>
 
                   <div className="mt-3 text-center md:hidden">
                     <p className="text-sm text-white/80 mb-4">
-                      Already have an account?
+                      {t.login.hasAccount}
                     </p>
                     <button
                       onClick={() => setIsLoginMode(true)}
                       className="px-6 py-2 rounded-full border border-white/50 bg-transparent text-white text-sm font-semibold transition-all hover:bg-white/10 hover:border-white/70"
                     >
-                      Login
+                      {t.login.login}
                     </button>
                   </div>
                 </motion.div>
@@ -516,9 +515,9 @@ export default function LoginPage() {
                       <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[hsl(220,10%,60%)] transition-colors" />
                       <input
                         type="text"
-                        placeholder="Username"
+                        placeholder={t.login.username}
                         {...registerLogin("username", {
-                          required: "Username is required",
+                          required: t.login.usernameRequired,
                         })}
                         className="w-full h-12 pl-12 pr-4 rounded-lg bg-[hsla(220,20%,18%,0.5)] border border-[hsl(220,15%,25%,0.5)] text-white text-sm placeholder:text-[hsl(220,10%,60%)] focus:outline-none focus:border-[hsl(16,85%,60%)] focus:shadow-[0_0_0_2px_hsla(16,85%,60%,0.2)] transition-all hover:bg-[hsla(220,20%,18%,0.7)]"
                       />
@@ -533,9 +532,9 @@ export default function LoginPage() {
                       <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[hsl(220,10%,60%)] transition-colors" />
                       <input
                         type={showPassword ? "text" : "password"}
-                        placeholder="Password"
+                        placeholder={t.login.password}
                         {...registerLogin("password", {
-                          required: "Password is required",
+                          required: t.login.passwordRequired,
                         })}
                         className="w-full h-12 pl-12 pr-12 rounded-lg bg-[hsla(220,20%,18%,0.5)] border border-[hsl(220,15%,25%,0.5)] text-white text-sm placeholder:text-[hsl(220,10%,60%)] focus:outline-none focus:border-[hsl(16,85%,60%)] focus:shadow-[0_0_0_2px_hsla(16,85%,60%,0.2)] transition-all hover:bg-[hsla(220,20%,18%,0.7)]"
                       />
@@ -561,7 +560,7 @@ export default function LoginPage() {
                       href="/forgot-password"
                       className="block text-right text-sm text-[hsl(220,10%,60%)] mb-4 hover:text-[hsl(16,85%,60%)] transition-colors"
                     >
-                      Forgot Password?
+                      {t.login.forgotPassword}
                     </Link>
 
                     <button
@@ -569,13 +568,13 @@ export default function LoginPage() {
                       disabled={isLoading}
                       className="w-full h-12 rounded-lg bg-[hsl(16,85%,60%)] text-white text-base font-semibold transition-all hover:shadow-[0_0_20px_hsla(16,85%,60%,0.4),0_0_40px_hsla(16,85%,60%,0.2)] hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {isLoading ? "Logging in..." : "Login"}
+                      {isLoading ? t.login.loggingIn : t.login.login}
                     </button>
                   </form>
 
                   <div className="mt-3 text-center">
                     <p className="text-sm text-[hsl(220,10%,60%)] mb-4">
-                      or login with social platforms
+                      {t.login.socialLogin}
                     </p>
                     <div className="flex justify-center gap-3">
                       {googleClientId && (
@@ -629,14 +628,14 @@ export default function LoginPage() {
                     </div>
                     {!googleClientId && !facebookAppId && (
                       <p className="text-xs text-red-300">
-                        Missing social login configuration
+                        {t.login.missingConfig}
                       </p>
                     )}
                   </div>
 
                   <div className="mt-3 text-center md:hidden">
                     <p className="text-sm text-white/80 mb-4">
-                      {"Don't have an account?"}
+                      {t.login.noAccount}
                     </p>
                     <button
                       onClick={() => setIsLoginMode(false)}
@@ -667,7 +666,7 @@ export default function LoginPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5 }}
                 >
-                  {isLoginMode ? "Hello, Welcome To" : "Welcome Back!"}
+                  {isLoginMode ? t.login.welcome : t.login.welcomeBack}
                 </motion.h1>
                 <motion.h2
                   className="text-5xl font-bold mb-6 text-white"
@@ -675,7 +674,7 @@ export default function LoginPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.1 }}
                 >
-                  Labubu Store!
+                  {t.login.storeName}
                 </motion.h2>
                 <motion.p
                   className="text-white/90 mb-8 text-base"
@@ -684,8 +683,8 @@ export default function LoginPage() {
                   transition={{ duration: 0.5, delay: 0.2 }}
                 >
                   {isLoginMode
-                    ? "Don't have an account?"
-                    : "Already have an account?"}
+                    ? t.login.noAccount
+                    : t.login.hasAccount}
                 </motion.p>
                 <motion.button
                   onClick={toggleMode}
@@ -719,10 +718,3 @@ export default function LoginPage() {
   return pageContent;
 }
 
-export async function getServerSideProps({ locale }: { locale: string }) {
-  return {
-    props: {
-      ...(await serverSideTranslations(locale, ["common"])),
-    },
-  };
-}

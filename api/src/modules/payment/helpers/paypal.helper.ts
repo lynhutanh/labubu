@@ -32,8 +32,15 @@ export async function getPayPalAccessToken(
     return response.data.access_token;
   } catch (error) {
     const axiosError = error as AxiosError;
+    const data = axiosError.response?.data;
+    const serialized =
+      typeof data === "string"
+        ? data
+        : data
+          ? JSON.stringify(data)
+          : axiosError.message;
     throw new BadRequestException(
-      `Failed to get PayPal access token: ${axiosError.response?.data || axiosError.message}`,
+      `Failed to get PayPal access token: ${serialized}`,
     );
   }
 }

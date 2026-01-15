@@ -1,16 +1,14 @@
 import { useRouter } from "next/router";
-import { useTranslation } from "next-i18next";
 import { Globe } from "lucide-react";
 import { useState } from "react";
 
 export default function LanguageSwitcher() {
   const router = useRouter();
-  const { t } = useTranslation("common");
   const [showMenu, setShowMenu] = useState(false);
 
   const languages = [
-    { code: "vi", name: t("language.vi"), flag: "🇻🇳" },
-    { code: "en", name: t("language.en"), flag: "🇺🇸" },
+    { code: "vi", name: "Tiếng Việt", flag: "🇻🇳" },
+    { code: "en", name: "English", flag: "🇺🇸" },
   ];
 
   const changeLanguage = (locale: string) => {

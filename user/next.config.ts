@@ -1,13 +1,15 @@
-import type { NextConfig } from 'next';
-const { i18n } = require('./next-i18next.config');
+import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   compress: true,
   reactStrictMode: false,
-  distDir: '.next',
-  i18n,
+  distDir: ".next",
+  i18n: {
+    locales: ["en", "vi"],
+    defaultLocale: "vi",
+  },
   eslint: {
-    ignoreDuringBuilds: true
+    ignoreDuringBuilds: true,
   },
   images: {
     unoptimized: true,

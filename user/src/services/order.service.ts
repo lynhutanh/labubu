@@ -48,6 +48,7 @@ export interface Order {
     note?: string;
   };
   createdAt: Date;
+  paymentUrl?: string;
 }
 
 export interface PaymentInfo {

@@ -16,9 +16,8 @@ import {
     User,
     AlertCircle,
 } from "lucide-react";
-import { useTranslation } from "next-i18next";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Layout from "../../src/components/layout/Layout";
+import { useTrans } from "../../src/hooks/useTrans";
 import { cartService, Cart } from "../../src/services/cart.service";
 import { orderService, CreateOrderPayload } from "../../src/services/order.service";
 import { ghnService } from "../../src/services/ghn.service";
@@ -37,7 +36,7 @@ interface PaymentInfo {
 
 export default function CheckoutPage() {
     const router = useRouter();
-    const { t } = useTranslation("common");
+    const t = useTrans();
     const [cart, setCart] = useState<Cart | null>(null);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
@@ -71,7 +70,7 @@ export default function CheckoutPage() {
         const loadCart = async () => {
             const user = storage.getUser();
             if (!user) {
-                toast.error(t("checkout.loginRequired"));
+                toast.error(t.checkout.loginRequired);
                 router.push("/login");
                 return;
             }
@@ -86,7 +85,7 @@ export default function CheckoutPage() {
                 if (user.address) setFormData((prev) => ({ ...prev, address: user.address }));
             } catch (error: any) {
                 console.error("Failed to load cart:", error);
-                toast.error(t("checkout.loadError"));
+                toast.error(t.checkout.loadError);
                 router.push("/cart");
             } finally {
                 setLoading(false);
@@ -139,7 +138,7 @@ export default function CheckoutPage() {
                 if (paymentStatus === "paid") {
                     setPolling(false);
                     clearInterval(pollInterval);
-                    toast.success(t("checkout.paymentSuccess"));
+                    toast.success(t.checkout.paymentSuccess);
 
                     setTimeout(() => {
                         router.push(`/profile/order`);
@@ -162,27 +161,27 @@ export default function CheckoutPage() {
 
     const validateForm = (): boolean => {
         if (!formData.fullName.trim()) {
-            toast.error(t("checkout.validation.fullName"));
+            toast.error(t.checkout.validation.fullName);
             return false;
         }
         if (!formData.phone.trim()) {
-            toast.error(t("checkout.validation.phone"));
+            toast.error(t.checkout.validation.phone);
             return false;
         }
         if (!formData.address.trim()) {
-            toast.error(t("checkout.validation.address"));
+            toast.error(t.checkout.validation.address);
             return false;
         }
         if (!formData.city.trim() || !formData.provinceId) {
-            toast.error(t("checkout.validation.province"));
+            toast.error(t.checkout.validation.province);
             return false;
         }
         if (!formData.districtId) {
-            toast.error(t("checkout.validation.district"));
+            toast.error(t.checkout.validation.district);
             return false;
         }
         if (!formData.wardCode) {
-            toast.error(t("checkout.validation.ward"));
+            toast.error(t.checkout.validation.ward);
             return false;
         }
         return true;
@@ -276,7 +275,7 @@ export default function CheckoutPage() {
         if (!validateForm()) return;
 
         if (!cart || cart.items.length === 0) {
-            toast.error(t("checkout.emptyCart"));
+            toast.error(t.checkout.emptyCart);
             return;
         }
 
@@ -306,8 +305,8 @@ export default function CheckoutPage() {
             setOrderCode(order.orderNumber);
             setOrderCreated(true);
 
-            // If SePay, get payment info
             if (selectedPayment === "sepay") {
+                // SePay: hiển thị QR + poll webhook giống tài liệu SePay
                 try {
                     const info = await orderService.getPaymentInfo(order.orderNumber);
                     setPaymentInfo(info);
@@ -320,16 +319,19 @@ export default function CheckoutPage() {
                     setCountdown(diff > 0 ? diff : 0);
                 } catch (error: any) {
                     console.error("Failed to get payment info:", error);
-                    toast.error(t("checkout.paymentInfoError"));
+                    toast.error(t.checkout.paymentInfoError);
                 }
+            } else if (selectedPayment === "paypal" && order.paymentUrl) {
+                // PayPal: backend trả về paymentUrl (approvalUrl) -> redirect người dùng sang PayPal
+                window.location.href = order.paymentUrl;
             } else {
-                toast.success(t("checkout.orderCreated"));
+                toast.success(t.checkout.orderCreated);
                 router.push(`/profile/order/${order._id}`);
             }
         } catch (error: any) {
             console.error("Failed to create order:", error);
             const message =
-                error?.response?.data?.message || t("checkout.orderError");
+                error?.response?.data?.message || t.checkout.orderError;
             toast.error(message);
         } finally {
             setSubmitting(false);
@@ -349,15 +351,15 @@ export default function CheckoutPage() {
     if (!cart || cart.items.length === 0) {
         return (
             <Layout>
-                    <div className="text-center py-20">
-                        <p className="text-purple-200 mb-4">{t("checkout.emptyCart")}</p>
-                        <button
-                            onClick={() => router.push("/cart")}
-                            className="px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg"
-                        >
-                            {t("checkout.backToCart")}
-                        </button>
-                    </div>
+                <div className="text-center py-20">
+                    <p className="text-purple-200 mb-4">{t.checkout.emptyCart}</p>
+                    <button
+                        onClick={() => router.push("/cart")}
+                        className="px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg"
+                    >
+                        {t.checkout.backToCart}
+                    </button>
+                </div>
             </Layout>
         );
     }
@@ -371,29 +373,35 @@ export default function CheckoutPage() {
     const paymentMethods = [
         {
             id: "sepay" as PaymentMethod,
-            name: t("checkout.bankTransfer"),
+            name: t.checkout.bankTransfer,
             icon: Building2,
-            description: t("checkout.bankTransferDesc"),
+            description: t.checkout.bankTransferDesc,
         },
         {
             id: "cod" as PaymentMethod,
-            name: t("checkout.cod"),
+            name: t.checkout.cod,
             icon: CreditCard,
-            description: t("checkout.codDesc"),
+            description: t.checkout.codDesc,
         },
         {
             id: "wallet" as PaymentMethod,
-            name: t("checkout.wallet"),
+            name: t.checkout.wallet,
             icon: Wallet,
-            description: t("checkout.walletDesc"),
+            description: t.checkout.walletDesc,
+        },
+        {
+            id: "paypal" as PaymentMethod,
+            name: t.checkout.paypal,
+            icon: QrCode,
+            description: t.checkout.paypalDesc,
         },
     ];
 
     return (
         <Layout>
             <Head>
-                <title>{t("checkout.title")}</title>
-                <meta name="description" content={t("checkout.description")} />
+                <title>{t.checkout.title}</title>
+                <meta name="description" content="Thanh toán đơn hàng của bạn" />
             </Head>
 
             {/* Galaxy Background */}
@@ -426,7 +434,7 @@ export default function CheckoutPage() {
                             className="flex items-center gap-2 text-purple-200 hover:text-white mb-4"
                         >
                             <ArrowLeft className="w-5 h-5" />
-                            {t("checkout.back")}
+                            Quay lại
                         </button>
                         <h1
                             className="text-4xl font-bold mb-2"
@@ -438,7 +446,7 @@ export default function CheckoutPage() {
                                 backgroundClip: "text",
                             }}
                         >
-                            {t("checkout.pageTitle")}
+                            Thanh Toán
                         </h1>
                     </motion.div>
 
@@ -452,10 +460,10 @@ export default function CheckoutPage() {
                             <div className="galaxy-card rounded-2xl p-8 backdrop-blur-sm text-center">
                                 <QrCode className="w-16 h-16 text-pink-400 mx-auto mb-4" />
                                 <h2 className="text-2xl font-bold text-white mb-2">
-                                    {t("checkout.qrTitle")}
+                                    {t.checkout.qrTitle}
                                 </h2>
                                 <p className="text-purple-200 mb-6">
-                                    {t("checkout.qrDesc")}
+                                    {t.checkout.qrDesc}
                                 </p>
 
                                 {/* QR Code */}
@@ -470,13 +478,13 @@ export default function CheckoutPage() {
                                 {/* Payment Info */}
                                 <div className="space-y-3 mb-6 text-left max-w-md mx-auto">
                                     <div className="flex justify-between text-purple-200">
-                                        <span>{t("checkout.amount")}</span>
+                                        <span>{t.checkout.amount}</span>
                                         <span className="font-bold text-white text-lg">
                                             {formatCurrency(paymentInfo.amount)}₫
                                         </span>
                                     </div>
                                     <div className="flex justify-between text-purple-200">
-                                        <span>{t("checkout.transferContent")}</span>
+                                        <span>{t.checkout.transferContent}</span>
                                         <span className="font-mono text-white">
                                             {paymentInfo.paymentRef}
                                         </span>
@@ -485,7 +493,7 @@ export default function CheckoutPage() {
                                         <div className="flex items-center justify-center gap-2 text-pink-300 mt-4">
                                             <Clock className="w-5 h-5" />
                                             <span>
-                                                {t("checkout.timeRemaining")} {Math.floor(countdown / 60)}:
+                                                {t.checkout.timeRemaining} {Math.floor(countdown / 60)}:
                                                 {(countdown % 60).toString().padStart(2, "0")}
                                             </span>
                                         </div>
@@ -495,7 +503,7 @@ export default function CheckoutPage() {
                                 {polling && (
                                     <div className="flex items-center justify-center gap-2 text-purple-200">
                                         <Loader2 className="w-5 h-5 animate-spin" />
-                                        <span>{t("checkout.checkingPayment")}</span>
+                                        <span>Đang kiểm tra thanh toán...</span>
                                     </div>
                                 )}
                             </div>
@@ -513,12 +521,12 @@ export default function CheckoutPage() {
                                 >
                                     <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
                                         <MapPin className="w-5 h-5 text-pink-400" />
-                                        {t("checkout.shippingAddress")}
+                                        {t.checkout.shippingAddress}
                                     </h2>
                                     <div className="space-y-4">
                                         <div>
                                             <label className="block text-purple-200 mb-2">
-                                                {t("checkout.fullName")} <span className="text-red-400">{t("checkout.required")}</span>
+                                                {t.checkout.fullName} <span className="text-red-400">{t.checkout.required}</span>
                                             </label>
                                             <input
                                                 type="text"
@@ -527,12 +535,12 @@ export default function CheckoutPage() {
                                                 onChange={handleInputChange}
                                                 required
                                                 className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white placeholder-purple-400 focus:outline-none focus:ring-2 focus:ring-pink-500"
-                                                placeholder={t("checkout.fullNamePlaceholder")}
+                                                placeholder={t.checkout.fullNamePlaceholder}
                                             />
                                         </div>
                                         <div>
                                             <label className="block text-purple-200 mb-2">
-                                                {t("checkout.phone")} <span className="text-red-400">{t("checkout.required")}</span>
+                                                {t.checkout.phone} <span className="text-red-400">{t.checkout.required}</span>
                                             </label>
                                             <input
                                                 type="tel"
@@ -541,12 +549,12 @@ export default function CheckoutPage() {
                                                 onChange={handleInputChange}
                                                 required
                                                 className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white placeholder-purple-400 focus:outline-none focus:ring-2 focus:ring-pink-500"
-                                                placeholder={t("checkout.phonePlaceholder")}
+                                                placeholder={t.checkout.phonePlaceholder}
                                             />
                                         </div>
                                         <div>
                                             <label className="block text-purple-200 mb-2">
-                                                {t("checkout.address")} <span className="text-red-400">{t("checkout.required")}</span>
+                                                {t.checkout.address} <span className="text-red-400">{t.checkout.required}</span>
                                             </label>
                                             <input
                                                 type="text"
@@ -555,13 +563,13 @@ export default function CheckoutPage() {
                                                 onChange={handleInputChange}
                                                 required
                                                 className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white placeholder-purple-400 focus:outline-none focus:ring-2 focus:ring-pink-500"
-                                                placeholder={t("checkout.addressPlaceholder")}
+                                                placeholder="Số nhà, tên đường"
                                             />
                                         </div>
                                         <div className="grid grid-cols-2 gap-4">
                                             <div>
                                                 <label className="block text-purple-200 mb-2">
-                                                    {t("checkout.province")} <span className="text-red-400">{t("checkout.required")}</span>
+                                                    {t.checkout.province} <span className="text-red-400">{t.checkout.required}</span>
                                                 </label>
                                                 <select
                                                     name="city"
@@ -570,7 +578,7 @@ export default function CheckoutPage() {
                                                     className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
                                                 >
                                                     <option value="" className="bg-gray-900 text-purple-200">
-                                                        {t("checkout.selectProvince")}
+                                                        {t.checkout.selectProvince}
                                                     </option>
                                                     {provinces.map((p: any) => (
                                                         <option
@@ -585,7 +593,7 @@ export default function CheckoutPage() {
                                             </div>
                                             <div>
                                                 <label className="block text-purple-200 mb-2">
-                                                    {t("checkout.district")}
+                                                    {t.checkout.district}
                                                 </label>
                                                 <select
                                                     name="district"
@@ -595,7 +603,7 @@ export default function CheckoutPage() {
                                                     className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-pink-500 disabled:opacity-50"
                                                 >
                                                     <option value="" className="bg-gray-900 text-purple-200">
-                                                        {t("checkout.selectDistrict")}
+                                                        {t.checkout.selectDistrict}
                                                     </option>
                                                     {districts.map((d: any) => (
                                                         <option
@@ -611,7 +619,7 @@ export default function CheckoutPage() {
                                         </div>
                                         <div>
                                             <label className="block text-purple-200 mb-2">
-                                                {t("checkout.ward")}
+                                                {t.checkout.ward}
                                             </label>
                                             <select
                                                 name="ward"
@@ -621,7 +629,7 @@ export default function CheckoutPage() {
                                                 className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-pink-500 disabled:opacity-50"
                                             >
                                                 <option value="" className="bg-gray-900 text-purple-200">
-                                                    {t("checkout.selectWard")}
+                                                    {t.checkout.selectWard}
                                                 </option>
                                                 {wards.map((w: any) => (
                                                     <option
@@ -636,7 +644,7 @@ export default function CheckoutPage() {
                                         </div>
                                         <div>
                                             <label className="block text-purple-200 mb-2">
-                                                {t("checkout.note")}
+                                                {t.checkout.note}
                                             </label>
                                             <textarea
                                                 name="note"
@@ -644,7 +652,7 @@ export default function CheckoutPage() {
                                                 onChange={handleInputChange}
                                                 rows={3}
                                                 className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white placeholder-purple-400 focus:outline-none focus:ring-2 focus:ring-pink-500"
-                                                placeholder={t("checkout.notePlaceholder")}
+                                                placeholder={t.checkout.notePlaceholder}
                                             />
                                         </div>
                                     </div>
@@ -659,7 +667,7 @@ export default function CheckoutPage() {
                                 >
                                     <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
                                         <CreditCard className="w-5 h-5 text-pink-400" />
-                                        {t("checkout.paymentMethod")}
+                                        {t.checkout.paymentMethod}
                                     </h2>
                                     <div className="space-y-3">
                                         {paymentMethods.map((method) => {
@@ -718,16 +726,16 @@ export default function CheckoutPage() {
                                     className="galaxy-card rounded-2xl p-6 backdrop-blur-sm sticky top-4"
                                 >
                                     <h2 className="text-xl font-bold text-white mb-4">
-                                        Tóm tắt đơn hàng
+                                        {t.checkout.orderSummary}
                                     </h2>
                                     <div className="space-y-3 mb-6">
                                         <div className="flex justify-between text-purple-200">
-                                            <span>Tạm tính:</span>
+                                            <span>{t.checkout.subtotal}</span>
                                             <span className="text-white">{formatCurrency(subtotal)}₫</span>
                                         </div>
                                         <div className="border-t border-purple-500/30 pt-3">
                                             <div className="flex justify-between text-lg font-bold text-white">
-                                                <span>Tổng cộng:</span>
+                                                <span>{t.checkout.total}</span>
                                                 <span className="text-2xl text-pink-400">
                                                     {formatCurrency(total)}₫
                                                 </span>
@@ -742,12 +750,12 @@ export default function CheckoutPage() {
                                         {submitting ? (
                                             <>
                                                 <Loader2 className="w-5 h-5 animate-spin" />
-                                                Đang xử lý...
+                                                {t.checkout.processing}
                                             </>
                                         ) : (
                                             <>
                                                 <CreditCard className="w-5 h-5" />
-                                                Đặt hàng
+                                                {t.checkout.placeOrder}
                                             </>
                                         )}
                                     </button>
@@ -761,10 +769,3 @@ export default function CheckoutPage() {
     );
 }
 
-export async function getServerSideProps({ locale }: { locale: string }) {
-    return {
-        props: {
-            ...(await serverSideTranslations(locale, ["common"])),
-        },
-    };
-}

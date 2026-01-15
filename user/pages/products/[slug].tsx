@@ -16,18 +16,17 @@ import {
     Shield,
     RotateCcw,
 } from "lucide-react";
-import { useTranslation } from "next-i18next";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Layout from "../../src/components/layout/Layout";
 import { productService, Product } from "../../src/services/product.service";
 import { cartService } from "../../src/services/cart.service";
 import { storage } from "../../src/utils/storage";
 import ProductCardSimple from "../../src/components/products/ProductCardSimple";
 import toast from "react-hot-toast";
+import { useTrans } from "../../src/hooks/useTrans";
 
 export default function ProductDetailPage() {
     const router = useRouter();
-    const { t } = useTranslation("common");
+    const t = useTrans();
     const { slug } = router.query;
     const [product, setProduct] = useState<Product | null>(null);
     const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
@@ -75,7 +74,7 @@ export default function ProductDetailPage() {
                 <div className="flex items-center justify-center min-h-screen">
                     <div className="text-center">
                         <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-400"></div>
-                        <p className="mt-4 text-white">{t("productDetail.loading")}</p>
+                        <p className="mt-4 text-white">{t.productDetail.loading}</p>
                     </div>
                 </div>
             </Layout>
@@ -87,12 +86,12 @@ export default function ProductDetailPage() {
             <Layout>
                 <div className="flex items-center justify-center min-h-screen">
                     <div className="text-center">
-                        <h2 className="text-2xl font-bold text-white mb-4">{t("productDetail.notFound")}</h2>
+                        <h2 className="text-2xl font-bold text-white mb-4">{t.productDetail.notFound}</h2>
                         <button
                             onClick={() => router.push("/products")}
                             className="px-6 py-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg hover:opacity-90 transition-all"
                         >
-                            {t("productDetail.backToList")}
+                            {t.productDetail.backToList}
                         </button>
                     </div>
                 </div>
@@ -123,13 +122,13 @@ export default function ProductDetailPage() {
 
         const user = storage.getUser();
         if (!user) {
-            toast.error(t("productDetail.loginRequired"));
+            toast.error(t.productDetail.loginRequired);
             router.push("/login");
             return;
         }
 
         if (!isInStock) {
-            toast.error(t("productDetail.outOfStock"));
+            toast.error(t.productDetail.outOfStock);
             return;
         }
 
@@ -139,10 +138,10 @@ export default function ProductDetailPage() {
                 productId: product._id,
                 quantity: quantity,
             });
-            toast.success(t("productDetail.addToCartSuccess"));
+            toast.success(t.productDetail.addToCartSuccess);
         } catch (error: any) {
             console.error("Error adding to cart:", error);
-            const message = error?.response?.data?.message || error?.message || t("productDetail.addToCartError");
+            const message = error?.response?.data?.message || error?.message || t.productDetail.addToCartError;
             toast.error(message);
         } finally {
             setIsAddingToCart(false);
@@ -229,7 +228,7 @@ export default function ProductDetailPage() {
                     className="flex items-center gap-2 text-purple-200 hover:text-white mb-6 transition-colors"
                 >
                     <ChevronLeft className="w-5 h-5" />
-                    <span>{t("common.back")}</span>
+                    <span>{t.common.back}</span>
                 </motion.button>
 
                 {/* Product Detail */}
@@ -255,7 +254,7 @@ export default function ProductDetailPage() {
                                     />
                                 ) : (
                                     <div className="w-full h-full bg-white/10 flex items-center justify-center">
-                                        <span className="text-purple-300">{t("common.error")}</span>
+                                        <span className="text-purple-300">{t.common.error}</span>
                                     </div>
                                 )}
                             </div>
@@ -306,7 +305,7 @@ export default function ProductDetailPage() {
                             )}
                             {!isInStock && (
                                 <span className="px-3 py-1 bg-gray-500/20 text-gray-300 rounded-full text-sm border border-gray-400/30">
-                                    {t("productDetail.outOfStockLabel")}
+                                    {t.productDetail.outOfStockLabel}
                                 </span>
                             )}
                         </div>
@@ -332,7 +331,7 @@ export default function ProductDetailPage() {
                                     ))}
                                 </div>
                                 <span className="text-purple-200">
-                                    {product.rating?.toFixed(1)} ({product.reviewCount || 0} {t("productDetail.reviews")})
+                                    {product.rating?.toFixed(1)} ({product.reviewCount || 0} {t.common.reviews})
                                 </span>
                             </div>
                         )}
@@ -362,7 +361,7 @@ export default function ProductDetailPage() {
                         {isInStock && product.stock !== undefined && (
                             <div className="flex items-center gap-2 text-green-300">
                                 <Check className="w-5 h-5" />
-                                <span>{t("productDetail.inStock")} {product.stock} {t("products.products")}</span>
+                                <span>{t.productDetail.inStock} {product.stock} {t.products.products}</span>
                             </div>
                         )}
 
@@ -370,7 +369,7 @@ export default function ProductDetailPage() {
                         {isInStock && (
                             <div className="space-y-2">
                                 <label className="block text-sm font-medium text-purple-200">
-                                    {t("productDetail.quantity")}
+                                    {t.productDetail.quantity}
                                 </label>
                                 <div className="flex items-center gap-3">
                                     <button
@@ -413,12 +412,12 @@ export default function ProductDetailPage() {
                                 {isAddingToCart ? (
                                     <>
                                         <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                                        <span>{t("productDetail.adding")}</span>
+                                        <span>{t.productDetail.adding}</span>
                                     </>
                                 ) : (
                                     <>
                                         <ShoppingCart className="w-5 h-5" />
-                                        <span>{t("productDetail.addToCart")}</span>
+                                        <span>{t.productDetail.addToCart}</span>
                                     </>
                                 )}
                             </button>
@@ -443,22 +442,22 @@ export default function ProductDetailPage() {
                                 <div className="flex items-center gap-3">
                                     <Truck className="w-6 h-6 text-purple-300" />
                                     <div>
-                                        <p className="text-sm font-medium text-white">{t("home.features.fastDelivery")}</p>
-                                        <p className="text-xs text-purple-300">{t("home.serviceBar.nationwideDelivery")}</p>
+                                        <p className="text-sm font-medium text-white">{t.home.features.fastDelivery}</p>
+                                        <p className="text-xs text-purple-300">{t.home.serviceBar.nationwideDelivery}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <Shield className="w-6 h-6 text-purple-300" />
                                     <div>
-                                        <p className="text-sm font-medium text-white">{t("home.features.highQuality")}</p>
-                                        <p className="text-xs text-purple-300">{t("home.bannerFeatures.premiumMaterial")}</p>
+                                        <p className="text-sm font-medium text-white">{t.home.features.highQuality}</p>
+                                        <p className="text-xs text-purple-300">{t.home.bannerFeatures.premiumMaterial}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <RotateCcw className="w-6 h-6 text-purple-300" />
                                     <div>
-                                        <p className="text-sm font-medium text-white">{t("common.back")}</p>
-                                        <p className="text-xs text-purple-300">7 {t("common.days")}</p>
+                                        <p className="text-sm font-medium text-white">{t.common.back}</p>
+                                        <p className="text-xs text-purple-300">7 {t.common.days}</p>
                                     </div>
                                 </div>
                             </div>
@@ -474,7 +473,7 @@ export default function ProductDetailPage() {
                         transition={{ delay: 0.4 }}
                         className="galaxy-card rounded-2xl p-8 mb-12 backdrop-blur-sm"
                     >
-                        <h2 className="text-2xl font-bold text-white mb-4">{t("productDetail.description")}</h2>
+                        <h2 className="text-2xl font-bold text-white mb-4">{t.productDetail.description}</h2>
                         <div
                             className="text-purple-200 leading-relaxed prose prose-invert max-w-none"
                             dangerouslySetInnerHTML={{ __html: product.description }}
@@ -490,7 +489,7 @@ export default function ProductDetailPage() {
                         transition={{ delay: 0.6 }}
                         className="mb-12"
                     >
-                        <h2 className="text-2xl font-bold text-white mb-6">{t("productDetail.relatedProducts")}</h2>
+                        <h2 className="text-2xl font-bold text-white mb-6">{t.productDetail.relatedProducts}</h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                             {relatedProducts.map((prod) => (
                                 <ProductCardSimple key={prod._id} {...mapProductToCard(prod)} />
@@ -510,10 +509,3 @@ export async function getStaticPaths() {
     };
 }
 
-export async function getStaticProps({ locale }: { locale: string }) {
-    return {
-        props: {
-            ...(await serverSideTranslations(locale, ["common"])),
-        },
-    };
-}

@@ -48,7 +48,7 @@ export class PayPalService {
   ) {}
 
   private async getSettings(): Promise<IPayPalSettings> {
-    return (await this.settingService.getKeyValues([
+    const settings = (await this.settingService.getKeyValues([
       "paypalClientId",
       "paypalClientSecret",
       "paypalMode",
@@ -57,6 +57,12 @@ export class PayPalService {
       "paypalWebhookId",
       "paypalEnabled",
     ])) as unknown as IPayPalSettings;
+
+    this.logger.log(
+      `[PayPal Settings] enabled=${settings.paypalEnabled}, mode=${settings.paypalMode}, clientId=${settings.paypalClientId ? `${settings.paypalClientId.substring(0, 6)}***` : "undefined"}, webhookId=${settings.paypalWebhookId || "undefined"}`,
+    );
+
+    return settings;
   }
 
   async createOrder(

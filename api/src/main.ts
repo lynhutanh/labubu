@@ -11,6 +11,7 @@ import { renderFile } from "./kernel/helpers/view.helper";
 import { RedisIoAdapter } from "./modules/websocket/redis-io.adapter";
 import { join } from "path";
 import { existsSync } from "fs";
+import * as bodyParser from "body-parser";
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -20,6 +21,11 @@ async function bootstrap() {
   app.useGlobalFilters(new HttpExceptionLogFilter(httpAdapter));
   app.engine("html", renderFile);
   app.set("view engine", "html");
+
+  // PayPal webhook MUST receive raw body for signature verification.
+  // External infra may prefix routes with /api, so we support both.
+  app.use("/paypal/webhook", bodyParser.raw({ type: "application/json" }));
+  app.use("/api/paypal/webhook", bodyParser.raw({ type: "application/json" }));
 
   // Serve favicon.ico and logo.ico
   const logoIcoPath = join(process.cwd(), "public", "logo.ico");

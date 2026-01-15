@@ -256,6 +256,90 @@ const settings = [
     type: 'number',
     order: 5
   },
+  {
+    key: 'paypalEnabled',
+    value: 'false',
+    name: 'Kích hoạt PayPal',
+    description: 'Bật/tắt phương thức thanh toán PayPal',
+    public: false,
+    group: 'payment',
+    editable: true,
+    visible: true,
+    type: 'boolean',
+    order: 6
+  },
+  {
+    key: 'paypalClientId',
+    value: '',
+    name: 'PayPal Client ID',
+    description: 'Client ID từ PayPal Developer Dashboard',
+    public: false,
+    group: 'payment',
+    editable: true,
+    visible: true,
+    type: 'text',
+    order: 7
+  },
+  {
+    key: 'paypalClientSecret',
+    value: '',
+    name: 'PayPal Client Secret',
+    description: 'Client Secret từ PayPal Developer Dashboard',
+    public: false,
+    group: 'payment',
+    editable: true,
+    visible: true,
+    type: 'password',
+    order: 8
+  },
+  {
+    key: 'paypalMode',
+    value: 'sandbox',
+    name: 'PayPal Mode',
+    description: 'Chế độ PayPal (sandbox hoặc live)',
+    public: false,
+    group: 'payment',
+    editable: true,
+    visible: true,
+    type: 'text',
+    order: 9
+  },
+  {
+    key: 'paypalReturnUrl',
+    value: '',
+    name: 'PayPal Return URL',
+    description: 'URL trả về sau khi thanh toán thành công (VD: https://your-domain.com/checkout/success)',
+    public: false,
+    group: 'payment',
+    editable: true,
+    visible: true,
+    type: 'text',
+    order: 10
+  },
+  {
+    key: 'paypalCancelUrl',
+    value: '',
+    name: 'PayPal Cancel URL',
+    description: 'URL khi người dùng hủy thanh toán (VD: https://your-domain.com/checkout/cancel)',
+    public: false,
+    group: 'payment',
+    editable: true,
+    visible: true,
+    type: 'text',
+    order: 11
+  },
+  {
+    key: 'paypalWebhookId',
+    value: '',
+    name: 'PayPal Webhook ID',
+    description: 'Webhook ID được tạo trên PayPal Dashboard (dùng để verify webhook)',
+    public: false,
+    group: 'payment',
+    editable: true,
+    visible: true,
+    type: 'text',
+    order: 12
+  },
   // GHN Settings
   {
     key: 'GHN_BASE_URL',

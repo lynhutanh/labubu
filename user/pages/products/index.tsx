@@ -2,8 +2,6 @@ import Head from "next/head";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Search, Grid3x3, List, SlidersHorizontal } from "lucide-react";
-import { useTranslation } from "next-i18next";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Layout from "../../src/components/layout/Layout";
 import ProductCardSimple from "../../src/components/products/ProductCardSimple";
 import { productService, Product } from "../../src/services/product.service";
@@ -61,7 +59,6 @@ const mapProductToCard = (product: Product) => {
 };
 
 export default function ProductsPage() {
-    const { t } = useTranslation("common");
     const [products, setProducts] = useState<Product[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
@@ -162,10 +159,10 @@ export default function ProductsPage() {
     return (
         <Layout>
             <Head>
-                <title>{t("products.title")}</title>
+                <title>Sản Phẩm - Labubu</title>
                 <meta
                     name="description"
-                    content={t("products.description")}
+                    content="Khám phá bộ sưu tập Labubu đa dạng, chất lượng cao"
                 />
             </Head>
 
@@ -240,7 +237,7 @@ export default function ProductsPage() {
                         transition={{ duration: 0.6 }}
                         className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4"
                     >
-                        {t("products.pageTitle")}
+                        Sản Phẩm
                     </motion.h1>
                     <motion.p
                         initial={{ opacity: 0, y: -20 }}
@@ -248,7 +245,7 @@ export default function ProductsPage() {
                         transition={{ duration: 0.6, delay: 0.2 }}
                         className="text-xl md:text-2xl text-white/90 max-w-2xl mx-auto"
                     >
-                        {t("products.subtitle")}
+                        Khám phá bộ sưu tập Labubu đa dạng, chất lượng cao
                     </motion.p>
                 </div>
             </section>
@@ -268,7 +265,7 @@ export default function ProductsPage() {
                                 <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-purple-300 w-5 h-5 z-10" />
                                 <input
                                     type="text"
-                                    placeholder={t("products.searchPlaceholder")}
+                                    placeholder="Tìm kiếm sản phẩm..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     className="w-full pl-12 pr-4 py-3 bg-white/10 border border-purple-500/30 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-400 text-white placeholder-purple-300 backdrop-blur-sm transition-all"
@@ -282,7 +279,7 @@ export default function ProductsPage() {
                                     className="flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 border border-purple-500/30 rounded-lg font-medium text-purple-200 transition-all backdrop-blur-sm"
                                 >
                                     <SlidersHorizontal className="w-5 h-5" />
-                                    {t("products.filter")}
+                                    Lọc
                                 </button>
 
                                 {/* View Mode Toggle */}
@@ -327,14 +324,14 @@ export default function ProductsPage() {
                                     {/* Category Filter */}
                                     <div>
                                         <label className="block text-sm font-medium text-purple-200 mb-2">
-                                            {t("products.category")}
+                                            Danh mục
                                         </label>
                                         <select
                                             value={selectedCategory}
                                             onChange={(e) => setSelectedCategory(e.target.value)}
                                             className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-400 text-white backdrop-blur-sm"
                                         >
-                                            <option value="all" className="bg-gray-900">{t("products.allCategories")}</option>
+                                            <option value="all" className="bg-gray-900">Tất cả</option>
                                             {categories.map((cat) => (
                                                 <option key={cat._id} value={cat._id} className="bg-gray-900">
                                                     {cat.name}
@@ -346,35 +343,35 @@ export default function ProductsPage() {
                                     {/* Price Range Filter */}
                                     <div>
                                         <label className="block text-sm font-medium text-purple-200 mb-2">
-                                            {t("products.priceRange")}
+                                            Khoảng giá
                                         </label>
                                         <select
                                             value={priceRange}
                                             onChange={(e) => setPriceRange(e.target.value)}
                                             className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-400 text-white backdrop-blur-sm"
                                         >
-                                            <option value="all" className="bg-gray-900">{t("products.allPrices")}</option>
-                                            <option value="0-200000" className="bg-gray-900">{t("products.priceRange1")}</option>
-                                            <option value="200000-300000" className="bg-gray-900">{t("products.priceRange2")}</option>
-                                            <option value="300000+" className="bg-gray-900">{t("products.priceRange3")}</option>
+                                            <option value="all" className="bg-gray-900">Tất cả</option>
+                                            <option value="0-200000" className="bg-gray-900">0₫ - 200.000₫</option>
+                                            <option value="200000-300000" className="bg-gray-900">200.000₫ - 300.000₫</option>
+                                            <option value="300000+" className="bg-gray-900">Trên 300.000₫</option>
                                         </select>
                                     </div>
 
                                     {/* Sort By */}
                                     <div>
                                         <label className="block text-sm font-medium text-purple-200 mb-2">
-                                            {t("products.sort")}
+                                            Sắp xếp
                                         </label>
                                         <select
                                             value={sortBy}
                                             onChange={(e) => setSortBy(e.target.value)}
                                             className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-400 text-white backdrop-blur-sm"
                                         >
-                                            <option value="default" className="bg-gray-900">{t("products.sortDefault")}</option>
-                                            <option value="price-asc" className="bg-gray-900">{t("products.sortPriceAsc")}</option>
-                                            <option value="price-desc" className="bg-gray-900">{t("products.sortPriceDesc")}</option>
-                                            <option value="rating" className="bg-gray-900">{t("products.sortRating")}</option>
-                                            <option value="newest" className="bg-gray-900">{t("products.sortNewest")}</option>
+                                            <option value="default" className="bg-gray-900">Mặc định</option>
+                                            <option value="price-asc" className="bg-gray-900">Giá: Thấp đến cao</option>
+                                            <option value="price-desc" className="bg-gray-900">Giá: Cao đến thấp</option>
+                                            <option value="rating" className="bg-gray-900">Đánh giá cao nhất</option>
+                                            <option value="newest" className="bg-gray-900">Mới nhất</option>
                                         </select>
                                     </div>
                                 </div>
@@ -386,14 +383,14 @@ export default function ProductsPage() {
                     <div className="mb-6 flex items-center justify-between">
                         <p className="text-white">
                             {loading ? (
-                                t("products.loading")
+                                "Đang tải..."
                             ) : (
                                 <>
-                                    {t("products.found")}{" "}
+                                    Tìm thấy{" "}
                                     <span className="font-semibold text-pink-600">
                                         {filteredProducts.length}
                                     </span>{" "}
-                                    {t("products.products")}
+                                    sản phẩm
                                 </>
                             )}
                         </p>
@@ -403,7 +400,7 @@ export default function ProductsPage() {
                     {loading ? (
                         <div className="text-center py-20">
                             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500"></div>
-                            <p className="mt-4 text-white">{t("products.loadingProducts")}</p>
+                            <p className="mt-4 text-white">Đang tải sản phẩm...</p>
                         </div>
                     ) : filteredProducts.length > 0 ? (
                         <div
@@ -439,10 +436,10 @@ export default function ProductsPage() {
                                     <Search className="w-16 h-16 text-gray-400" />
                                 </div>
                                 <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                                    {t("products.noProducts")}
+                                    Không tìm thấy sản phẩm
                                 </h3>
                                 <p className="text-gray-600 mb-6">
-                                    {t("products.noProductsDesc")}
+                                    Thử thay đổi từ khóa tìm kiếm hoặc bộ lọc của bạn
                                 </p>
                                 <button
                                     onClick={() => {
@@ -452,7 +449,7 @@ export default function ProductsPage() {
                                     }}
                                     className="px-6 py-3 bg-pink-500 text-white rounded-lg font-semibold hover:bg-pink-600 transition-colors"
                                 >
-                                    {t("products.clearFilters")}
+                                    Xóa bộ lọc
                                 </button>
                             </motion.div>
                         </div>
@@ -463,10 +460,3 @@ export default function ProductsPage() {
     );
 }
 
-export async function getStaticProps({ locale }: { locale: string }) {
-    return {
-        props: {
-            ...(await serverSideTranslations(locale, ["common"])),
-        },
-    };
-}

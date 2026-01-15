@@ -1,0 +1,27 @@
+export default {
+    title: "Danh Sách Yêu Thích - Labubu",
+    description: "Xem lại các sản phẩm bạn đã yêu thích",
+    pageTitle: "Danh Sách Yêu Thích",
+    itemsInWishlist: "sản phẩm trong danh sách yêu thích của bạn",
+    emptyWishlist: "Danh sách yêu thích của bạn đang trống",
+    total: "Tổng cộng:",
+    items: "sản phẩm",
+    addAllToCart: "Thêm tất cả vào giỏ hàng",
+    clearAll: "Xóa tất cả",
+    removeFromWishlist: "Xóa khỏi danh sách yêu thích",
+    emptyTitle: "Danh sách yêu thích trống",
+    emptyDesc:
+        "Bạn chưa có sản phẩm nào trong danh sách yêu thích. Hãy khám phá và thêm sản phẩm bạn yêu thích!",
+    viewProducts: "Xem sản phẩm",
+    suggested: "Có thể bạn cũng thích",
+    loginRequired: "Vui lòng đăng nhập để xem danh sách yêu thích",
+    loadError: "Không thể tải danh sách yêu thích",
+    removeSuccess: "Đã xóa khỏi danh sách yêu thích",
+    removeError: "Không thể xóa khỏi danh sách yêu thích",
+    addToCartSuccess: "Đã thêm vào giỏ hàng!",
+    addToCartError: "Không thể thêm vào giỏ hàng",
+    clearConfirm:
+        "Bạn có chắc chắn muốn xóa tất cả sản phẩm khỏi danh sách yêu thích?",
+    clearSuccess: "Đã xóa tất cả sản phẩm",
+    clearError: "Không thể xóa danh sách yêu thích",
+};

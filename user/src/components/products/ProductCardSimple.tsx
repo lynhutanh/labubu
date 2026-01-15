@@ -3,11 +3,11 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { useTranslation } from "next-i18next";
 import { cartService } from "../../services/cart.service";
 import { wishlistService } from "../../services/wishlist.service";
 import { storage } from "../../utils/storage";
 import toast from "react-hot-toast";
+import { useTrans } from "../../hooks/useTrans";
 
 interface ProductCardSimpleProps {
     id: string | number; // For URL (slug or _id)
@@ -39,7 +39,7 @@ export default function ProductCardSimple({
     stock,
 }: ProductCardSimpleProps) {
     const router = useRouter();
-    const { t } = useTranslation("common");
+    const t = useTrans();
     const [isInWishlist, setIsInWishlist] = useState(false);
     const [isAddingToCart, setIsAddingToCart] = useState(false);
     const [isTogglingWishlist, setIsTogglingWishlist] = useState(false);
@@ -69,13 +69,13 @@ export default function ProductCardSimple({
 
         const user = storage.getUser();
         if (!user) {
-            toast.error(t("productDetail.loginRequired"));
+            toast.error(t.productDetail.loginRequired);
             router.push("/login");
             return;
         }
 
         if (!isInStock) {
-            toast.error(t("productDetail.outOfStock"));
+            toast.error(t.productDetail.outOfStock);
             return;
         }
 
@@ -87,10 +87,10 @@ export default function ProductCardSimple({
                 productId: actualProductId,
                 quantity: 1,
             });
-            toast.success(t("productDetail.addToCartSuccess"));
+            toast.success("Đã thêm vào giỏ hàng!");
         } catch (error: any) {
             console.error("Error adding to cart:", error);
-            const message = error?.response?.data?.message || error?.message || t("productDetail.addToCartError");
+            const message = error?.response?.data?.message || error?.message || t.productDetail.addToCartError;
             toast.error(message);
         } finally {
             setIsAddingToCart(false);
@@ -103,7 +103,7 @@ export default function ProductCardSimple({
 
         const user = storage.getUser();
         if (!user) {
-            toast.error(t("wishlist.loginRequired"));
+            toast.error(t.wishlist.loginRequired);
             router.push("/login");
             return;
         }
@@ -111,7 +111,7 @@ export default function ProductCardSimple({
         const actualProductId = productId || (typeof id === "string" ? id : String(id));
         
         if (!actualProductId) {
-            toast.error(t("common.error"));
+            toast.error(t.common.error);
             return;
         }
 
@@ -120,15 +120,15 @@ export default function ProductCardSimple({
             if (isInWishlist) {
                 await wishlistService.removeFromWishlist({ productId: actualProductId });
                 setIsInWishlist(false);
-                toast.success(t("wishlist.removeSuccess"));
+                toast.success(t.wishlist.removeSuccess);
             } else {
                 await wishlistService.addToWishlist({ productId: actualProductId });
                 setIsInWishlist(true);
-                toast.success(t("wishlist.addToCartSuccess"));
+                toast.success(t.wishlist.addToCartSuccess);
             }
         } catch (error: any) {
             console.error("Error toggling wishlist:", error);
-            const message = error?.response?.data?.message || error?.message || t("wishlist.removeError");
+            const message = error?.response?.data?.message || error?.message || t.wishlist.removeError;
             toast.error(message);
         } finally {
             setIsTogglingWishlist(false);
@@ -184,7 +184,7 @@ export default function ProductCardSimple({
                             ? "bg-pink-500/80 border-2 border-pink-400 shadow-lg shadow-pink-500/50"
                             : "bg-white/10 border border-white/20 hover:bg-white/20"
                         }`}
-                    title={isInWishlist ? t("wishlist.removeFromWishlist") : t("header.favorites")}
+                    title={isInWishlist ? t.wishlist.removeFromWishlist : t.header.favorites}
                 >
                     <Heart
                         className={`w-5 h-5 transition-all ${isInWishlist
@@ -240,7 +240,7 @@ export default function ProductCardSimple({
                                 className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-2 rounded-lg font-semibold text-sm hover:from-purple-500 hover:to-indigo-500 transition-all flex items-center justify-center gap-2 shadow-lg shadow-purple-500/50"
                             >
                                 <Eye className="w-4 h-4" />
-                                {t("productDetail.viewQuick")}
+                                {t.productDetail.viewQuick}
                             </button>
                         </Link>
                         <button
@@ -250,10 +250,10 @@ export default function ProductCardSimple({
                         >
                             <ShoppingCart className="w-4 h-4" />
                             {isAddingToCart
-                                ? t("productDetail.adding")
+                                ? t.productDetail.adding
                                 : isInStock
-                                    ? t("productDetail.addToCart")
-                                    : t("productDetail.outOfStockLabel")}
+                                    ? t.productDetail.addToCart
+                                    : t.productDetail.outOfStockLabel}
                         </button>
                     </div>
                 </div>
@@ -283,7 +283,7 @@ export default function ProductCardSimple({
                                 boxShadow: "0 0 8px rgba(34, 197, 94, 0.3)",
                             }}
                         >
-                            {t("productDetail.inStock")}
+                            {t.productDetail.inStock}
                         </span>
                     ) : (
                         <span
@@ -293,7 +293,7 @@ export default function ProductCardSimple({
                                 boxShadow: "0 0 8px rgba(239, 68, 68, 0.3)",
                             }}
                         >
-                            {t("productDetail.outOfStockLabel")}
+                            {t.productDetail.outOfStockLabel}
                         </span>
                     )}
                 </div>

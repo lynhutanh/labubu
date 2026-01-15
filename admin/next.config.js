@@ -1,10 +1,7 @@
-const { i18n } = require('./next-i18next.config');
-
 const nextConfig = {
   compress: true,
   reactStrictMode: false,
   distDir: '.next',
-  i18n,
   eslint: {
     ignoreDuringBuilds: true
   },
