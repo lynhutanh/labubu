@@ -376,24 +376,28 @@ export default function CheckoutPage() {
             name: t.checkout.bankTransfer,
             icon: Building2,
             description: t.checkout.bankTransferDesc,
-        },
-        {
-            id: "cod" as PaymentMethod,
-            name: t.checkout.cod,
-            icon: CreditCard,
-            description: t.checkout.codDesc,
+            disabled: false,
         },
         {
             id: "wallet" as PaymentMethod,
             name: t.checkout.wallet,
             icon: Wallet,
             description: t.checkout.walletDesc,
+            disabled: false,
         },
         {
             id: "paypal" as PaymentMethod,
             name: t.checkout.paypal,
             icon: QrCode,
             description: t.checkout.paypalDesc,
+            disabled: false,
+        },
+        {
+            id: "cod" as PaymentMethod,
+            name: t.checkout.cod,
+            icon: CreditCard,
+            description: t.checkout.codUpdating,
+            disabled: true,
         },
     ];
 
@@ -673,39 +677,63 @@ export default function CheckoutPage() {
                                         {paymentMethods.map((method) => {
                                             const Icon = method.icon;
                                             const isSelected = selectedPayment === method.id;
+                                            const isDisabled = method.disabled || false;
                                             return (
                                                 <button
                                                     key={method.id}
                                                     type="button"
-                                                    onClick={() => setSelectedPayment(method.id)}
-                                                    className={`w-full p-4 rounded-lg border-2 transition-all text-left ${isSelected
-                                                        ? "border-pink-500 bg-pink-500/20"
-                                                        : "border-purple-500/30 bg-white/5 hover:border-purple-500/50"
-                                                        }`}
+                                                    onClick={() => !isDisabled && setSelectedPayment(method.id)}
+                                                    disabled={isDisabled}
+                                                    className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
+                                                        isDisabled
+                                                            ? "border-gray-500/30 bg-white/5 opacity-50 cursor-not-allowed"
+                                                            : isSelected
+                                                            ? "border-pink-500 bg-pink-500/20"
+                                                            : "border-purple-500/30 bg-white/5 hover:border-purple-500/50"
+                                                    }`}
                                                 >
                                                     <div className="flex items-center gap-3">
                                                         <div
-                                                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${isSelected
-                                                                ? "border-pink-500 bg-pink-500"
-                                                                : "border-purple-400"
-                                                                }`}
+                                                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                                                                isDisabled
+                                                                    ? "border-gray-500"
+                                                                    : isSelected
+                                                                    ? "border-pink-500 bg-pink-500"
+                                                                    : "border-purple-400"
+                                                            }`}
                                                         >
-                                                            {isSelected && (
+                                                            {isSelected && !isDisabled && (
                                                                 <CheckCircle2 className="w-3 h-3 text-white" />
                                                             )}
                                                         </div>
                                                         <Icon
-                                                            className={`w-6 h-6 ${isSelected ? "text-pink-400" : "text-purple-300"
-                                                                }`}
+                                                            className={`w-6 h-6 ${
+                                                                isDisabled
+                                                                    ? "text-gray-500"
+                                                                    : isSelected
+                                                                    ? "text-pink-400"
+                                                                    : "text-purple-300"
+                                                            }`}
                                                         />
                                                         <div className="flex-1">
                                                             <div
-                                                                className={`font-semibold ${isSelected ? "text-white" : "text-purple-200"
-                                                                    }`}
+                                                                className={`font-semibold ${
+                                                                    isDisabled
+                                                                        ? "text-gray-400"
+                                                                        : isSelected
+                                                                        ? "text-white"
+                                                                        : "text-purple-200"
+                                                                }`}
                                                             >
                                                                 {method.name}
                                                             </div>
-                                                            <div className="text-sm text-purple-300">
+                                                            <div
+                                                                className={`text-sm ${
+                                                                    isDisabled
+                                                                        ? "text-gray-500 italic"
+                                                                        : "text-purple-300"
+                                                                }`}
+                                                            >
                                                                 {method.description}
                                                             </div>
                                                         </div>

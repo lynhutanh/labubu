@@ -22,6 +22,7 @@ import {
   SePayService,
 } from "./services";
 import { GhnService } from "./services/ghn.service";
+import { WalletDepositSyncService } from "./services/wallet-deposit-sync.service";
 import { UserRegisteredWalletListener } from "./listeners";
 import { AuthModule } from "../auth/auth.module";
 import { SettingModule } from "../settings/setting.module";
@@ -53,8 +54,9 @@ import { OrderModule } from "../orders/order.module";
     PayPalService,
     WalletService,
     WalletTransactionService,
-    WalletDepositService,
     SePayService,
+    WalletDepositService,
+    WalletDepositSyncService,
     GhnService,
     UserRegisteredWalletListener,
   ],

@@ -14,6 +14,8 @@ import enCart from "../../public/lang/en/cart";
 import viCart from "../../public/lang/vi/cart";
 import enCheckout from "../../public/lang/en/checkout";
 import viCheckout from "../../public/lang/vi/checkout";
+import enOrder from "../../public/lang/en/order";
+import viOrder from "../../public/lang/vi/order";
 import enWishlist from "../../public/lang/en/wishlist";
 import viWishlist from "../../public/lang/vi/wishlist";
 import enProfile from "../../public/lang/en/profile";
@@ -36,6 +38,7 @@ export const useTrans = () => {
     productDetail: isVi ? viProductDetail : enProductDetail,
     cart: isVi ? viCart : enCart,
     checkout: isVi ? viCheckout : enCheckout,
+    order: isVi ? viOrder : enOrder,
     wishlist: isVi ? viWishlist : enWishlist,
     profile: isVi ? viProfile : enProfile,
     contact: isVi ? viContact : enContact,

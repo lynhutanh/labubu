@@ -23,6 +23,7 @@ export default {
   bankTransferDesc: "Pay via QR bank transfer",
   cod: "Cash on Delivery",
   codDesc: "Pay when receiving goods",
+  codUpdating: "Updating...",
   wallet: "E-Wallet",
   walletDesc: "Pay with your wallet",
   paypal: "PayPal",

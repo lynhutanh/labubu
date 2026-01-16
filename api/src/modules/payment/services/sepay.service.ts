@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, Inject, OnModuleInit } from "@nestjs/common";
+import { Injectable, BadRequestException, Inject, OnModuleInit, forwardRef } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import * as crypto from "crypto";
 import { Model, ClientSession } from "mongoose";
@@ -14,6 +14,7 @@ import { PAYMENT_PROVIDER, PAYMENT_METHOD } from "../constants";
 import { TRANSACTION_MODEL_PROVIDER } from "../providers";
 import { CreateTransactionDto } from "../dtos";
 import { SettingService } from "src/modules/settings/services";
+import { WalletDepositService } from "./wallet-deposit.service";
 
 export interface ISePayWebhookPayload {
     merchant_id: string;
@@ -49,6 +50,8 @@ export class SePayService implements OnModuleInit {
         private readonly transactionModel: Model<TransactionModel>,
         private readonly transactionService: TransactionService,
         private readonly settingService: SettingService,
+        @Inject(forwardRef(() => WalletDepositService))
+        private readonly walletDepositService: WalletDepositService,
     ) {
         // Load từ ENV trước (fallback)
         this.loadFromEnv();
@@ -196,6 +199,14 @@ export class SePayService implements OnModuleInit {
         const referenceCode = payload.referenceCode || payload.id?.toString();
 
         try {
+            // Check if this is a wallet deposit (content contains DEPOSIT_)
+            // Sử dụng cùng webhook endpoint và logic như order payment
+            // Chỉ cần check content có chứa DEPOSIT và gọi handleSePayWebhook
+            if (content && (content.includes("DEPOSIT") || content.toUpperCase().includes("DEPOSIT"))) {
+                // Gọi handleSePayWebhook - nó sẽ tự tìm pending deposit từ Map hoặc database
+                return await this.walletDepositService.handleSePayWebhook(payload);
+            }
+
             // STEP 1: KHÔNG CHECK merchant_id (SePay không gửi)
 
             // STEP 2: KHÔNG CHECK signature (SePay không gửi)
@@ -376,6 +387,17 @@ export class SePayService implements OnModuleInit {
                 message: `Lỗi xử lý webhook: ${errorMessage}`,
             };
         }
+    }
+
+    /**
+     * Get SePay account info for deposit
+     */
+    getAccountInfo(): { account: string; bank: string; webhookTimeout: number } {
+        return {
+            account: this.account,
+            bank: this.bank,
+            webhookTimeout: this.webhookTimeout,
+        };
     }
 
     /**

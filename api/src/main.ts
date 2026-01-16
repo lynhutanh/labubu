@@ -24,8 +24,52 @@ async function bootstrap() {
 
   // PayPal webhook MUST receive raw body for signature verification.
   // External infra may prefix routes with /api, so we support both.
-  app.use("/paypal/webhook", bodyParser.raw({ type: "application/json" }));
-  app.use("/api/paypal/webhook", bodyParser.raw({ type: "application/json" }));
+  // IMPORTANT: bodyParser must be BEFORE the logging middleware
+  app.use("/payment/paypal/webhook", bodyParser.raw({ type: "application/json", limit: "10mb" }));
+  app.use("/api/payment/paypal/webhook", bodyParser.raw({ type: "application/json", limit: "10mb" }));
+  
+  // Logging middleware AFTER body parser
+  app.use("/payment/paypal/webhook", (req: any, res: any, next: any) => {
+    console.log("===========================================");
+    console.log("[PayPal Webhook] ===== RAW REQUEST RECEIVED =====");
+    console.log(`[PayPal Webhook] Method: ${req.method}`);
+    console.log(`[PayPal Webhook] URL: ${req.url}`);
+    console.log(`[PayPal Webhook] Headers: ${JSON.stringify(req.headers, null, 2)}`);
+    console.log(`[PayPal Webhook] Body type: ${typeof req.body}, isBuffer: ${Buffer.isBuffer(req.body)}, length: ${req.body?.length || 0}`);
+    if (req.body && Buffer.isBuffer(req.body)) {
+      try {
+        const bodyStr = req.body.toString("utf8");
+        console.log(`[PayPal Webhook] Body preview (first 500 chars): ${bodyStr.substring(0, 500)}`);
+        const parsed = JSON.parse(bodyStr);
+        console.log(`[PayPal Webhook] Parsed event_type: ${parsed.event_type || "unknown"}`);
+      } catch (e) {
+        console.log(`[PayPal Webhook] Cannot parse body: ${e instanceof Error ? e.message : "unknown"}`);
+      }
+    }
+    console.log("===========================================");
+    next();
+  });
+  
+  app.use("/api/payment/paypal/webhook", (req: any, res: any, next: any) => {
+    console.log("===========================================");
+    console.log("[PayPal Webhook] ===== RAW REQUEST RECEIVED (with /api prefix) =====");
+    console.log(`[PayPal Webhook] Method: ${req.method}`);
+    console.log(`[PayPal Webhook] URL: ${req.url}`);
+    console.log(`[PayPal Webhook] Headers: ${JSON.stringify(req.headers, null, 2)}`);
+    console.log(`[PayPal Webhook] Body type: ${typeof req.body}, isBuffer: ${Buffer.isBuffer(req.body)}, length: ${req.body?.length || 0}`);
+    if (req.body && Buffer.isBuffer(req.body)) {
+      try {
+        const bodyStr = req.body.toString("utf8");
+        console.log(`[PayPal Webhook] Body preview (first 500 chars): ${bodyStr.substring(0, 500)}`);
+        const parsed = JSON.parse(bodyStr);
+        console.log(`[PayPal Webhook] Parsed event_type: ${parsed.event_type || "unknown"}`);
+      } catch (e) {
+        console.log(`[PayPal Webhook] Cannot parse body: ${e instanceof Error ? e.message : "unknown"}`);
+      }
+    }
+    console.log("===========================================");
+    next();
+  });
 
   // Serve favicon.ico and logo.ico
   const logoIcoPath = join(process.cwd(), "public", "logo.ico");

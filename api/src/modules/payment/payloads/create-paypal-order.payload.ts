@@ -55,4 +55,14 @@ export class CreatePayPalOrderPayload {
   })
   @IsOptional()
   items?: PayPalOrderItem[];
+
+  @ApiProperty({ description: "Return URL (override settings)", required: false })
+  @IsString()
+  @IsOptional()
+  returnUrl?: string;
+
+  @ApiProperty({ description: "Cancel URL (override settings)", required: false })
+  @IsString()
+  @IsOptional()
+  cancelUrl?: string;
 }

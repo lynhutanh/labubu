@@ -12,11 +12,37 @@ export async function getPayPalAccessToken(
   settings: IPayPalSettings,
 ): Promise<string> {
   const baseUrl = getPayPalBaseUrl(settings.paypalMode);
+  
+  if (!settings.paypalClientId || !settings.paypalClientSecret) {
+    throw new BadRequestException(
+      `PayPal credentials missing - ClientId: ${!!settings.paypalClientId}, Secret: ${!!settings.paypalClientSecret}`,
+    );
+  }
+  
+  const clientId = String(settings.paypalClientId).trim();
+  const clientSecret = String(settings.paypalClientSecret).trim();
+  
+  if (!clientId || !clientSecret) {
+    throw new BadRequestException(
+      "PayPal credentials are empty after trimming",
+    );
+  }
+  
+  console.log(`[PayPal Token] Mode: ${settings.paypalMode}`);
+  console.log(`[PayPal Token] Base URL: ${baseUrl}`);
+  console.log(`[PayPal Token] Client ID: ${clientId.substring(0, 8)}...${clientId.substring(clientId.length - 4)}`);
+  console.log(`[PayPal Token] Client Secret: ${clientSecret.substring(0, 4)}***${clientSecret.substring(clientSecret.length - 4)}`);
+  console.log(`[PayPal Token] Client ID length: ${clientId.length}`);
+  console.log(`[PayPal Token] Client Secret length: ${clientSecret.length}`);
+  
   const auth = Buffer.from(
-    `${settings.paypalClientId}:${settings.paypalClientSecret}`,
+    `${clientId}:${clientSecret}`,
   ).toString("base64");
+  
+  console.log(`[PayPal Token] Auth string (first 20 chars): ${auth.substring(0, 20)}...`);
 
   try {
+    console.log(`[PayPal Token] Calling: ${baseUrl}/v1/oauth2/token`);
     const response = await axios.post<IPayPalAccessTokenResponse>(
       `${baseUrl}/v1/oauth2/token`,
       "grant_type=client_credentials",
@@ -29,10 +55,12 @@ export async function getPayPalAccessToken(
       },
     );
 
+    console.log(`[PayPal Token] SUCCESS - Token received (length: ${response.data.access_token?.length || 0})`);
     return response.data.access_token;
   } catch (error) {
     const axiosError = error as AxiosError;
     const data = axiosError.response?.data;
+    console.error(`[PayPal Token] ERROR - Status: ${axiosError.response?.status}, Data: ${JSON.stringify(data)}`);
     const serialized =
       typeof data === "string"
         ? data

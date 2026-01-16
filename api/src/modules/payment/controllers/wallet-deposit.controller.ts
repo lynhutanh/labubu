@@ -7,7 +7,9 @@ import {
   HttpStatus,
   Get,
   Query,
+  Req,
 } from "@nestjs/common";
+import { Request } from "express";
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 import { DataResponse } from "src/kernel";
 import { CurrentUser } from "src/modules/auth/decorators";
@@ -28,10 +30,16 @@ export class WalletDepositController {
   async createPayPalDeposit(
     @CurrentUser() user: any,
     @Body() payload: DepositPayload,
+    @Req() req: Request,
   ): Promise<DataResponse<any>> {
+    const origin = req.headers.origin || req.headers.referer;
+    const frontendBaseUrl = origin
+      ? new URL(origin).origin
+      : undefined;
     const result = await this.walletDepositService.createPayPalDeposit(
       user,
       payload,
+      frontendBaseUrl,
     );
     return DataResponse.ok(result);
   }
@@ -91,6 +99,22 @@ export class WalletDepositController {
   @ApiOperation({ summary: "Xử lý callback từ ZaloPay" })
   async handleZaloPayCallback(@Body() body: any): Promise<DataResponse<any>> {
     const result = await this.walletDepositService.handleZaloPayCallback(body);
+    return DataResponse.ok(result);
+  }
+
+  @Post("sepay/create")
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Tạo đơn nạp tiền qua chuyển khoản ngân hàng (SePay)" })
+  async createSePayDeposit(
+    @CurrentUser() user: any,
+    @Body() payload: DepositPayload,
+  ): Promise<DataResponse<any>> {
+    const result = await this.walletDepositService.createSePayDeposit(
+      user,
+      payload,
+    );
     return DataResponse.ok(result);
   }
 }

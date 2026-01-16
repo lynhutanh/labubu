@@ -23,6 +23,7 @@ export default {
   bankTransferDesc: "Thanh toán qua QR chuyển khoản",
   cod: "Thanh toán khi nhận hàng",
   codDesc: "Thanh toán khi nhận được hàng",
+  codUpdating: "Đang cập nhật...",
   wallet: "Ví điện tử",
   walletDesc: "Thanh toán bằng ví của bạn",
   paypal: "PayPal",

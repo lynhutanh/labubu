@@ -6,6 +6,7 @@ export { orderService } from "./order.service";
 export { productService } from "./product.service";
 export { wishlistService } from "./wishlist.service";
 export { walletService } from "./wallet.service";
+export { walletDepositService } from "./wallet-deposit.service";
 export { userService } from "./user.service";
 export { ghnService } from "./ghn.service";
 

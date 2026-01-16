@@ -7,12 +7,13 @@ import { storage } from "../../src/utils/storage";
 import {
     RefreshCw,
     QrCode,
-    CreditCard,
-    Filter,
+    Building2,
     Loader2,
+    Wallet,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { walletService, WalletBalance, WalletTransaction } from "../../src/services/wallet.service";
+import { walletDepositService } from "../../src/services/wallet-deposit.service";
 import { formatCurrency } from "../../src/lib/string";
 
 export default function ProfileWalletPage() {
@@ -26,8 +27,12 @@ export default function ProfileWalletPage() {
     const [customAmount, setCustomAmount] = useState("");
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>("");
     const [depositing, setDepositing] = useState(false);
-    const [transactionTypeFilter, setTransactionTypeFilter] = useState<string>("");
-    const [transactionLimit, setTransactionLimit] = useState<number>(30);
+    const [showQR, setShowQR] = useState(false);
+    const [qrData, setQrData] = useState<{ qrUrl: string; paymentRef: string; amount: number; expiredAt: Date } | null>(null);
+    const [polling, setPolling] = useState(false);
+    const [initialBalance, setInitialBalance] = useState<number | null>(null);
+    const [depositAmount, setDepositAmount] = useState<number | null>(null);
+    const [countdown, setCountdown] = useState<number | null>(null);
 
     useEffect(() => {
         const currentUser = storage.getUser();
@@ -39,14 +44,79 @@ export default function ProfileWalletPage() {
         loadWalletData();
     }, [router]);
 
+    // Countdown timer for SePay QR
+    useEffect(() => {
+        if (!qrData || !countdown || countdown <= 0) return;
+
+        const timer = setInterval(() => {
+            setCountdown((prev) => {
+                if (prev === null || prev <= 1) {
+                    clearInterval(timer);
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, [qrData, countdown]);
+
+    // Poll wallet balance after deposit
+    useEffect(() => {
+        if (!polling || !initialBalance || !depositAmount) return;
+
+        let pollCount = 0;
+        const maxPolls = 150; // 5 minutes (150 * 2 seconds)
+        
+        const pollInterval = setInterval(async () => {
+            try {
+                pollCount++;
+                const balance = await walletService.getBalance();
+                const newBalance = balance.balance;
+                const expectedBalance = initialBalance + depositAmount;
+
+                console.log(`[Wallet Polling] Attempt ${pollCount}: current=${newBalance}, expected=${expectedBalance}`);
+
+                // Check if balance has increased by the deposit amount
+                if (newBalance >= expectedBalance) {
+                    setPolling(false);
+                    clearInterval(pollInterval);
+                    setWalletBalance(balance);
+                    await loadWalletData(); // Reload transactions
+                    toast.success(`Nạp tiền thành công! Số dư: ${formatCurrency(newBalance)}`);
+                    setShowQR(false);
+                    setQrData(null);
+                    setInitialBalance(null);
+                    setDepositAmount(null);
+                    setSelectedAmount(null);
+                    setCustomAmount("");
+                    setSelectedPaymentMethod("");
+                    return;
+                }
+
+                // Timeout after max polls
+                if (pollCount >= maxPolls) {
+                    setPolling(false);
+                    clearInterval(pollInterval);
+                    toast.error("Hết thời gian chờ. Vui lòng kiểm tra lại số dư hoặc liên hệ hỗ trợ.");
+                    setShowQR(false);
+                    setQrData(null);
+                }
+            } catch (error) {
+                console.error("Failed to poll balance:", error);
+            }
+        }, 2000); // Poll every 2 seconds
+
+        return () => clearInterval(pollInterval);
+    }, [polling, initialBalance, depositAmount]);
+
     const loadWalletData = async () => {
         try {
             setLoading(true);
             const [balance, transactionsData] = await Promise.all([
                 walletService.getBalance(),
                 walletService.getTransactions({
-                    type: transactionTypeFilter || undefined,
-                    limit: transactionLimit,
+                    limit: 30,
                     offset: 0,
                 }),
             ]);
@@ -59,12 +129,6 @@ export default function ProfileWalletPage() {
             setLoading(false);
         }
     };
-
-    useEffect(() => {
-        if (user) {
-            loadWalletData();
-        }
-    }, [transactionTypeFilter, transactionLimit, user]);
 
     const refreshBalance = async () => {
         try {
@@ -82,8 +146,8 @@ export default function ProfileWalletPage() {
 
     const handleDeposit = async () => {
         const amount = selectedAmount || parseInt(customAmount);
-        if (!amount || amount <= 0) {
-            toast.error("Vui lòng chọn số tiền");
+        if (!amount || amount < 1000) {
+            toast.error("Số tiền tối thiểu là 1,000₫");
             return;
         }
         if (!selectedPaymentMethod) {
@@ -93,19 +157,55 @@ export default function ProfileWalletPage() {
 
         try {
             setDepositing(true);
-            // TODO: Implement deposit flow based on payment method
-            // For now, just call the deposit API
-            await walletService.deposit({
-                amount,
-                description: `Nạp tiền qua ${selectedPaymentMethod}`,
-            });
-            toast.success("Đang xử lý nạp tiền...");
-            // Refresh balance after deposit
-            await refreshBalance();
-            await loadWalletData();
+
+            // Save initial balance and deposit amount for polling
+            const currentBalance = walletBalance?.balance || 0;
+            setInitialBalance(currentBalance);
+            setDepositAmount(amount);
+
+            if (selectedPaymentMethod === "paypal") {
+                const result = await walletDepositService.createPayPalDeposit({
+                    amount,
+                    description: "Nạp tiền vào ví",
+                });
+                if (result.approvalUrl) {
+                    // Store deposit info in sessionStorage for callback page
+                    sessionStorage.setItem("paypal_deposit", JSON.stringify({
+                        amount,
+                        initialBalance: currentBalance,
+                    }));
+                    window.location.href = result.approvalUrl;
+                } else {
+                    toast.error("Không thể tạo đơn nạp tiền PayPal");
+                    setInitialBalance(null);
+                    setDepositAmount(null);
+                }
+            } else if (selectedPaymentMethod === "sepay") {
+                const result = await walletDepositService.createSePayDeposit({
+                    amount,
+                    description: "Nạp tiền vào ví",
+                });
+                setQrData({
+                    qrUrl: result.qrUrl,
+                    paymentRef: result.paymentRef,
+                    amount: result.amount,
+                    expiredAt: new Date(result.expiredAt),
+                });
+                setShowQR(true);
+                
+                // Calculate countdown
+                const expiredAt = new Date(result.expiredAt).getTime();
+                const now = Date.now();
+                const diff = Math.floor((expiredAt - now) / 1000);
+                setCountdown(diff > 0 ? diff : 0);
+                
+                // Start polling
+                setPolling(true);
+                toast.success("Vui lòng quét mã QR để thanh toán. Đang kiểm tra thanh toán...");
+            }
         } catch (error: any) {
             console.error("Failed to deposit:", error);
-            toast.error("Không thể nạp tiền. Vui lòng thử lại.");
+            toast.error(error?.response?.data?.message || "Không thể nạp tiền. Vui lòng thử lại.");
         } finally {
             setDepositing(false);
         }
@@ -153,9 +253,7 @@ export default function ProfileWalletPage() {
             </Head>
             <ProfileLayout>
                 <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-                    {/* Left Sidebar - Wallet Actions */}
                     <div className="lg:col-span-2 space-y-6">
-                        {/* Wallet Balance */}
                         <div className="bg-blue-600 rounded-lg p-6 text-white relative">
                             <div className="flex items-center justify-between mb-4">
                                 <h3 className="text-sm font-medium">
@@ -174,164 +272,181 @@ export default function ProfileWalletPage() {
                             </p>
                         </div>
 
-                        {/* Top-up Section */}
-                        <div className="bg-white rounded-lg shadow-sm p-6">
-                            <h3 className="text-lg font-bold text-gray-900 mb-4">
-                                Nạp tiền vào ví
-                            </h3>
+                        {!showQR ? (
+                            <div className="bg-white rounded-lg shadow-sm p-6">
+                                <h3 className="text-lg font-bold text-gray-900 mb-4">
+                                    Nạp tiền vào ví
+                                </h3>
 
-                            {/* Predefined Amounts */}
-                            <div className="grid grid-cols-3 gap-2 mb-4">
-                                {[10000, 50000, 100000, 200000, 500000, 1000000].map(
-                                    (amount) => (
-                                        <button
-                                            key={amount}
-                                            onClick={() => {
-                                                setSelectedAmount(amount);
-                                                setCustomAmount("");
-                                            }}
-                                            className={`px-3 py-2 text-sm font-medium rounded-lg border transition-colors ${
-                                                selectedAmount === amount
-                                                    ? "bg-blue-50 border-blue-500 text-blue-600"
-                                                    : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
-                                            }`}
-                                        >
-                                            {amount.toLocaleString("vi-VN")}₫
-                                        </button>
-                                    ),
-                                )}
-                            </div>
-
-                            {/* Custom Amount Input */}
-                            <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Nhập số tiền khác
-                                </label>
-                                <div className="relative">
-                                    <input
-                                        type="number"
-                                        value={customAmount}
-                                        onChange={(e) => {
-                                            setCustomAmount(e.target.value);
-                                            setSelectedAmount(null);
-                                        }}
-                                        placeholder="0"
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    />
-                                    <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500">
-                                        ₫
-                                    </span>
+                                <div className="grid grid-cols-3 gap-2 mb-4">
+                                    {[10000, 50000, 100000, 200000, 500000, 1000000].map(
+                                        (amount) => (
+                                            <button
+                                                key={amount}
+                                                onClick={() => {
+                                                    setSelectedAmount(amount);
+                                                    setCustomAmount("");
+                                                }}
+                                                className={`px-3 py-2 text-sm font-medium rounded-lg border transition-colors ${
+                                                    selectedAmount === amount
+                                                        ? "bg-blue-50 border-blue-500 text-blue-600"
+                                                        : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+                                                }`}
+                                            >
+                                                {amount.toLocaleString("vi-VN")}₫
+                                            </button>
+                                        ),
+                                    )}
                                 </div>
-                            </div>
 
-                            {/* Payment Methods */}
-                            <div className="mb-4">
-                                <h4 className="text-sm font-medium text-gray-700 mb-3">
-                                    Phương thức thanh toán
-                                </h4>
-                                <div className="space-y-2">
-                                    {[
-                                        {
-                                            id: "transfer",
-                                            name: "Chuyển đổi",
-                                            icon: QrCode,
-                                            color: "bg-gray-100",
-                                        },
-                                        {
-                                            id: "visa",
-                                            name: "Thanh toán quốc tế",
-                                            icon: CreditCard,
-                                            color: "bg-blue-50",
-                                        },
-                                        {
-                                            id: "momo",
-                                            name: "Momo",
-                                            color: "bg-pink-50",
-                                            logo: "💳",
-                                        },
-                                        {
-                                            id: "paypal",
-                                            name: "PayPal",
-                                            color: "bg-blue-50",
-                                            logo: "💳",
-                                        },
-                                    ].map((method) => (
+                                <div className="mb-4">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Nhập số tiền khác
+                                    </label>
+                                    <div className="relative">
+                                        <input
+                                            type="number"
+                                            value={customAmount}
+                                            onChange={(e) => {
+                                                setCustomAmount(e.target.value);
+                                                setSelectedAmount(null);
+                                            }}
+                                            placeholder="0"
+                                            min="1000"
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        />
+                                        <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500">
+                                            ₫
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div className="mb-4">
+                                    <h4 className="text-sm font-medium text-gray-700 mb-3">
+                                        Phương thức thanh toán
+                                    </h4>
+                                    <div className="space-y-2">
                                         <button
-                                            key={method.id}
-                                            onClick={() =>
-                                                setSelectedPaymentMethod(method.id)
-                                            }
+                                            onClick={() => setSelectedPaymentMethod("paypal")}
                                             className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg border-2 transition-colors ${
-                                                selectedPaymentMethod === method.id
+                                                selectedPaymentMethod === "paypal"
                                                     ? "border-blue-500 bg-blue-50"
                                                     : "border-gray-200 bg-white hover:bg-gray-50"
                                             }`}
                                         >
-                                            {method.icon ? (
-                                                <method.icon className="w-5 h-5 text-gray-600" />
-                                            ) : (
-                                                <span className="text-xl">{method.logo}</span>
-                                            )}
+                                            <QrCode className="w-5 h-5 text-gray-600" />
                                             <span className="text-sm font-medium text-gray-700">
-                                                {method.name}
+                                                PayPal
                                             </span>
                                         </button>
-                                    ))}
+                                        <button
+                                            onClick={() => setSelectedPaymentMethod("sepay")}
+                                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg border-2 transition-colors ${
+                                                selectedPaymentMethod === "sepay"
+                                                    ? "border-blue-500 bg-blue-50"
+                                                    : "border-gray-200 bg-white hover:bg-gray-50"
+                                            }`}
+                                        >
+                                            <Building2 className="w-5 h-5 text-gray-600" />
+                                            <span className="text-sm font-medium text-gray-700">
+                                                Chuyển khoản ngân hàng
+                                            </span>
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
 
-                            {/* Submit Button */}
-                            <button
-                                onClick={handleDeposit}
-                                disabled={
-                                    (!selectedAmount && !customAmount) ||
-                                    !selectedPaymentMethod ||
-                                    depositing
-                                }
-                                className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                            >
-                                {depositing ? (
+                                <button
+                                    onClick={handleDeposit}
+                                    disabled={
+                                        (!selectedAmount && !customAmount) ||
+                                        !selectedPaymentMethod ||
+                                        depositing
+                                    }
+                                    className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                >
+                                    {depositing ? (
+                                        <>
+                                            <Loader2 className="w-5 h-5 animate-spin" />
+                                            Đang xử lý...
+                                        </>
+                                    ) : (
+                                        "Nạp ngay"
+                                    )}
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="bg-white rounded-lg shadow-sm p-6">
+                                <div className="flex items-center justify-between mb-4">
+                                    <h3 className="text-lg font-bold text-gray-900">
+                                        Quét mã QR để thanh toán
+                                    </h3>
+                                    <button
+                                        onClick={() => {
+                                            setShowQR(false);
+                                            setQrData(null);
+                                            setPolling(false);
+                                            setInitialBalance(null);
+                                            setDepositAmount(null);
+                                        }}
+                                        className="text-gray-500 hover:text-gray-700"
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                                {qrData && (
                                     <>
-                                        <Loader2 className="w-5 h-5 animate-spin" />
-                                        Đang xử lý...
+                                        {polling && (
+                                            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-2">
+                                                <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                                                <span className="text-sm text-blue-700">
+                                                    Đang kiểm tra thanh toán...
+                                                </span>
+                                            </div>
+                                        )}
+                                        <div className="flex justify-center mb-4">
+                                            <img
+                                                src={qrData.qrUrl}
+                                                alt="QR Code"
+                                                className="w-64 h-64 border border-gray-200 rounded-lg"
+                                            />
+                                        </div>
+                                        <div className="space-y-2 mb-4">
+                                            <div className="flex justify-between">
+                                                <span className="text-sm text-gray-600">Số tiền:</span>
+                                                <span className="text-sm font-semibold text-gray-900">
+                                                    {formatCurrency(qrData.amount)}
+                                                </span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-sm text-gray-600">Nội dung CK:</span>
+                                                <span className="text-sm font-mono text-gray-900">
+                                                    {qrData.paymentRef}
+                                                </span>
+                                            </div>
+                                            {countdown !== null && countdown > 0 && (
+                                                <div className="flex justify-between">
+                                                    <span className="text-sm text-gray-600">Còn lại:</span>
+                                                    <span className="text-sm font-semibold text-orange-600">
+                                                        {Math.floor(countdown / 60)}:{(countdown % 60).toString().padStart(2, "0")}
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
+                                        <p className="text-xs text-gray-500 text-center">
+                                            Vui lòng quét mã QR và chuyển khoản đúng số tiền và nội dung
+                                        </p>
                                     </>
-                                ) : (
-                                    "Nạp ngay"
                                 )}
-                            </button>
-                        </div>
+                            </div>
+                        )}
                     </div>
 
-                    {/* Right Content - Transaction History */}
                     <div className="lg:col-span-3">
                         <div className="bg-white rounded-lg shadow-sm p-6">
-                            {/* Header with Filters */}
-                            <div className="flex items-center justify-between mb-6">
-                                <div className="flex items-center gap-4">
-                                    <select
-                                        value={transactionLimit}
-                                        onChange={(e) => setTransactionLimit(Number(e.target.value))}
-                                        className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    >
-                                        <option value={30}>30 lịch sử gần nhất</option>
-                                        <option value={60}>60 lịch sử gần nhất</option>
-                                        <option value={90}>90 lịch sử gần nhất</option>
-                                    </select>
-                                    <select
-                                        value={transactionTypeFilter}
-                                        onChange={(e) => setTransactionTypeFilter(e.target.value)}
-                                        className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    >
-                                        <option value="">Tất cả loại</option>
-                                        <option value="deposit">Nạp tiền</option>
-                                        <option value="withdraw">Rút tiền</option>
-                                        <option value="payment">Thanh toán</option>
-                                        <option value="refund">Hoàn tiền</option>
-                                    </select>
-                                </div>
-                            </div>
+                            <h3 className="text-lg font-bold text-gray-900 mb-6">
+                                Lịch sử giao dịch
+                            </h3>
 
-                            {/* Transaction List */}
                             {loading ? (
                                 <div className="flex items-center justify-center py-12">
                                     <Loader2 className="w-8 h-8 animate-spin text-blue-500" />

@@ -10,6 +10,7 @@ import axios from "axios";
 import { SettingService } from "src/modules/settings/services/setting.service";
 import { TransactionService } from "./transaction.service";
 import { WalletService } from "./wallet.service";
+import { WalletDepositService } from "./wallet-deposit.service";
 import {
   CreatePayPalOrderPayload,
   CapturePayPalOrderPayload,
@@ -43,12 +44,14 @@ export class PayPalService {
     private readonly transactionService: TransactionService,
     @Inject(forwardRef(() => WalletService))
     private readonly walletService: WalletService,
+    @Inject(forwardRef(() => WalletDepositService))
+    private readonly walletDepositService: WalletDepositService,
     @Inject(ORDER_PROVIDER)
     private readonly orderModel: Model<OrderModel>,
-  ) {}
+  ) { }
 
   private async getSettings(): Promise<IPayPalSettings> {
-    const settings = (await this.settingService.getKeyValues([
+    const rawSettings = (await this.settingService.getKeyValues([
       "paypalClientId",
       "paypalClientSecret",
       "paypalMode",
@@ -58,9 +61,25 @@ export class PayPalService {
       "paypalEnabled",
     ])) as unknown as IPayPalSettings;
 
+    const settings: IPayPalSettings = {
+      ...rawSettings,
+      paypalClientId: rawSettings.paypalClientId ? String(rawSettings.paypalClientId).trim() : rawSettings.paypalClientId,
+      paypalClientSecret: rawSettings.paypalClientSecret ? String(rawSettings.paypalClientSecret).trim() : rawSettings.paypalClientSecret,
+      paypalMode: rawSettings.paypalMode ? String(rawSettings.paypalMode).trim() : rawSettings.paypalMode,
+      paypalWebhookId: rawSettings.paypalWebhookId ? String(rawSettings.paypalWebhookId).trim() : rawSettings.paypalWebhookId,
+    };
+
     this.logger.log(
-      `[PayPal Settings] enabled=${settings.paypalEnabled}, mode=${settings.paypalMode}, clientId=${settings.paypalClientId ? `${settings.paypalClientId.substring(0, 6)}***` : "undefined"}, webhookId=${settings.paypalWebhookId || "undefined"}`,
+      `[PayPal Settings] enabled=${settings.paypalEnabled}, mode=${settings.paypalMode}, clientId=${settings.paypalClientId ? `${settings.paypalClientId.substring(0, 8)}...${settings.paypalClientId.substring(settings.paypalClientId.length - 4)}` : "UNDEFINED"}, clientIdLength=${settings.paypalClientId?.length || 0}, secretLength=${settings.paypalClientSecret?.length || 0}, webhookId=${settings.paypalWebhookId || "undefined"}`,
     );
+
+    console.log(`[PayPal Settings DEBUG] Full settings object:`, {
+      enabled: settings.paypalEnabled,
+      mode: settings.paypalMode,
+      clientId: settings.paypalClientId ? `${settings.paypalClientId.substring(0, 8)}...${settings.paypalClientId.substring(settings.paypalClientId.length - 4)} (length: ${settings.paypalClientId.length})` : "UNDEFINED",
+      clientSecret: settings.paypalClientSecret ? `${settings.paypalClientSecret.substring(0, 4)}***${settings.paypalClientSecret.substring(settings.paypalClientSecret.length - 4)} (length: ${settings.paypalClientSecret.length})` : "UNDEFINED",
+      webhookId: settings.paypalWebhookId || "UNDEFINED",
+    });
 
     return settings;
   }
@@ -160,13 +179,13 @@ export class PayPalService {
     const calculatedItemTotal =
       items.length > 0
         ? items
-            .reduce(
-              (sum, item) =>
-                sum +
-                parseFloat(item.unit_amount.value) * parseFloat(item.quantity),
-              0,
-            )
-            .toFixed(2)
+          .reduce(
+            (sum, item) =>
+              sum +
+              parseFloat(item.unit_amount.value) * parseFloat(item.quantity),
+            0,
+          )
+          .toFixed(2)
         : formattedAmount;
 
     const finalAmount =
@@ -204,8 +223,8 @@ export class PayPalService {
         brand_name: "Cosmetics Shop",
         landing_page: "NO_PREFERENCE",
         user_action: "PAY_NOW",
-        return_url: settings.paypalReturnUrl,
-        cancel_url: settings.paypalCancelUrl,
+        return_url: payload.returnUrl || settings.paypalReturnUrl,
+        cancel_url: payload.cancelUrl || settings.paypalCancelUrl,
         locale: "en-US",
       },
     };
@@ -332,6 +351,12 @@ export class PayPalService {
 
       this.logger.log(`[PayPal Webhook] Processing event type: ${eventType}`);
 
+      // Check if this is a wallet deposit (custom_id starts with DEPOSIT_)
+      if (resource?.custom_id && resource.custom_id.startsWith("DEPOSIT_")) {
+        this.logger.log(`[PayPal Webhook] Detected wallet deposit - custom_id: ${resource.custom_id}`);
+        return await this.walletDepositService.handlePayPalWebhook(webhookEvent);
+      }
+
       switch (eventType) {
         case "PAYMENT.CAPTURE.COMPLETED":
           return await this.handlePaymentCaptureCompleted(resource);
@@ -366,13 +391,22 @@ export class PayPalService {
     message: string;
   }> {
     try {
+      this.logger.log("===========================================");
+      this.logger.log("[PayPal] ===== PAYMENT CAPTURE COMPLETED =====");
+
       const captureId = resource.id;
       const orderId = resource.supplementary_data?.related_ids?.order_id;
       const customId = resource.custom_id;
+      const amount = resource.amount?.value;
+      const currency = resource.amount?.currency_code;
+      const status = resource.status;
 
-      this.logger.log(
-        `[PayPal] Processing capture completed - captureId: ${captureId}, orderId: ${orderId}, customId: ${customId}`,
-      );
+      this.logger.log(`[PayPal] Capture ID: ${captureId}`);
+      this.logger.log(`[PayPal] Order ID: ${orderId || "N/A"}`);
+      this.logger.log(`[PayPal] Custom ID (Order Number): ${customId || "N/A"}`);
+      this.logger.log(`[PayPal] Amount: ${amount || "N/A"} ${currency || "N/A"}`);
+      this.logger.log(`[PayPal] Status: ${status || "N/A"}`);
+      this.logger.log(`[PayPal] Full Resource: ${JSON.stringify(resource, null, 2)}`);
 
       if (!orderId && !captureId && !customId) {
         return {
@@ -398,13 +432,18 @@ export class PayPalService {
       }
 
       if (!transaction) {
-        this.logger.warn(`[PayPal] Transaction not found for payment capture`);
+        this.logger.error(`[PayPal] ===== TRANSACTION NOT FOUND =====`);
+        this.logger.error(`[PayPal] Searched with: orderId=${orderId}, customId=${customId}, captureId=${captureId}`);
+        this.logger.error(`[PayPal] ====================================`);
         return { success: false, message: "Không tìm thấy giao dịch" };
       }
 
-      this.logger.log(
-        `[PayPal] Found transaction: ${transaction._id}, amount: ${transaction.amount} ${transaction.currency}`,
-      );
+      this.logger.log(`[PayPal] ===== TRANSACTION FOUND =====`);
+      this.logger.log(`[PayPal] Transaction ID: ${transaction._id}`);
+      this.logger.log(`[PayPal] Transaction Amount: ${transaction.amount} ${transaction.currency}`);
+      this.logger.log(`[PayPal] Transaction Order ID: ${transaction.orderId || "N/A"}`);
+      this.logger.log(`[PayPal] Transaction Order Number: ${transaction.orderNumber || "N/A"}`);
+      this.logger.log(`[PayPal] Transaction Status (before): ${transaction.status}`);
 
       // Update transaction status
       await this.transactionService.updateTransaction(
@@ -448,9 +487,12 @@ export class PayPalService {
       }
 
       // Update order payment status to 'paid'
+      this.logger.log(`[PayPal] ===== UPDATING ORDER STATUS =====`);
       try {
+        let updatedOrder = null;
         if (transaction.orderId) {
-          await this.orderModel.updateOne(
+          this.logger.log(`[PayPal] Updating order by ID: ${transaction.orderId}`);
+          const result = await this.orderModel.updateOne(
             { _id: transaction.orderId },
             {
               $set: {
@@ -460,11 +502,23 @@ export class PayPalService {
               },
             },
           );
+          updatedOrder = await this.orderModel.findById(transaction.orderId);
           this.logger.log(
-            `[PayPal] Updated order ${transaction.orderId} paymentStatus to 'paid'`,
+            `[PayPal] Update result - Matched: ${result.matchedCount}, Modified: ${result.modifiedCount}`,
           );
+          if (updatedOrder) {
+            this.logger.log(
+              `[PayPal] Order after update - paymentStatus: ${updatedOrder.paymentStatus}, paidAt: ${updatedOrder.paidAt}`,
+            );
+            this.logger.log(
+              `[PayPal] Order status: ${updatedOrder.status}, paymentMethod: ${updatedOrder.paymentMethod}`,
+            );
+          } else {
+            this.logger.error(`[PayPal] Order not found after update by ID: ${transaction.orderId}`);
+          }
         } else if (transaction.orderNumber) {
-          await this.orderModel.updateOne(
+          this.logger.log(`[PayPal] Updating order by Order Number: ${transaction.orderNumber}`);
+          const result = await this.orderModel.updateOne(
             { orderNumber: transaction.orderNumber },
             {
               $set: {
@@ -474,15 +528,50 @@ export class PayPalService {
               },
             },
           );
+          updatedOrder = await this.orderModel.findOne({
+            orderNumber: transaction.orderNumber,
+          });
           this.logger.log(
-            `[PayPal] Updated order ${transaction.orderNumber} paymentStatus to 'paid'`,
+            `[PayPal] Update result - Matched: ${result.matchedCount}, Modified: ${result.modifiedCount}`,
           );
+          if (updatedOrder) {
+            this.logger.log(
+              `[PayPal] Order after update - paymentStatus: ${updatedOrder.paymentStatus}, paidAt: ${updatedOrder.paidAt}`,
+            );
+            this.logger.log(
+              `[PayPal] Order status: ${updatedOrder.status}, paymentMethod: ${updatedOrder.paymentMethod}`,
+            );
+          } else {
+            this.logger.error(`[PayPal] Order not found after update by Order Number: ${transaction.orderNumber}`);
+          }
+        } else {
+          this.logger.error(`[PayPal] Cannot update order - missing both orderId and orderNumber`);
+        }
+
+        if (!updatedOrder) {
+          this.logger.error(
+            `[PayPal] ===== ORDER UPDATE FAILED =====`,
+          );
+          this.logger.error(
+            `[PayPal] Transaction orderId: ${transaction.orderId}, orderNumber: ${transaction.orderNumber}`,
+          );
+        } else {
+          this.logger.log(`[PayPal] ===== ORDER UPDATED SUCCESSFULLY =====`);
         }
       } catch (orderError) {
         this.logger.error(
-          `[PayPal] Failed to update order status: ${orderError instanceof Error ? orderError.message : "Unknown error"}`,
+          `[PayPal] ===== ORDER UPDATE ERROR =====`,
+        );
+        this.logger.error(
+          `[PayPal] Error: ${orderError instanceof Error ? orderError.message : "Unknown error"}`,
+        );
+        this.logger.error(
+          `[PayPal] Stack: ${orderError instanceof Error ? orderError.stack : "N/A"}`,
         );
       }
+
+      this.logger.log(`[PayPal] ===== PAYMENT CAPTURE COMPLETED - SUCCESS =====`);
+      this.logger.log("===========================================");
 
       return {
         success: true,
@@ -606,7 +695,76 @@ export class PayPalService {
       }
 
       try {
-        await this.captureOrder({ orderId });
+        this.logger.log(`[PayPal] ===== CAPTURING ORDER AFTER APPROVAL =====`);
+        this.logger.log(`[PayPal] Order ID: ${orderId}`);
+
+        const captureResult = await this.captureOrder({ orderId });
+
+        this.logger.log(`[PayPal] Capture result status: ${captureResult.status || "unknown"}`);
+        this.logger.log(`[PayPal] Capture result: ${JSON.stringify(captureResult, null, 2)}`);
+
+        // Check if capture was successful (status = COMPLETED)
+        if (captureResult.status === "COMPLETED") {
+          this.logger.log(`[PayPal] Capture completed successfully, updating order paymentStatus to PAID`);
+
+          // Update order payment status to PAID
+          if (targetTransaction?.orderId) {
+            const updateResult = await this.orderModel.updateOne(
+              { _id: targetTransaction.orderId },
+              {
+                $set: {
+                  paymentStatus: PAYMENT_STATUS.PAID,
+                  paidAt: new Date(),
+                  updatedAt: new Date(),
+                },
+              },
+            );
+            const updatedOrder = await this.orderModel.findById(targetTransaction.orderId);
+            this.logger.log(
+              `[PayPal] Order updated - Matched: ${updateResult.matchedCount}, Modified: ${updateResult.modifiedCount}, paymentStatus: ${updatedOrder?.paymentStatus}`,
+            );
+          } else if (targetTransaction?.orderNumber) {
+            const updateResult = await this.orderModel.updateOne(
+              { orderNumber: targetTransaction.orderNumber },
+              {
+                $set: {
+                  paymentStatus: PAYMENT_STATUS.PAID,
+                  paidAt: new Date(),
+                  updatedAt: new Date(),
+                },
+              },
+            );
+            const updatedOrder = await this.orderModel.findOne({
+              orderNumber: targetTransaction.orderNumber,
+            });
+            this.logger.log(
+              `[PayPal] Order updated - Matched: ${updateResult.matchedCount}, Modified: ${updateResult.modifiedCount}, paymentStatus: ${updatedOrder?.paymentStatus}`,
+            );
+          }
+
+          // Update transaction status to COMPLETED
+          await this.transactionService.updateTransaction(
+            targetTransaction._id.toString(),
+            {
+              status: TRANSACTION_STATUS.COMPLETED,
+              providerData: {
+                ...(targetTransaction.providerData as Record<string, unknown> || {}),
+                paypal: {
+                  ...((targetTransaction.providerData as Record<string, unknown>)?.paypal as Record<string, unknown> || {}),
+                  orderStatus: "APPROVED",
+                  captureStatus: "COMPLETED",
+                  webhookReceivedAt: new Date(),
+                },
+              },
+              notes: "PayPal order approved and captured successfully",
+            },
+          );
+
+          this.logger.log(`[PayPal] ===== ORDER APPROVED AND CAPTURED - SUCCESS =====`);
+        } else {
+          this.logger.warn(`[PayPal] Capture status is not COMPLETED: ${captureResult.status}`);
+        }
+
         return {
           success: true,
           message:

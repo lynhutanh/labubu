@@ -103,9 +103,7 @@ const paymentStatusConfig: Record<string, { label: string; color: string; bgColo
 const paymentMethodConfig: Record<string, { label: string; icon: any }> = {
   cod: { label: "Thanh toán khi nhận hàng", icon: Package },
   sepay: { label: "Chuyển khoản ngân hàng", icon: CreditCard },
-  wallet: { label: "Ví điện tử", icon: DollarSign },
-  paypal: { label: "PayPal", icon: CreditCard },
-  zalopay: { label: "ZaloPay", icon: CreditCard },
+  wallet: { label: "Ví", icon: DollarSign },
 };
 
 export default function OrderDetailPage() {
