@@ -43,9 +43,14 @@ export default function ProductDetailPage() {
             try {
                 setLoading(true);
                 const prod = await productService.getBySlug(slug);
+                
+                if (!prod || !prod._id) {
+                    setProduct(null);
+                    return;
+                }
+                
                 setProduct(prod);
                 
-                // Load related products
                 if (prod.categoryId) {
                     const categoryId = typeof prod.categoryId === "object" 
                         ? prod.categoryId._id 
@@ -54,12 +59,12 @@ export default function ProductDetailPage() {
                         categoryId: categoryId,
                         limit: 4,
                     });
-                    // Filter out current product
                     const filtered = related.data.filter((p: Product) => p._id !== prod._id);
                     setRelatedProducts(filtered.slice(0, 4));
                 }
             } catch (error) {
                 console.error("Error loading product:", error);
+                setProduct(null);
             } finally {
                 setLoading(false);
             }
@@ -500,12 +505,5 @@ export default function ProductDetailPage() {
             </div>
         </Layout>
     );
-}
-
-export async function getStaticPaths() {
-    return {
-        paths: [],
-        fallback: "blocking",
-    };
 }
 

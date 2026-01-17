@@ -99,10 +99,20 @@ export class ProductService extends APIRequest {
     return response.data?.data || response.data;
   }
 
-  public async getBySlug(slug: string): Promise<Product> {
-    const response = await this.get(`/products/slug/${slug}`);
-    // API returns DataResponse with data field
-    return response.data?.data || response.data;
+  public async getBySlug(slug: string): Promise<Product | null> {
+    try {
+      const response = await this.get(`/products/slug/${slug}`);
+      const product = response.data?.data || response.data;
+      if (!product || !product._id) {
+        return null;
+      }
+      return product;
+    } catch (error: any) {
+      if (error?.response?.status === 404 || error?.status === 404) {
+        return null;
+      }
+      throw error;
+    }
   }
 }
 

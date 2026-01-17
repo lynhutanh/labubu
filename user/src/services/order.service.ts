@@ -10,8 +10,11 @@ export interface CreateOrderPayload {
     phone: string;
     address: string;
     ward?: string;
+    wardCode?: string;
     district?: string;
+    districtId?: string;
     city: string;
+    provinceId?: string;
     note?: string;
   };
   paymentMethod: "cod" | "wallet" | "paypal" | "zalopay" | "sepay";

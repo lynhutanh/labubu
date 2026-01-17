@@ -43,7 +43,7 @@ export default {
     notice:
       "Chú ý: TÔI CAM KẾT MANG ĐẾN CHO BẠN SỰ HÀI LÒNG VÀ TỐI ƯU CHI PHÍ CHO CÁC CHIẾN DỊCH CỦA BẠN.",
     title:
-      "In Sticker Diecut, Cắt Bế Mọi Hình Dạng - Phù hợp cho làm sự kiện, quà tặng và kinh doanh",
+      "Các Sản Phẩm Handmade – Phù hợp cho làm sự kiện , quà tặng và kinh doanh",
     description:
       "Sticker bền đẹp, nổi bật, phù hợp cho quà tặng tiếp thị, sự kiện và bán lại. Nhanh chóng, hợp lý, hỗ trợ thiết kế miễn phí.",
     blocks: {

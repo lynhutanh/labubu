@@ -43,7 +43,7 @@ export default {
         notice:
             "Note: I COMMIT TO BRINGING YOU SATISFACTION AND OPTIMIZING COSTS FOR YOUR CAMPAIGNS.",
         title:
-            "Diecut Sticker Printing, Cut Any Shape - Suitable for events, gifts and business",
+            "Handmade Products – Suitable for events, gifts, and business",
         description:
             "Beautiful, durable stickers, suitable for marketing gifts, events and resale. Fast, reasonable, free design support.",
         blocks: {

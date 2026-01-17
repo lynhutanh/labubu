@@ -20,4 +20,20 @@ export default {
   socialMedia: "Social media accounts, please click:",
   facebook: "[FACEBOOK]",
   instagram: "[INSTAGRAM]",
+  member1: {
+    name: "Tiểu Dương Doanh",
+    description: "I can speak English and many other languages. I work with patience, experience and humor, and you will receive professional advice on product selection, quick feedback and solving after-sales service problems. Please contact me!",
+    whatsapp: "WhatsApp:",
+    whatsappClick: "Please click:",
+    telegram: "Telegram:",
+    telegramClick: "Please click:",
+  },
+  member2: {
+    name: "Tiểu Dương Lăng",
+    description: "I am fluent in both English and French, always ready to assist you with any questions about purchasing. Her goal is to find optimal solutions for pricing, shipping and delivery. Thank you for your support and trust.",
+    whatsapp: "WhatsApp:",
+    whatsappClick: "Please click:",
+    telegram: "Telegram:",
+    telegramClick: "Please click:",
+  },
 };

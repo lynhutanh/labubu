@@ -20,9 +20,14 @@ import { useTrans } from "../src/hooks/useTrans";
 
 // Helper function to map Product from API to ProductCardSimple format
 const mapProductToCard = (product: Product) => {
-  const firstImage = product.files?.[0]?.url || product.files?.[0]?.thumbnailUrl || "";
-  const displayPrice = product.salePrice && product.salePrice > 0 ? product.salePrice : product.price;
-  const originalPrice = product.salePrice && product.salePrice > 0 ? product.price : undefined;
+  const firstImage =
+    product.files?.[0]?.url || product.files?.[0]?.thumbnailUrl || "";
+  const displayPrice =
+    product.salePrice && product.salePrice > 0
+      ? product.salePrice
+      : product.price;
+  const originalPrice =
+    product.salePrice && product.salePrice > 0 ? product.price : undefined;
   const discount = originalPrice
     ? Math.round(((originalPrice - displayPrice) / originalPrice) * 100)
     : undefined;
@@ -602,7 +607,10 @@ export default function HomePage() {
           ) : newProducts.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
               {newProducts.map((product) => (
-                <ProductCardSimple key={product._id} {...mapProductToCard(product)} />
+                <ProductCardSimple
+                  key={product._id}
+                  {...mapProductToCard(product)}
+                />
               ))}
             </div>
           ) : (
@@ -654,7 +662,10 @@ export default function HomePage() {
           ) : bestSellers.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
               {bestSellers.map((product) => (
-                <ProductCardSimple key={product._id} {...mapProductToCard(product)} />
+                <ProductCardSimple
+                  key={product._id}
+                  {...mapProductToCard(product)}
+                />
               ))}
             </div>
           ) : (
@@ -716,20 +727,20 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
             {[
               {
-                title: "Thiết Kế Miễn Phí, Tư Vấn Tận Tình",
-                description: "Đưa ý tưởng, nhận file mẫu miễn phí - đội ngũ hỗ trợ nhanh, nhiệt tình.",
+                title: t.home.diecutSection.blocks.freeDesign.title,
+                description: t.home.diecutSection.blocks.freeDesign.description,
                 image:
                   "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=600&h=400&fit=crop",
               },
               {
-                title: "Không Phân Biệt Đơn Hàng Ít Nhiều",
-                description: "In từ 1 tờ đến hàng ngàn lá - vẫn được phục vụ như nhau chất lượng không đổi",
+                title: t.home.diecutSection.blocks.noMinimum.title,
+                description: t.home.diecutSection.blocks.noMinimum.description,
                 image:
                   "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=600&h=400&fit=crop",
               },
               {
-                title: "In Nhanh - Bảo Đảm Tiến Độ",
-                description: "Đáp ứng sự kiện kịp thời, giao hàng nhanh toàn quốc và quốc tế.",
+                title: t.home.diecutSection.blocks.fastPrint.title,
+                description: t.home.diecutSection.blocks.fastPrint.description,
                 image:
                   "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=600&h=400&fit=crop",
               },
@@ -755,16 +766,9 @@ export default function HomePage() {
 
                 {/* Content */}
                 <div className="p-6">
-                  <h3 className="text-xl font-bold text-black mb-3">
+                  <h3 className="text-xl font-bold text-black flex items-center justify-center">
                     {block.title}
                   </h3>
-                  <p className="text-gray-700 mb-4 flex items-start gap-2">
-                    <Sparkles className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-                    {block.description}
-                  </p>
-                  <button className="w-full py-3 border-2 border-black text-black font-bold rounded-lg hover:bg-black hover:text-white transition-colors">
-                    {t.home.diecutSection.consultButton}
-                  </button>
                 </div>
               </motion.div>
             ))}
@@ -774,4 +778,3 @@ export default function HomePage() {
     </Layout>
   );
 }
-

@@ -45,6 +45,13 @@ const getTabConfig = (): TabConfig[] => [
     color: "from-orange-500 to-red-500",
     description: "Cấu hình thông tin GHN (Giao Hàng Nhanh).",
   },
+  {
+    key: "team",
+    title: "Đội ngũ",
+    icon: Phone,
+    color: "from-purple-500 to-pink-500",
+    description: "Cấu hình thông tin đội ngũ hỗ trợ.",
+  },
 ];
 
 export default function SettingsPage() {

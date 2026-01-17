@@ -18,6 +18,7 @@
     "lint:check": "eslint \"src/**/*.ts\"",
     "migrate": "node migrate",
     "migrate:create": "./node_modules/.bin/migrate create",
+    "seed:contact": "node scripts/seed-contact-settings.js",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {

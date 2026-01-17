@@ -24,6 +24,8 @@ import enContact from "../../public/lang/en/contact";
 import viContact from "../../public/lang/vi/contact";
 import enLogin from "../../public/lang/en/login";
 import viLogin from "../../public/lang/vi/login";
+import enFooter from "../../public/lang/en/footer";
+import viFooter from "../../public/lang/vi/footer";
 
 export const useTrans = () => {
   const { locale } = useRouter();
@@ -43,5 +45,6 @@ export const useTrans = () => {
     profile: isVi ? viProfile : enProfile,
     contact: isVi ? viContact : enContact,
     login: isVi ? viLogin : enLogin,
+    footer: isVi ? viFooter : enFooter,
   };
 };
