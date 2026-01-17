@@ -52,6 +52,20 @@ export interface Order {
   };
   createdAt: Date;
   paymentUrl?: string;
+  ghnOrderCode?: string;
+}
+
+export interface TrackingInfo {
+  order_code: string;
+  current_status: string;
+  current_station: string | null;
+  next_station: string | null;
+  timeline: Array<{
+    time: string;
+    status: string;
+    description?: string;
+    station: string | null;
+  }>;
 }
 
 export interface PaymentInfo {
@@ -110,15 +124,15 @@ export class OrderService extends APIRequest {
     if (params?.limit) queryParams.append("limit", params.limit.toString());
     if (params?.status) queryParams.append("status", params.status);
     if (params?.paymentStatus) queryParams.append("paymentStatus", params.paymentStatus);
-    
+
     const queryString = queryParams.toString();
     const url = `/orders${queryString ? `?${queryString}` : ""}`;
     const response = await this.get(url);
-    
+
     // Response structure: { status: 0, data: { data: [...], total: ..., page: ..., limit: ..., totalPages: ... } }
     // hoặc: { data: { data: [...], total: ..., page: ..., limit: ..., totalPages: ... } }
     const responseData = response.data || response;
-    
+
     // Nếu có nested data.data thì lấy, không thì lấy data trực tiếp
     if (responseData.data && Array.isArray(responseData.data.data)) {
       return responseData.data;
@@ -134,7 +148,7 @@ export class OrderService extends APIRequest {
         totalPages: responseData.totalPages || 1,
       };
     }
-    
+
     // Default fallback
     return {
       data: [],
@@ -143,6 +157,15 @@ export class OrderService extends APIRequest {
       limit: 10,
       totalPages: 0,
     };
+  }
+
+  public async trackOrder(orderId: string): Promise<TrackingInfo> {
+    console.log("🔍 [OrderService] Calling API:", `/orders/${orderId}/tracking`);
+    const response = await this.get(`/orders/${orderId}/tracking`);
+    console.log("📦 [OrderService] Raw API response:", JSON.stringify(response, null, 2));
+    const result = response.data?.data || response.data;
+    console.log("📦 [OrderService] Parsed result:", JSON.stringify(result, null, 2));
+    return result;
   }
 }
 

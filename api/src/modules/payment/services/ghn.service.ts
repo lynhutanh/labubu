@@ -329,4 +329,238 @@ export class GhnService {
     );
     return resp.data;
   }
+
+  async getStations(provinceId: number, districtId: number) {
+    if (!provinceId || !districtId) {
+      throw new BadRequestException("province_id và district_id là bắt buộc");
+    }
+    try {
+      await this.loadConfig(!this.token);
+      const url = `${this.baseUrl}/shiip/public-api/v2/station/get`;
+      const resp = await axios.post(
+        url,
+        { province_id: provinceId, district_id: districtId },
+        { headers: await this.getHeaders() },
+      );
+      const responseData = resp.data;
+      if (responseData?.data) {
+        return responseData.data;
+      }
+      return responseData;
+    } catch (error: any) {
+      console.error("GHN getStations error:", {
+        message: error?.message,
+        response: error?.response?.data,
+        provinceId,
+        districtId,
+      });
+      throw new BadRequestException(
+        error?.response?.data?.message ||
+        error?.message ||
+        "Không thể lấy danh sách bưu cục từ GHN",
+      );
+    }
+  }
+
+  async trackOrder(orderCode: string) {
+    if (!orderCode) {
+      throw new BadRequestException("order_code là bắt buộc");
+    }
+    try {
+      await this.loadConfig(!this.token);
+      console.log("🔍 [GHN Tracking] Requesting order detail for:", orderCode);
+      const detail = await this.getOrderDetailByGhnCode(orderCode);
+      console.log("📦 [GHN Tracking] Raw response from GHN API:", JSON.stringify(detail, null, 2));
+      const data: any = detail?.data || detail;
+      console.log("📦 [GHN Tracking] Parsed data:", JSON.stringify(data, null, 2));
+
+      if (!data) {
+        console.error("❌ [GHN Tracking] No data found in response");
+        throw new BadRequestException("Không tìm thấy thông tin đơn hàng");
+      }
+
+      const status = data.status || "";
+      
+      const statusMap: Record<string, string> = {
+        ready_to_pick: "Chờ lấy hàng",
+        picking: "Đang lấy hàng",
+        picked: "Lấy hàng thành công",
+        storing: "Đang lưu kho",
+        transporting: "Đang trung chuyển",
+        sorting: "Đang phân loại",
+        delivering: "Đang giao hàng",
+        delivered: "Đã giao hàng",
+        delivery_fail: "Giao hàng thất bại",
+        waiting_to_return: "Chờ hoàn",
+        return: "Đang hoàn",
+        returned: "Đã hoàn",
+        cancel: "Đã hủy",
+        warehouse_departure: "Xuất hàng đi khỏi kho",
+      };
+      
+      const statusName = data.status_name || statusMap[status] || status || "";
+      const currentWarehouseId = data.current_warehouse_id || null;
+      const nextWarehouseId = data.next_warehouse_id || null;
+      const logs = Array.isArray(data.log) ? data.log : [];
+      
+      console.log("📊 [GHN Tracking] Extracted info:", {
+        status,
+        statusName,
+        currentWarehouseId,
+        nextWarehouseId,
+        logsCount: logs.length,
+        logs: logs,
+        hasLogField: !!data.log,
+        allDataKeys: Object.keys(data),
+      });
+
+      const stationMap: Record<number, string> = {};
+      const warehouseIds = new Set<number>();
+
+      logs.forEach((log: any) => {
+        if (log.warehouse_id) {
+          warehouseIds.add(log.warehouse_id);
+        }
+      });
+      if (currentWarehouseId) {
+        warehouseIds.add(currentWarehouseId);
+      }
+      if (nextWarehouseId) {
+        warehouseIds.add(nextWarehouseId);
+      }
+
+      if (warehouseIds.size > 0) {
+        try {
+          const toProvinceId = data.to_province_id || data.to_district_id ? null : null;
+          const toDistrictId = data.to_district_id;
+          const fromProvinceId = data.from_province_id;
+          const fromDistrictId = data.from_district_id;
+
+          const provinceId = toProvinceId || fromProvinceId;
+          const districtId = toDistrictId || fromDistrictId;
+
+          console.log("🏢 [GHN Tracking] Getting stations:", { 
+            provinceId, 
+            districtId, 
+            warehouseIds: Array.from(warehouseIds),
+            toProvinceId,
+            toDistrictId,
+            fromProvinceId,
+            fromDistrictId,
+          });
+
+          if (provinceId && districtId) {
+            const stations = await this.getStations(provinceId, districtId);
+            const stationsList = Array.isArray(stations) ? stations : [];
+            console.log("🏢 [GHN Tracking] Stations received:", stationsList.length, stationsList);
+
+            stationsList.forEach((station: any) => {
+              if (station.locationId && warehouseIds.has(station.locationId)) {
+                stationMap[station.locationId] = station.locationName || station.name || "";
+                console.log(`🏢 [GHN Tracking] Mapped warehouse ${station.locationId} -> ${stationMap[station.locationId]}`);
+              }
+            });
+          } else {
+            console.warn("⚠️ [GHN Tracking] Missing provinceId or districtId:", { provinceId, districtId });
+          }
+        } catch (error) {
+          console.warn("⚠️ [GHN Tracking] Không thể lấy danh sách bưu cục:", error);
+        }
+      }
+      
+      console.log("🗺️ [GHN Tracking] Station map:", stationMap);
+
+      let timeline: any[] = [];
+      
+      if (logs.length > 0) {
+        timeline = logs.map((log: any) => {
+          const warehouseId = log.warehouse_id || null;
+          const stationName = warehouseId && stationMap[warehouseId] ? stationMap[warehouseId] : null;
+          const logStatus = log.status || "";
+          const logStatusName = log.status_name || statusMap[logStatus] || logStatus || "";
+
+          let description = logStatusName;
+          const statusLower = logStatusName.toLowerCase();
+          
+          if (statusLower.includes("trung chuyển") && stationName) {
+            description = `Đơn hàng đang trung chuyển đến ${stationName}`;
+          } else if (statusLower.includes("xuất") && stationName) {
+            description = `Đơn hàng đã xuất khỏi Bưu Cục đến ${stationName}`;
+          } else if (statusLower.includes("chờ xuất") && stationName) {
+            description = `Đơn hàng chờ xuất đến ${stationName}`;
+          } else if (statusLower.includes("lưu tại") && stationName) {
+            description = `Đơn hàng lưu tại ${stationName}`;
+          } else if (statusLower.includes("lấy thành công") && stationName) {
+            description = `Đơn hàng lấy thành công tại ${stationName}`;
+          } else if (statusLower.includes("đang lấy") && stationName) {
+            description = `Nhân viên đang lấy hàng tại địa chỉ ${stationName}`;
+          } else if (stationName) {
+            description = `Đơn hàng ${logStatusName.toLowerCase()} tại ${stationName}`;
+          } else {
+            description = `Đơn hàng ${logStatusName.toLowerCase()}`;
+          }
+
+          return {
+            time: log.updated_date || log.created_date || log.time || "",
+            status: logStatusName,
+            description: description,
+            station: stationName,
+          };
+        });
+      } else {
+        const currentStationName = currentWarehouseId && stationMap[currentWarehouseId] ? stationMap[currentWarehouseId] : null;
+        let description = statusName;
+        
+        if (status === "ready_to_pick") {
+          description = currentStationName 
+            ? `Đơn hàng chờ lấy hàng tại ${currentStationName}`
+            : "Đơn hàng chờ lấy hàng";
+        } else if (status === "picking") {
+          description = currentStationName
+            ? `Nhân viên đang lấy hàng tại địa chỉ ${currentStationName}`
+            : "Nhân viên đang lấy hàng";
+        } else if (status === "picked") {
+          description = currentStationName
+            ? `Đơn hàng lấy thành công tại ${currentStationName}`
+            : "Đơn hàng lấy thành công";
+        } else if (status === "transporting") {
+          description = currentStationName
+            ? `Đơn hàng đang trung chuyển đến ${currentStationName}`
+            : "Đơn hàng đang trung chuyển";
+        }
+        
+        timeline = [{
+          time: data.updated_date || data.created_date || data.order_date || "",
+          status: statusName,
+          description: description,
+          station: currentStationName,
+        }];
+      }
+      
+      console.log("📋 [GHN Tracking] Timeline created:", JSON.stringify(timeline, null, 2));
+
+      const result = {
+        order_code: orderCode,
+        current_status: statusName,
+        current_station: currentWarehouseId && stationMap[currentWarehouseId] ? stationMap[currentWarehouseId] : null,
+        next_station: nextWarehouseId && stationMap[nextWarehouseId] ? stationMap[nextWarehouseId] : null,
+        timeline: timeline.reverse(),
+      };
+      
+      console.log("✅ [GHN Tracking] Final result:", JSON.stringify(result, null, 2));
+      return result;
+    } catch (error: any) {
+      console.error("GHN trackOrder error:", {
+        message: error?.message,
+        response: error?.response?.data,
+        orderCode,
+      });
+      throw new BadRequestException(
+        error?.response?.data?.message ||
+        error?.response?.data?.code_message_value ||
+        error?.message ||
+        "Không thể lấy thông tin tracking từ GHN",
+      );
+    }
+  }
 }

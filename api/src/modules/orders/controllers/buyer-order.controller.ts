@@ -122,4 +122,17 @@ export class BuyerOrderController {
       paymentRef: order.paymentRef,
     });
   }
+
+  @Get(":id/tracking")
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Track order by GHN" })
+  async trackOrder(
+    @CurrentUser() user: any,
+    @Param("id") id: string,
+  ) {
+    const trackingInfo = await this.buyerOrderService.trackOrder(user, id);
+    return DataResponse.ok(trackingInfo);
+  }
 }

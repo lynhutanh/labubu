@@ -42,6 +42,7 @@ import {
   ZaloPayService,
   PayPalService,
   TransactionService,
+  GhnService,
 } from "src/modules/payment/services";
 import { WALLET_OWNER_TYPE } from "src/modules/payment/constants";
 import { CreateTransactionDto } from "src/modules/payment/dtos";
@@ -69,6 +70,8 @@ export class BuyerOrderService {
     private readonly payPalService: PayPalService,
     @Inject(forwardRef(() => TransactionService))
     private readonly transactionService: TransactionService,
+    @Inject(forwardRef(() => GhnService))
+    private readonly ghnService: GhnService,
     private readonly configService: ConfigService,
     @Inject(forwardRef(() => SettingService))
     private readonly settingService: SettingService,
@@ -527,6 +530,35 @@ export class BuyerOrderService {
       page,
       limit,
     });
+  }
+
+  async trackOrder(user: any, orderId: string) {
+    const { buyerId } = this.getBuyerInfo(user);
+    console.log("🔍 [BuyerOrderService] Tracking order:", { orderId, buyerId: buyerId.toString() });
+    
+    const order = await this.orderModel.findOne({
+      _id: new ObjectId(orderId),
+      buyerId,
+    }).lean();
+
+    if (!order) {
+      console.error("❌ [BuyerOrderService] Order not found:", orderId);
+      throw new NotFoundException("Không tìm thấy đơn hàng");
+    }
+
+    console.log("📦 [BuyerOrderService] Order found:", {
+      orderNumber: order.orderNumber,
+      ghnOrderCode: order.ghnOrderCode,
+    });
+
+    if (!order.ghnOrderCode || order.ghnOrderCode.trim() === "") {
+      console.error("❌ [BuyerOrderService] No GHN order code");
+      throw new BadRequestException("Đơn hàng chưa có mã vận đơn GHN");
+    }
+
+    const trackingInfo = await this.ghnService.trackOrder(order.ghnOrderCode);
+    console.log("✅ [BuyerOrderService] Tracking info returned:", JSON.stringify(trackingInfo, null, 2));
+    return trackingInfo;
   }
 
 }

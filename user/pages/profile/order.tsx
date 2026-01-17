@@ -12,9 +12,11 @@ import {
   XCircle,
   ArrowRight,
   Loader2,
+  Truck,
 } from "lucide-react";
 import Layout from "../../src/components/layout/Layout";
 import ProfileLayout from "../../src/components/profile/ProfileLayout";
+import TrackingModal from "../../src/components/order/TrackingModal";
 import { useTrans } from "../../src/hooks/useTrans";
 import { orderService, Order } from "../../src/services/order.service";
 import { storage } from "../../src/utils/storage";
@@ -32,6 +34,15 @@ export default function ProfileOrderPage() {
   const [filters, setFilters] = useState({
     status: "",
     paymentStatus: "",
+  });
+  const [trackingModal, setTrackingModal] = useState<{
+    isOpen: boolean;
+    orderId: string;
+    orderNumber: string;
+  }>({
+    isOpen: false,
+    orderId: "",
+    orderNumber: "",
   });
 
   const getStatusConfig = (status: string) => {
@@ -77,29 +88,28 @@ export default function ProfileOrderPage() {
       return;
     }
 
-    loadOrders();
-  }, [page, filters, router, t]);
+    const loadOrders = async () => {
+      try {
+        setLoading(true);
+        const response = await orderService.getOrders({
+          page,
+          limit: 10,
+          ...(filters.status && { status: filters.status }),
+          ...(filters.paymentStatus && { paymentStatus: filters.paymentStatus }),
+        });
+        const ordersData = Array.isArray(response.data) ? response.data : [];
+        setOrders(ordersData);
+        setTotalPages(response.totalPages || 1);
+        setTotal(response.total || 0);
+      } catch (error: any) {
+        toast.error(t.order.errors.loadError);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const loadOrders = async () => {
-    try {
-      setLoading(true);
-      const response = await orderService.getOrders({
-        page,
-        limit: 10,
-        ...(filters.status && { status: filters.status }),
-        ...(filters.paymentStatus && { paymentStatus: filters.paymentStatus }),
-      });
-      // Đảm bảo parse đúng
-      const ordersData = Array.isArray(response.data) ? response.data : [];
-      setOrders(ordersData);
-      setTotalPages(response.totalPages || 1);
-      setTotal(response.total || 0);
-    } catch (error: any) {
-      toast.error(t.order.errors.loadError);
-    } finally {
-      setLoading(false);
-    }
-  };
+    loadOrders();
+  }, [page, filters.status, filters.paymentStatus]);
 
   const handleFilterChange = (key: string, value: string) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -293,16 +303,34 @@ export default function ProfileOrderPage() {
                               {formatCurrency(order.total)}
                             </p>
                           </div>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              router.push(`/profile/order/${order._id}`);
-                            }}
-                            className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-lg font-semibold hover:bg-gray-800 transition-all"
-                          >
-                            {t.order.order.viewDetails}
-                            <ArrowRight className="w-4 h-4" />
-                          </button>
+                          <div className="flex items-center gap-2">
+                            {order.ghnOrderCode && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setTrackingModal({
+                                    isOpen: true,
+                                    orderId: order._id,
+                                    orderNumber: order.orderNumber,
+                                  });
+                                }}
+                                className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition-all"
+                              >
+                                <Truck className="w-4 h-4" />
+                                Theo dõi
+                              </button>
+                            )}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                router.push(`/profile/order/${order._id}`);
+                              }}
+                              className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-lg font-semibold hover:bg-gray-800 transition-all"
+                            >
+                              {t.order.order.viewDetails}
+                              <ArrowRight className="w-4 h-4" />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </motion.div>
@@ -340,6 +368,15 @@ export default function ProfileOrderPage() {
           )}
         </ProfileLayout>
       </Layout>
+
+      <TrackingModal
+        isOpen={trackingModal.isOpen}
+        onClose={() =>
+          setTrackingModal({ isOpen: false, orderId: "", orderNumber: "" })
+        }
+        orderId={trackingModal.orderId}
+        orderNumber={trackingModal.orderNumber}
+      />
     </>
   );
 }
