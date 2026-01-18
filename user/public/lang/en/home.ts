@@ -29,7 +29,7 @@ export default {
     },
     newProducts: {
         title: "NEW PRODUCTS",
-        subtitle: "Discover the latest sticker products with unique designs",
+        subtitle: "Discover the latest products with unique designs",
         loading: "Loading products...",
         noProducts: "No new products yet",
     },
@@ -58,7 +58,7 @@ export default {
                     "Print from 1 sheet to thousands - still served the same quality unchanged",
             },
             fastPrint: {
-                title: "Fast Printing - Guaranteed Progress",
+                title: "Guaranteed Progress",
                 description:
                     "Meet events on time, fast delivery nationwide and internationally.",
             },

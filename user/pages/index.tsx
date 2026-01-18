@@ -704,20 +704,17 @@ export default function HomePage() {
               {t.home.diecutSection.title}
               <Sparkles className="w-8 h-8 text-yellow-600" />
             </h2>
-            <p className="text-lg md:text-xl text-black max-w-4xl mx-auto mt-4">
-              {t.home.diecutSection.description}
-            </p>
           </div>
 
-          {/* Wavy Divider */}
+          {/* Zigzag Divider */}
           <div className="my-8">
             <svg
-              className="w-full h-8"
-              viewBox="0 0 1200 40"
+              className="w-full h-4"
+              viewBox="0 0 1200 20"
               preserveAspectRatio="none"
             >
               <path
-                d="M0,20 Q300,0 600,20 T1200,20 L1200,40 L0,40 Z"
+                d="M0,10 L20,5 L40,10 L60,5 L80,10 L100,5 L120,10 L140,5 L160,10 L180,5 L200,10 L220,5 L240,10 L260,5 L280,10 L300,5 L320,10 L340,5 L360,10 L380,5 L400,10 L420,5 L440,10 L460,5 L480,10 L500,5 L520,10 L540,5 L560,10 L580,5 L600,10 L620,5 L640,10 L660,5 L680,10 L700,5 L720,10 L740,5 L760,10 L780,5 L800,10 L820,5 L840,10 L860,5 L880,10 L900,5 L920,10 L940,5 L960,10 L980,5 L1000,10 L1020,5 L1040,10 L1060,5 L1080,10 L1100,5 L1120,10 L1140,5 L1160,10 L1180,5 L1200,10 L1200,20 L0,20 Z"
                 fill="black"
               />
             </svg>

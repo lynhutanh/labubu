@@ -10,6 +10,7 @@ import {
   Menu,
   X,
   Search,
+  PackageSearch,
 } from "lucide-react";
 import { storage } from "../../utils/storage";
 import { cartService } from "../../services/cart.service";
@@ -140,6 +141,16 @@ export default function Header() {
                 }`}
             >
               {t.header.contact}
+            </Link>
+            <span className="text-white/30">•</span>
+            <Link
+              href="/tracking"
+              className={`px-4 py-2 rounded-md transition-colors ${router.pathname === "/tracking"
+                ? "text-yellow-400 font-semibold"
+                : "text-white hover:text-yellow-400"
+                }`}
+            >
+              Theo dõi đơn hàng
             </Link>
           </nav>
 
@@ -314,6 +325,16 @@ export default function Header() {
                   }`}
               >
                 {t.header.contact}
+              </Link>
+              <Link
+                href="/tracking"
+                onClick={() => setShowMobileMenu(false)}
+                className={`block px-4 py-3 rounded-lg transition-colors ${router.pathname === "/tracking"
+                  ? "bg-yellow-400/20 text-yellow-400 font-medium"
+                  : "text-white hover:bg-gray-800"
+                  }`}
+              >
+                Theo dõi đơn hàng
               </Link>
               {user && (
                 <>

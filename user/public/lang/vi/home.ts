@@ -29,7 +29,7 @@ export default {
   },
   newProducts: {
     title: "SẢN PHẨM MỚI",
-    subtitle: "Khám phá những sản phẩm sticker mới nhất với thiết kế độc đáo",
+    subtitle: "Khám phá những sản phẩm mới nhất với thiết kế độc đáo",
     loading: "Đang tải sản phẩm...",
     noProducts: "Chưa có sản phẩm mới",
   },
@@ -58,7 +58,7 @@ export default {
           "In từ 1 tờ đến hàng ngàn lá - vẫn được phục vụ như nhau chất lượng không đổi",
       },
       fastPrint: {
-        title: "In Nhanh - Bảo Đảm Tiến Độ",
+        title: "Bảo Đảm Tiến Độ",
         description:
           "Đáp ứng sự kiện kịp thời, giao hàng nhanh toàn quốc và quốc tế.",
       },

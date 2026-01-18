@@ -54,7 +54,7 @@ export default function ContactPage() {
             </p>
           </motion.header>
 
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-center">
             <motion.div
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
@@ -145,7 +145,7 @@ export default function ContactPage() {
             </motion.div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-start mt-20">
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-center mt-20">
             <motion.div
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}

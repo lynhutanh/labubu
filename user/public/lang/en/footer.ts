@@ -1,7 +1,6 @@
 export default {
   aboutUs: "About Labubu Store",
-  aboutUsDescription:
-    "Labubu Store specializes in providing authentic Labubu products, including Blind Box Series, unique figures and limited collections. With the motto \"Quality Always Comes First\", we are committed to bringing you authentic products, dedicated consultation services, fast delivery and comprehensive after-sales support.",
+  aboutUsDescription: "LABUBU STORE is a reputable Handmade product store, specializing in providing genuine products from famous brands around the world. We are committed to bringing you quality products, attentive consulting services, fast delivery, and comprehensive after-sales support.",
   contactInfo: "Contact Information",
   workingHours: "Monday - Sunday: 9:00 - 22:00",
   workingHoursNote: "(Open on holidays)",

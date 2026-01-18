@@ -10,7 +10,9 @@ export { walletDepositService } from "./wallet-deposit.service";
 export { userService } from "./user.service";
 export { ghnService } from "./ghn.service";
 export { settingService } from "./setting.service";
+export { addressService } from "./address.service";
 export type { ContactInfo, TeamInfo, TeamMember } from "./setting.service";
+export type { Address, CreateAddressPayload, UpdateAddressPayload } from "./address.service";
 
 // Export API Request base class
 export { APIRequest, TOKEN } from "./api-request";

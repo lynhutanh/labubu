@@ -1,5 +1,5 @@
 import Head from "next/head";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/router";
 import { motion } from "framer-motion";
 import {
@@ -21,6 +21,7 @@ import { useTrans } from "../../src/hooks/useTrans";
 import { cartService, Cart } from "../../src/services/cart.service";
 import { orderService, CreateOrderPayload } from "../../src/services/order.service";
 import { ghnService } from "../../src/services/ghn.service";
+import { addressService, Address } from "../../src/services";
 import { storage } from "../../src/utils/storage";
 import toast from "react-hot-toast";
 import { formatCurrency } from "../../src/lib/string";
@@ -65,6 +66,25 @@ export default function CheckoutPage() {
     const [wards, setWards] = useState<any[]>([]);
     const [selectedProvinceId, setSelectedProvinceId] = useState<number | null>(null);
     const [selectedDistrictId, setSelectedDistrictId] = useState<number | null>(null);
+    const [savedAddresses, setSavedAddresses] = useState<Address[]>([]);
+    const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    const stars = useMemo(() => {
+        if (!mounted) return [];
+        return Array.from({ length: 50 }, (_, i) => ({
+            id: i,
+            left: Math.random() * 100,
+            top: Math.random() * 100,
+            width: Math.random() * 3 + 1,
+            height: Math.random() * 3 + 1,
+            opacity: Math.random() * 0.8 + 0.2,
+        }));
+    }, [mounted]);
 
     useEffect(() => {
         const loadCart = async () => {
@@ -105,7 +125,22 @@ export default function CheckoutPage() {
             }
         };
 
+        const loadSavedAddresses = async () => {
+            try {
+                const addresses = await addressService.getAddresses();
+                setSavedAddresses(addresses || []);
+                const defaultAddress = addresses.find((addr) => addr.isDefault);
+                if (defaultAddress) {
+                    setSelectedAddressId(defaultAddress._id);
+                    fillFormFromAddress(defaultAddress);
+                }
+            } catch (error) {
+                console.error("Failed to load saved addresses:", error);
+            }
+        };
+
         loadProvinces();
+        loadSavedAddresses();
     }, []);
 
     // Countdown timer
@@ -152,11 +187,62 @@ export default function CheckoutPage() {
         return () => clearInterval(pollInterval);
     }, [orderCode, polling, selectedPayment, router]);
 
+    const fillFormFromAddress = async (addr: Address) => {
+        setFormData({
+            fullName: addr.fullName,
+            phone: addr.phone,
+            address: addr.address,
+            ward: addr.ward || "",
+            wardCode: addr.wardCode || "",
+            district: addr.district || "",
+            districtId: addr.districtId || null,
+            city: addr.city,
+            provinceId: addr.provinceId || null,
+            note: addr.note || "",
+        });
+
+        if (addr.provinceId) {
+            setSelectedProvinceId(addr.provinceId);
+            try {
+                const districtData = await ghnService.getDistricts(addr.provinceId);
+                setDistricts(districtData || []);
+                if (addr.districtId) {
+                    setSelectedDistrictId(addr.districtId);
+                    try {
+                        const wardData = await ghnService.getWards(addr.districtId);
+                        setWards(wardData || []);
+                    } catch (error) {
+                        console.error("Failed to load wards:", error);
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to load districts:", error);
+            }
+        }
+    };
+
+    const handleAddressSelect = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const value = e.target.value;
+        if (!value) {
+            setSelectedAddressId(null);
+            return;
+        }
+
+        const address = savedAddresses.find((addr) => addr._id === value);
+        if (address) {
+            setSelectedAddressId(value);
+            await fillFormFromAddress(address);
+        }
+    };
+
     const handleInputChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
     ) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
+        if (selectedAddressId) {
+            setSelectedAddressId(null);
+        }
     };
 
     const validateForm = (): boolean => {
@@ -189,6 +275,7 @@ export default function CheckoutPage() {
 
     const handleProvinceChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
         const value = e.target.value;
+        setSelectedAddressId(null);
         if (!value) {
             setSelectedProvinceId(null);
             setDistricts([]);
@@ -228,6 +315,7 @@ export default function CheckoutPage() {
 
     const handleDistrictChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
         const value = e.target.value;
+        setSelectedAddressId(null);
         if (!value) {
             setSelectedDistrictId(null);
             setWards([]);
@@ -261,6 +349,7 @@ export default function CheckoutPage() {
 
     const handleWardChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const value = e.target.value;
+        setSelectedAddressId(null);
         const ward = wards.find((w: any) => w.WardCode === value);
         setFormData((prev) => ({
             ...prev,
@@ -410,16 +499,16 @@ export default function CheckoutPage() {
 
             {/* Galaxy Background */}
             <div className="fixed inset-0 bg-gradient-to-br from-purple-900 via-indigo-900 to-black -z-10 overflow-hidden">
-                {[...Array(50)].map((_, i) => (
+                {mounted && stars.map((star) => (
                     <div
-                        key={i}
+                        key={star.id}
                         className="absolute rounded-full bg-white"
                         style={{
-                            left: `${Math.random() * 100}%`,
-                            top: `${Math.random() * 100}%`,
-                            width: `${Math.random() * 3 + 1}px`,
-                            height: `${Math.random() * 3 + 1}px`,
-                            opacity: Math.random() * 0.8 + 0.2,
+                            left: `${star.left}%`,
+                            top: `${star.top}%`,
+                            width: `${star.width}px`,
+                            height: `${star.height}px`,
+                            opacity: star.opacity,
                         }}
                     />
                 ))}
@@ -527,6 +616,32 @@ export default function CheckoutPage() {
                                         <MapPin className="w-5 h-5 text-pink-400" />
                                         {t.checkout.shippingAddress}
                                     </h2>
+                                    {savedAddresses.length > 0 && (
+                                        <div className="mb-4">
+                                            <label className="block text-purple-200 mb-2">
+                                                Chọn địa chỉ đã lưu
+                                            </label>
+                                            <select
+                                                value={selectedAddressId || ""}
+                                                onChange={handleAddressSelect}
+                                                className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
+                                            >
+                                                <option value="" className="bg-gray-900 text-purple-200">
+                                                    Chọn địa chỉ đã lưu (tùy chọn)
+                                                </option>
+                                                {savedAddresses.map((addr) => (
+                                                    <option
+                                                        key={addr._id}
+                                                        value={addr._id}
+                                                        className="bg-gray-900 text-purple-200"
+                                                    >
+                                                        {addr.fullName} - {addr.address}, {addr.ward}, {addr.district}, {addr.city}
+                                                        {addr.isDefault ? " (Mặc định)" : ""}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    )}
                                     <div className="space-y-4">
                                         <div>
                                             <label className="block text-purple-200 mb-2">

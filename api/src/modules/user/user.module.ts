@@ -1,14 +1,14 @@
 import { forwardRef, Module } from "@nestjs/common";
 import { MongoDBModule } from "src/kernel/infras";
-import { UserService } from "./services";
-import { userProviders } from "./providers";
+import { UserService, AddressService } from "./services";
+import { userProviders, addressProviders } from "./providers";
 import { AuthModule } from "../auth/auth.module";
-import { UserController, AdminUserController } from "./controllers";
+import { UserController, AdminUserController, AddressController } from "./controllers";
 
 @Module({
   imports: [MongoDBModule, forwardRef(() => AuthModule)],
-  controllers: [UserController, AdminUserController],
-  providers: [...userProviders, UserService],
-  exports: [...userProviders, UserService],
+  controllers: [UserController, AdminUserController, AddressController],
+  providers: [...userProviders, ...addressProviders, UserService, AddressService],
+  exports: [...userProviders, ...addressProviders, UserService, AddressService],
 })
 export class UserModule {}
