@@ -77,7 +77,7 @@ class AddressService extends APIRequest {
   }
 
   async deleteAddress(id: string): Promise<void> {
-    await this.delete(`/addresses/${id}`);
+    await this.del(`/addresses/${id}`);
   }
 
   async setDefaultAddress(id: string): Promise<Address> {

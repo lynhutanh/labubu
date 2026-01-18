@@ -47,7 +47,9 @@ export default function UpdateCategoryPage() {
       setFormData({
         _id: category._id,
         name: category.name,
-        status: category.status || "active",
+        status: (category.status === "active" || category.status === "inactive") 
+          ? category.status 
+          : "active",
         sortOrder: category.sortOrder || 0,
       });
     } catch (error: any) {

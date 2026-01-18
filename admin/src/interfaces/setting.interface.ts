@@ -13,7 +13,9 @@ export interface ISetting {
     | "checkbox"
     | "radio"
     | "password"
-    | "toggle";
+    | "toggle"
+    | "file"
+    | "image";
   value: any;
   meta?: {
     textarea?: boolean;

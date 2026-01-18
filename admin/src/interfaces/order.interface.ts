@@ -29,6 +29,13 @@ export interface ShippingAddress {
   note?: string;
 }
 
+export interface OrderUser {
+  _id?: string;
+  name?: string;
+  username?: string;
+  email?: string;
+}
+
 export interface OrderResponse {
   _id: string;
   orderNumber: string;
@@ -42,9 +49,11 @@ export interface OrderResponse {
   total: number;
   shippingAddress: ShippingAddress;
   paymentMethod: string;
+  paymentRef?: string;
   paymentStatus: string;
   status: string;
   ghnOrderCode?: string;
+  user?: OrderUser;
   cancelReason?: string;
   cancelledAt?: Date;
   confirmedAt?: Date;

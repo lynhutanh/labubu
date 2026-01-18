@@ -71,6 +71,8 @@ export class OrderModel extends Document {
 
   completedAt?: Date;
 
+  ghnOrderCode?: string;
+
   createdAt: Date;
 
   updatedAt: Date;

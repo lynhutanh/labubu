@@ -7,6 +7,7 @@ export type {
   UserProfile,
   ApiResponse,
   GoogleLoginPayload,
+  FacebookLoginPayload,
 } from "./auth.interface";
 
 // Product interfaces (placeholder for future)

@@ -34,7 +34,12 @@ export default function OrdersPage() {
   const [orders, setOrders] = useState<OrderResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
-  const [searchParams, setSearchParams] = useState({
+  const [searchParams, setSearchParams] = useState<{
+    limit: number;
+    offset: number;
+    q?: string;
+    status?: string;
+  }>({
     limit: 20,
     offset: 0,
   });
