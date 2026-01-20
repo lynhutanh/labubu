@@ -16,7 +16,6 @@ import { CreateTransactionDto } from "../dtos";
 import { SettingService } from "src/modules/settings/services";
 import { WalletDepositService } from "./wallet-deposit.service";
 import { SendgridService } from "src/modules/sendgrid/services/sendgrid.service";
-import { Model } from "mongoose";
 import { UserModel } from "src/modules/user/models";
 import { USER_MODEL_PROVIDER } from "src/modules/user/providers";
 
