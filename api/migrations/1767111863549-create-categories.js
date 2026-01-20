@@ -5,55 +5,59 @@ const { COLLECTION, DB } = require('./lib/index.cjs');
 const categories = [
   {
     name: 'Labubu Blind Box',
+    slug: 'labubu-blind-box',
     status: 'active',
     sortOrder: 1,
-    createdAt: new Date(),
-    updatedAt: new Date(),
   },
   {
     name: 'Labubu Figure',
+    slug: 'labubu-figure',
     status: 'active',
     sortOrder: 2,
-    createdAt: new Date(),
-    updatedAt: new Date(),
   },
   {
     name: 'Labubu Plush & Doll',
+    slug: 'labubu-plush-doll',
     status: 'active',
     sortOrder: 3,
-    createdAt: new Date(),
-    updatedAt: new Date(),
   },
   {
     name: 'Phụ kiện Labubu',
+    slug: 'phu-kien-labubu',
     status: 'active',
     sortOrder: 4,
-    createdAt: new Date(),
-    updatedAt: new Date(),
   },
   {
     name: 'Labubu Pre-order',
+    slug: 'labubu-pre-order',
     status: 'active',
     sortOrder: 5,
-    createdAt: new Date(),
-    updatedAt: new Date(),
   },
 ];
 
 module.exports.up = async function up() {
-  const existingCategories = await DB.collection(COLLECTION.CATEGORIES).countDocuments();
+  const collection = DB.collection(COLLECTION.CATEGORIES);
 
-  if (existingCategories > 0) {
-    console.log('Categories already exist, skipping...');
-    return;
+  for (const category of categories) {
+    const now = new Date();
+    await collection.updateOne(
+      { slug: category.slug },
+      {
+        $setOnInsert: {
+          ...category,
+          createdAt: now,
+          updatedAt: now,
+        },
+      },
+      { upsert: true },
+    );
   }
 
-  await DB.collection(COLLECTION.CATEGORIES).insertMany(categories);
-  console.log(`✅ Created ${categories.length} Labubu categories`);
+  console.log(`✅ Ensured ${categories.length} Labubu categories exist (upsert by slug)`);
 };
 
 module.exports.down = async function down() {
-  const names = categories.map(c => c.name);
-  await DB.collection(COLLECTION.CATEGORIES).deleteMany({ name: { $in: names } });
+  const slugs = categories.map((c) => c.slug);
+  await DB.collection(COLLECTION.CATEGORIES).deleteMany({ slug: { $in: slugs } });
   console.log('✅ Deleted Labubu categories');
 };
