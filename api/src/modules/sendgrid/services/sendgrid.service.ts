@@ -127,30 +127,19 @@ export class SendgridService {
         return;
       }
 
-      const dynamicTemplateData = {
-        order_code: orderCode,
-        ghn_order_code: ghnOrderCode,
-        order_total: orderTotal.toLocaleString("vi-VN"),
-      };
-
-      this.logger.log(`[Sendgrid] 📧 Gửi email thông báo đơn hàng hoàn thành cho user:`);
-      this.logger.log(`[Sendgrid] To: ${userEmail}`);
-      this.logger.log(`[Sendgrid] Template ID: ${templateId}`);
-      this.logger.log(`[Sendgrid] Data: ${JSON.stringify(dynamicTemplateData, null, 2)}`);
-
-      const result = await this.sendEmail({
+      await this.sendEmail({
         to: userEmail,
         templateId,
-        dynamicTemplateData,
+        dynamicTemplateData: {
+          order_code: orderCode,
+          ghn_order_code: ghnOrderCode,
+          order_total: orderTotal.toLocaleString("vi-VN"),
+        },
       });
 
-      this.logger.log(`[Sendgrid] ✅ Email đã được gửi thành công!`);
-      this.logger.log(`[Sendgrid] Order: ${orderCode}, GHN: ${ghnOrderCode}, User: ${userEmail}`);
-      this.logger.log(`[Sendgrid] Result: ${JSON.stringify(result, null, 2)}`);
+      this.logger.log(`[Sendgrid] Đã gửi email thông báo đơn hàng ${orderCode} (GHN: ${ghnOrderCode}) cho user ${userEmail}`);
     } catch (error: any) {
-      this.logger.error(`[Sendgrid] ❌ Lỗi gửi email thông báo đơn hàng cho user:`);
-      this.logger.error(`[Sendgrid] Error: ${error?.message}`);
-      this.logger.error(`[Sendgrid] Response: ${JSON.stringify(error?.response?.data || {}, null, 2)}`);
+      this.logger.error(`[Sendgrid] Lỗi gửi email thông báo đơn hàng cho user: ${error?.message}`);
     }
   }
 
