@@ -47,6 +47,9 @@ import {
 import { WALLET_OWNER_TYPE } from "src/modules/payment/constants";
 import { CreateTransactionDto } from "src/modules/payment/dtos";
 import { SettingService } from "src/modules/settings/services";
+import { SendgridService } from "src/modules/sendgrid/services/sendgrid.service";
+import { UserModel } from "src/modules/user/models";
+import { USER_MODEL_PROVIDER } from "src/modules/user/providers";
 
 interface IPaymentResult {
   paymentUrl?: string;
@@ -75,6 +78,9 @@ export class BuyerOrderService {
     private readonly configService: ConfigService,
     @Inject(forwardRef(() => SettingService))
     private readonly settingService: SettingService,
+    private readonly sendgridService: SendgridService,
+    @Inject(USER_MODEL_PROVIDER)
+    private readonly userModel: Model<UserModel>,
   ) {}
 
   private getBuyerInfo(user: any): { buyerId: ObjectId; buyerType: string } {
@@ -255,7 +261,29 @@ export class BuyerOrderService {
       data: orderDto,
     });
 
+    if (paymentStatus === PAYMENT_STATUS.PAID) {
+      await this.sendAdminNotification(order, user.email);
+    }
+
     return orderDto;
+  }
+
+  private async sendAdminNotification(order: OrderModel, customerEmail: string): Promise<void> {
+    try {
+      const adminEmail = await this.settingService.get("contactEmail");
+      if (!adminEmail) {
+        return;
+      }
+
+      await this.sendgridService.sendOrderAdminNotification(
+        adminEmail,
+        order.orderNumber,
+        customerEmail,
+        order.total,
+      );
+    } catch (error) {
+      console.error("[BuyerOrderService] Failed to send admin notification:", error);
+    }
   }
 
   /**

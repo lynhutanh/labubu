@@ -27,6 +27,8 @@ import { UserRegisteredWalletListener } from "./listeners";
 import { AuthModule } from "../auth/auth.module";
 import { SettingModule } from "../settings/setting.module";
 import { OrderModule } from "../orders/order.module";
+import { SendgridModule } from "../sendgrid/sendgrid.module";
+import { UserModule } from "../user/user.module";
 
 @Module({
   imports: [
@@ -34,6 +36,8 @@ import { OrderModule } from "../orders/order.module";
     forwardRef(() => AuthModule),
     forwardRef(() => SettingModule),
     forwardRef(() => OrderModule),
+    SendgridModule,
+    UserModule,
   ],
   controllers: [
     TransactionController,

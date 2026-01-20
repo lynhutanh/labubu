@@ -67,6 +67,44 @@ export class SendgridService {
     return templateId || null;
   }
 
+  getOrderAdminTemplateId(): string | null {
+    const templateId =
+      process.env.SENDGRID_ORDER_ADMIN_TEMPLATE_ID ||
+      this.configService.get<string>("SENDGRID_ORDER_ADMIN_TEMPLATE_ID");
+    return templateId || null;
+  }
+
+  async sendOrderAdminNotification(
+    adminEmail: string,
+    orderCode: string,
+    customerEmail: string,
+    orderTotal: number,
+  ): Promise<void> {
+    try {
+      const templateId = this.getOrderAdminTemplateId();
+      if (!templateId) {
+        this.logger.warn(
+          "SENDGRID_ORDER_ADMIN_TEMPLATE_ID chưa được cấu hình trong .env, bỏ qua gửi email thông báo cho admin",
+        );
+        return;
+      }
+
+      await this.sendEmail({
+        to: adminEmail,
+        templateId,
+        dynamicTemplateData: {
+          order_code: orderCode,
+          customer_email: customerEmail,
+          order_total: orderTotal.toLocaleString("vi-VN"),
+        },
+      });
+
+      this.logger.log(`[Sendgrid] Đã gửi email thông báo đơn hàng ${orderCode} cho admin ${adminEmail}`);
+    } catch (error: any) {
+      this.logger.error(`[Sendgrid] Lỗi gửi email thông báo đơn hàng cho admin: ${error?.message}`);
+    }
+  }
+
   private getHeaders(apiKey: string): Record<string, string> {
     return {
       Authorization: `Bearer ${apiKey}`,

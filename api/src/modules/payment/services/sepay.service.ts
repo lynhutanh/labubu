@@ -15,6 +15,10 @@ import { TRANSACTION_MODEL_PROVIDER } from "../providers";
 import { CreateTransactionDto } from "../dtos";
 import { SettingService } from "src/modules/settings/services";
 import { WalletDepositService } from "./wallet-deposit.service";
+import { SendgridService } from "src/modules/sendgrid/services/sendgrid.service";
+import { Model } from "mongoose";
+import { UserModel } from "src/modules/user/models";
+import { USER_MODEL_PROVIDER } from "src/modules/user/providers";
 
 export interface ISePayWebhookPayload {
     merchant_id: string;
@@ -52,6 +56,9 @@ export class SePayService implements OnModuleInit {
         private readonly settingService: SettingService,
         @Inject(forwardRef(() => WalletDepositService))
         private readonly walletDepositService: WalletDepositService,
+        private readonly sendgridService: SendgridService,
+        @Inject(USER_MODEL_PROVIDER)
+        private readonly userModel: Model<UserModel>,
     ) {
         // Load từ ENV trước (fallback)
         this.loadFromEnv();
@@ -373,6 +380,7 @@ export class SePayService implements OnModuleInit {
                 { session },
             );
 
+            await this.sendAdminNotification(order, session);
 
             // STEP 8: Trả response thành công (BẮT BUỘC HTTP 200)
             return {
@@ -386,6 +394,32 @@ export class SePayService implements OnModuleInit {
                 success: false,
                 message: `Lỗi xử lý webhook: ${errorMessage}`,
             };
+        }
+    }
+
+    /**
+     * Send admin notification email when order is paid
+     */
+    private async sendAdminNotification(order: OrderModel, session?: ClientSession): Promise<void> {
+        try {
+            const user = await this.userModel.findById(order.buyerId).lean();
+            if (!user || !user.email) {
+                return;
+            }
+
+            const adminEmail = await this.settingService.get("contactEmail");
+            if (!adminEmail) {
+                return;
+            }
+
+            await this.sendgridService.sendOrderAdminNotification(
+                adminEmail,
+                order.orderNumber,
+                user.email,
+                order.total,
+            );
+        } catch (error) {
+            console.error("[SePayService] Failed to send admin notification:", error);
         }
     }
 

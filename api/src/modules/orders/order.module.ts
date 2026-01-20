@@ -9,6 +9,8 @@ import { ProductModule } from "../products/product.module";
 import { CartModule } from "../cart/cart.module";
 import { PaymentModule } from "../payment/payment.module";
 import { SettingModule } from "../settings/setting.module";
+import { SendgridModule } from "../sendgrid/sendgrid.module";
+import { UserModule } from "../user/user.module";
 import { GhnOrderSyncService } from "./services/ghn-order-sync.service";
 
 @Module({
@@ -19,6 +21,8 @@ import { GhnOrderSyncService } from "./services/ghn-order-sync.service";
     forwardRef(() => CartModule),
     forwardRef(() => PaymentModule),
     forwardRef(() => SettingModule),
+    SendgridModule,
+    UserModule,
   ],
   controllers: [BuyerOrderController, AdminOrderController],
   providers: [
