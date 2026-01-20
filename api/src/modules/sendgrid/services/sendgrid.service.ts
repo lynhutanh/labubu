@@ -74,6 +74,13 @@ export class SendgridService {
     return templateId || null;
   }
 
+  getOrderCompleteTemplateId(): string | null {
+    const templateId =
+      process.env.SENDGRID_ORDER_COMPLETE_TEMPLATE_ID ||
+      this.configService.get<string>("SENDGRID_ORDER_COMPLETE_TEMPLATE_ID");
+    return templateId || null;
+  }
+
   async sendOrderAdminNotification(
     adminEmail: string,
     orderCode: string,
@@ -102,6 +109,48 @@ export class SendgridService {
       this.logger.log(`[Sendgrid] Đã gửi email thông báo đơn hàng ${orderCode} cho admin ${adminEmail}`);
     } catch (error: any) {
       this.logger.error(`[Sendgrid] Lỗi gửi email thông báo đơn hàng cho admin: ${error?.message}`);
+    }
+  }
+
+  async sendOrderCompleteNotification(
+    userEmail: string,
+    orderCode: string,
+    ghnOrderCode: string,
+    orderTotal: number,
+  ): Promise<void> {
+    try {
+      const templateId = this.getOrderCompleteTemplateId();
+      if (!templateId) {
+        this.logger.warn(
+          "SENDGRID_ORDER_COMPLETE_TEMPLATE_ID chưa được cấu hình trong .env, bỏ qua gửi email thông báo cho user",
+        );
+        return;
+      }
+
+      const dynamicTemplateData = {
+        order_code: orderCode,
+        ghn_order_code: ghnOrderCode,
+        order_total: orderTotal.toLocaleString("vi-VN"),
+      };
+
+      this.logger.log(`[Sendgrid] 📧 Gửi email thông báo đơn hàng hoàn thành cho user:`);
+      this.logger.log(`[Sendgrid] To: ${userEmail}`);
+      this.logger.log(`[Sendgrid] Template ID: ${templateId}`);
+      this.logger.log(`[Sendgrid] Data: ${JSON.stringify(dynamicTemplateData, null, 2)}`);
+
+      const result = await this.sendEmail({
+        to: userEmail,
+        templateId,
+        dynamicTemplateData,
+      });
+
+      this.logger.log(`[Sendgrid] ✅ Email đã được gửi thành công!`);
+      this.logger.log(`[Sendgrid] Order: ${orderCode}, GHN: ${ghnOrderCode}, User: ${userEmail}`);
+      this.logger.log(`[Sendgrid] Result: ${JSON.stringify(result, null, 2)}`);
+    } catch (error: any) {
+      this.logger.error(`[Sendgrid] ❌ Lỗi gửi email thông báo đơn hàng cho user:`);
+      this.logger.error(`[Sendgrid] Error: ${error?.message}`);
+      this.logger.error(`[Sendgrid] Response: ${JSON.stringify(error?.response?.data || {}, null, 2)}`);
     }
   }
 

@@ -34,6 +34,9 @@ import {
   GhnCreateOrderPayload,
 } from "src/modules/payment/services/ghn.service";
 import { SettingService } from "src/modules/settings/services";
+import { SendgridService } from "src/modules/sendgrid/services/sendgrid.service";
+import { UserModel } from "src/modules/user/models";
+import { USER_MODEL_PROVIDER } from "src/modules/user/providers";
 
 @Injectable()
 export class AdminOrderService {
@@ -47,6 +50,9 @@ export class AdminOrderService {
     private readonly ghnService: GhnService,
     @Inject(forwardRef(() => SettingService))
     private readonly settingService: SettingService,
+    private readonly sendgridService: SendgridService,
+    @Inject(USER_MODEL_PROVIDER)
+    private readonly userModel: Model<UserModel>,
   ) {}
 
   async findById(orderId: string): Promise<OrderDto | null> {
@@ -355,10 +361,33 @@ export class AdminOrderService {
       },
     );
 
+    await this.sendOrderCompleteNotification(order, ghnOrderCode);
+
     const updatedOrder = await this.updateStatus(orderId, {
       status: ORDER_STATUS.CONFIRMED,
     } as UpdateOrderStatusPayload);
 
     return updatedOrder;
+  }
+
+  private async sendOrderCompleteNotification(
+    order: OrderModel,
+    ghnOrderCode: string,
+  ): Promise<void> {
+    try {
+      const user = await this.userModel.findById(order.buyerId).lean();
+      if (!user || !user.email) {
+        return;
+      }
+
+      await this.sendgridService.sendOrderCompleteNotification(
+        user.email,
+        order.orderNumber,
+        ghnOrderCode,
+        order.total,
+      );
+    } catch (error) {
+      console.error("[AdminOrderService] Failed to send order complete notification:", error);
+    }
   }
 }
