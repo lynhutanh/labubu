@@ -557,7 +557,7 @@ export default function LoginPage() {
                     </div>
 
                     <Link
-                      href="/forgot-password"
+                      href="/login/forgot-password"
                       className="block text-right text-sm text-[hsl(220,10%,60%)] mb-4 hover:text-[hsl(16,85%,60%)] transition-colors"
                     >
                       {t.login.forgotPassword}

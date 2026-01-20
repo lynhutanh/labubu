@@ -28,6 +28,7 @@ export default {
   walletDesc: "Pay with your wallet",
   paypal: "PayPal",
   paypalDesc: "Pay securely with your PayPal account",
+  paypalUpdating: "Updating...",
   orderSummary: "Order Summary",
   subtotal: "Subtotal:",
   total: "Total:",

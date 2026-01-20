@@ -32,7 +32,7 @@ export class ForgotPasswordController {
     private readonly authService: AuthService,
     private readonly sendgridService: SendgridService,
     private readonly configService: ConfigService,
-  ) {}
+  ) { }
 
   @Post("/forgot-password")
   @HttpCode(HttpStatus.OK)
@@ -90,7 +90,7 @@ export class ForgotPasswordController {
     const frontendUrlClean = frontendUrl.endsWith("/")
       ? frontendUrl.slice(0, -1)
       : frontendUrl || "http://localhost:5002";
-    const resetLink = `${frontendUrlClean}/reset-password?token=${token}`;
+    const resetLink = `${frontendUrlClean}/login/reset-password?token=${token}`;
 
     // Gửi email bằng Sendgrid
     try {

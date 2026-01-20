@@ -28,6 +28,7 @@ export default {
   walletDesc: "Thanh toán bằng ví của bạn",
   paypal: "PayPal",
   paypalDesc: "Thanh toán an toàn qua tài khoản PayPal",
+  paypalUpdating: "Đang cập nhật...",
   orderSummary: "Tóm tắt đơn hàng",
   subtotal: "Tạm tính:",
   total: "Tổng cộng:",

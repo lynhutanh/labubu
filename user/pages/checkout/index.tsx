@@ -478,8 +478,8 @@ export default function CheckoutPage() {
             id: "paypal" as PaymentMethod,
             name: t.checkout.paypal,
             icon: QrCode,
-            description: t.checkout.paypalDesc,
-            disabled: false,
+            description: t.checkout.paypalUpdating,
+            disabled: true,
         },
         {
             id: "cod" as PaymentMethod,

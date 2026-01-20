@@ -50,7 +50,7 @@ export default function ResetPasswordPage() {
       } else {
         toast.error('Link đặt lại mật khẩu không hợp lệ hoặc đã hết hạn');
         setTimeout(() => {
-          router.push('/forgot-password');
+          router.push('/login/forgot-password');
         }, 2000);
       }
     }
@@ -104,7 +104,7 @@ export default function ResetPasswordPage() {
         <div className="text-white text-center">
           <p className="mb-4">Link đặt lại mật khẩu không hợp lệ</p>
           <Link
-            href="/forgot-password"
+            href="/login/forgot-password"
             className="text-pink-400 hover:text-pink-300 underline"
           >
             Yêu cầu link mới

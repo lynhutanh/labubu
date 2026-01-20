@@ -327,16 +327,17 @@ export default function ProfileWalletPage() {
                                     </h4>
                                     <div className="space-y-2">
                                         <button
-                                            onClick={() => setSelectedPaymentMethod("paypal")}
-                                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg border-2 transition-colors ${
+                                            onClick={() => {}}
+                                            disabled={true}
+                                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg border-2 transition-colors opacity-50 cursor-not-allowed ${
                                                 selectedPaymentMethod === "paypal"
-                                                    ? "border-blue-500 bg-blue-50"
-                                                    : "border-gray-200 bg-white hover:bg-gray-50"
+                                                    ? "border-gray-300 bg-gray-50"
+                                                    : "border-gray-200 bg-white"
                                             }`}
                                         >
-                                            <QrCode className="w-5 h-5 text-gray-600" />
-                                            <span className="text-sm font-medium text-gray-700">
-                                                PayPal
+                                            <QrCode className="w-5 h-5 text-gray-400" />
+                                            <span className="text-sm font-medium text-gray-500">
+                                                PayPal <span className="text-xs italic">(Đang cập nhật / Updating...)</span>
                                             </span>
                                         </button>
                                         <button
