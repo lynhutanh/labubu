@@ -13,6 +13,7 @@ import {
   SettingFormItem,
   SettingsTabs,
 } from "src/components/settings";
+import GhnSenderAddress from "src/components/settings/GhnSenderAddress";
 import type { ISetting, TabConfig } from "src/interfaces";
 import AdminLayout from "src/components/layout/AdminLayout";
 
@@ -111,11 +112,13 @@ export default function SettingsPage() {
   const onFinish = useCallback(async () => {
     try {
       setUpdating(true);
+      const changed = { ...dataChange.current };
       const updatePromises = Object.keys(dataChange.current).map((key) =>
         settingsService.update(key, dataChange.current[key])
       );
       await Promise.all(updatePromises);
       setMessage({ type: "success", text: "Cập nhật cài đặt thành công!" });
+      console.log("[Admin Settings] Saved settings:", changed);
       dataChange.current = {};
     } catch (error) {
       console.error("Failed to update settings:", error);
@@ -128,6 +131,19 @@ export default function SettingsPage() {
   const handleTabChange = useCallback((tab: string) => {
     setSelectedTab(tab);
   }, []);
+
+  const hiddenKeys = useMemo(() => {
+    if (selectedTab !== "ghn") return new Set<string>();
+    return new Set<string>([
+      "GHN_SENDER_ADDRESS",
+      "GHN_SENDER_PROVINCE_ID",
+      "GHN_SENDER_PROVINCE_NAME",
+      "GHN_SENDER_DISTRICT_ID",
+      "GHN_SENDER_DISTRICT_NAME",
+      "GHN_SENDER_WARD_CODE",
+      "GHN_SENDER_WARD_NAME",
+    ]);
+  }, [selectedTab]);
 
   return (
     <AdminLayout>
@@ -210,20 +226,29 @@ export default function SettingsPage() {
                 </div>
               ) : (
                 <>
+                  {selectedTab === "ghn" && (
+                    <GhnSenderAddress values={formData} onChange={setVal} />
+                  )}
                   <div>
-                    {list.map((setting) => {
-                      const settingWithCurrentValue: ISetting = {
-                        ...setting,
-                        value: formData[setting.key] ?? setting.value,
-                      };
-                      return (
-                        <SettingFormItem
-                          key={setting._id}
-                          setting={settingWithCurrentValue}
-                          onValueChange={setVal}
-                        />
-                      );
-                    })}
+                    {list
+                      .filter(
+                        (setting) =>
+                          !hiddenKeys.has(setting.key) &&
+                          !setting.key.startsWith("GHN_SENDER_"),
+                      )
+                      .map((setting) => {
+                        const settingWithCurrentValue: ISetting = {
+                          ...setting,
+                          value: formData[setting.key] ?? setting.value,
+                        };
+                        return (
+                          <SettingFormItem
+                            key={setting._id}
+                            setting={settingWithCurrentValue}
+                            onValueChange={setVal}
+                          />
+                        );
+                      })}
                   </div>
 
                   <div className="mt-8 pt-6 border-t border-purple-500/30 text-right">

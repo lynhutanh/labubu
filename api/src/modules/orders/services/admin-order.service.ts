@@ -33,6 +33,7 @@ import {
   GhnService,
   GhnCreateOrderPayload,
 } from "src/modules/payment/services/ghn.service";
+import { SettingService } from "src/modules/settings/services";
 
 @Injectable()
 export class AdminOrderService {
@@ -44,6 +45,8 @@ export class AdminOrderService {
     private readonly queueEventService: QueueMessageService,
     @Inject(forwardRef(() => GhnService))
     private readonly ghnService: GhnService,
+    @Inject(forwardRef(() => SettingService))
+    private readonly settingService: SettingService,
   ) {}
 
   async findById(orderId: string): Promise<OrderDto | null> {
@@ -276,6 +279,22 @@ export class AdminOrderService {
     const width = 20;
     const height = 10;
 
+    const [
+      senderAddress,
+      senderWardName,
+      senderDistrictName,
+      senderProvinceName,
+      siteName,
+      contactPhone,
+    ] = await Promise.all([
+      this.settingService.get("GHN_SENDER_ADDRESS"),
+      this.settingService.get("GHN_SENDER_WARD_NAME"),
+      this.settingService.get("GHN_SENDER_DISTRICT_NAME"),
+      this.settingService.get("GHN_SENDER_PROVINCE_NAME"),
+      this.settingService.get("siteName"),
+      this.settingService.get("contactPhone"),
+    ]);
+
     const payload: GhnCreateOrderPayload = {
       orderCode: order.orderNumber,
       toName: shippingAddress.fullName,
@@ -289,13 +308,24 @@ export class AdminOrderService {
       height,
       codAmount:
         order.paymentMethod === PAYMENT_METHOD.COD ? Number(order.total) : 0,
-      fromName: shippingAddress.fullName || "Shop",
-      fromPhone: shippingAddress.phone || "",
-      fromAddress: shippingAddress.address || shippingAddress.city || "",
-      fromWardName: shippingAddress.ward || "",
-      fromDistrictName: shippingAddress.district || "",
-      fromProvinceName: shippingAddress.city || "",
+      fromName: (siteName ? String(siteName) : "Shop").trim() || "Shop",
+      fromPhone: (contactPhone ? String(contactPhone) : "").trim(),
+      fromAddress: (senderAddress ? String(senderAddress) : "").trim(),
+      fromWardName: (senderWardName ? String(senderWardName) : "").trim(),
+      fromDistrictName: (senderDistrictName ? String(senderDistrictName) : "").trim(),
+      fromProvinceName: (senderProvinceName ? String(senderProvinceName) : "").trim(),
     };
+
+    if (
+      !payload.fromAddress ||
+      !payload.fromWardName ||
+      !payload.fromDistrictName ||
+      !payload.fromProvinceName
+    ) {
+      throw new BadRequestException(
+        "Chưa cấu hình địa chỉ gửi hàng GHN. Vui lòng vào Admin Settings > Tab GHN để cập nhật.",
+      );
+    }
 
     let ghnResult: any;
     try {
