@@ -82,14 +82,15 @@ export class ForgotPasswordController {
       authPassword._id,
     );
 
-    // Generate reset link
+    // Generate reset link - strictly from ENV/config, no hardcoded fallback
     const frontendUrl =
       this.configService.get<string>("app.userUrl") ||
-      process.env.FRONTEND_URL ||
+      process.env.USER_URL ||
       "";
+
     const frontendUrlClean = frontendUrl.endsWith("/")
       ? frontendUrl.slice(0, -1)
-      : frontendUrl || "http://localhost:5002";
+      : frontendUrl;
     const resetLink = `${frontendUrlClean}/login/reset-password?token=${token}`;
 
     // Gửi email bằng Sendgrid

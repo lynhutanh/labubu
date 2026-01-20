@@ -22,7 +22,11 @@ export abstract class APIRequest {
     const { API_ENDPOINT } = APIRequest;
     if (API_ENDPOINT) return API_ENDPOINT;
 
-    return process.env.NEXT_PUBLIC_API_ENDPOINT || 'http://localhost:5001';
+    return (
+      process.env.NEXT_PUBLIC_API_ENDPOINT ||
+      process.env.API_SERVER_ENDPOINT ||
+      'http://localhost:5001'
+    );
   }
 
   async request(

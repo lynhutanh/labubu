@@ -1,36 +1,33 @@
 const nextConfig = {
   compress: true,
   reactStrictMode: false,
-  distDir: '.next',
+  distDir: ".next",
   eslint: {
-    ignoreDuringBuilds: true
+    ignoreDuringBuilds: true,
   },
   images: {
     unoptimized: true,
     minimumCacheTTL: 60 * 60 * 24 * 7,
-    domains: ['localhost']
+    domains: ["localhost"],
   },
   rewrites() {
     return [
       {
-        source: '/',
-        destination: '/dashboard'
-      }
+        source: "/",
+        destination: "/dashboard",
+      },
     ];
   },
   poweredByHeader: false,
-  serverRuntimeConfig: {
-    API_ENDPOINT: process.env.API_ENDPOINT || process.env.API_SERVER_ENDPOINT
-  },
-  publicRuntimeConfig: {
-    API_ENDPOINT: process.env.API_ENDPOINT || 'http://localhost:5001',
-    SITE_URL: process.env.SITE_URL
-  },
   env: {
-    API_ENDPOINT: process.env.API_ENDPOINT,
-    SITE_URL: process.env.SITE_URL
-  }
+    // Ensure client-side always receives a public API endpoint key
+    NEXT_PUBLIC_API_ENDPOINT:
+      process.env.NEXT_PUBLIC_API_ENDPOINT ||
+      process.env.API_SERVER_ENDPOINT ||
+      "http://localhost:5001",
+    NEXT_PUBLIC_SITE_URL:
+      process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || "",
+  },
 };
 
 module.exports = nextConfig;
-

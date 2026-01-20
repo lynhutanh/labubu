@@ -13,23 +13,21 @@ const nextConfig: NextConfig = {
   },
   images: {
     unoptimized: true,
-    formats: ['image/webp'],
+    formats: ["image/webp"],
     minimumCacheTTL: 60 * 60 * 24 * 7,
-    domains: ['localhost']
+    domains: ["localhost"],
   },
   poweredByHeader: false,
-  serverRuntimeConfig: {
-    API_ENDPOINT: process.env.API_SERVER_ENDPOINT || process.env.API_ENDPOINT
-  },
-  publicRuntimeConfig: {
-    SITE_URL: process.env.SITE_URL,
-    API_ENDPOINT: process.env.API_ENDPOINT || 'http://localhost:5001',
-    FACEBOOK_APP_ID: process.env.FACEBOOK_APP_ID
-  },
   env: {
-    FACEBOOK_APP_ID: process.env.FACEBOOK_APP_ID
-  }
+    NEXT_PUBLIC_API_ENDPOINT:
+      process.env.NEXT_PUBLIC_API_ENDPOINT ||
+      process.env.API_SERVER_ENDPOINT ||
+      process.env.API_ENDPOINT ||
+      "http://localhost:5001",
+    NEXT_PUBLIC_SITE_URL:
+      process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || "",
+    FACEBOOK_APP_ID: process.env.FACEBOOK_APP_ID,
+  },
 };
 
 export default nextConfig;
-
