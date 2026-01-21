@@ -87,8 +87,8 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo Section - Left */}
-          <Link href="/" className="flex items-center gap-3 flex-shrink-0">
-            <div className="relative w-20 h-20">
+          <Link href="/" className="flex items-center gap-3 min-w-0">
+            <div className="relative w-12 h-12 sm:w-20 sm:h-20 flex-shrink-0">
               <Image
                 src="/logo.png"
                 alt="Labubu Store Logo"
@@ -98,9 +98,9 @@ export default function Header() {
                 priority
               />
             </div>
-            <div className="flex flex-col">
+            <div className="flex flex-col min-w-0">
               <span
-                className="text-lg font-bold text-yellow-400 leading-tight"
+                className="block text-sm sm:text-lg font-bold text-yellow-400 leading-tight truncate"
                 style={{
                   textShadow:
                     "2px 2px 0px rgba(255,255,255,0.8), -1px -1px 0px rgba(255,255,255,0.8), 1px 1px 0px rgba(255,255,255,0.8)",
@@ -154,8 +154,8 @@ export default function Header() {
             </Link>
           </nav>
 
-          {/* Icons Section - Right */}
-          <div className="flex items-center gap-3">
+          {/* Icons Section - Right - Hidden on mobile */}
+          <div className="hidden lg:flex items-center gap-3">
             {/* Search Icon */}
             <button
               onClick={() => setShowSearch(!showSearch)}
@@ -254,21 +254,20 @@ export default function Header() {
                 <User className="w-5 h-5" />
               </Link>
             )}
-
-
-            {/* Mobile Menu Button */}
-            <button
-              onClick={() => setShowMobileMenu(!showMobileMenu)}
-              className="lg:hidden p-2 text-white hover:text-yellow-400 transition-colors"
-              aria-label="Toggle menu"
-            >
-              {showMobileMenu ? (
-                <X className="w-6 h-6" />
-              ) : (
-                <Menu className="w-6 h-6" />
-              )}
-            </button>
           </div>
+
+          {/* Mobile Menu Button - Always visible on mobile */}
+          <button
+            onClick={() => setShowMobileMenu(!showMobileMenu)}
+            className="lg:hidden p-2 text-white hover:text-yellow-400 transition-colors"
+            aria-label="Toggle menu"
+          >
+            {showMobileMenu ? (
+              <X className="w-6 h-6" />
+            ) : (
+              <Menu className="w-6 h-6" />
+            )}
+          </button>
         </div>
 
         {/* Search Bar (when search is clicked) */}
@@ -296,6 +295,43 @@ export default function Header() {
           />
           <div className="fixed top-[65px] left-0 right-0 bg-black border-b border-gray-800 shadow-lg z-50 lg:hidden max-h-[calc(100vh-65px)] overflow-y-auto">
             <nav className="px-4 py-4 space-y-1">
+              <button
+                onClick={() => {
+                  setShowSearch(!showSearch);
+                  setShowMobileMenu(false);
+                }}
+                className="w-full flex items-center gap-3 px-4 py-3 text-white hover:bg-gray-800 rounded-lg transition-colors"
+              >
+                <Search className="w-5 h-5" />
+                {t.header.search}
+              </button>
+              <Link
+                href="/cart"
+                onClick={() => setShowMobileMenu(false)}
+                className="flex items-center justify-between gap-3 px-4 py-3 text-white hover:bg-gray-800 rounded-lg transition-colors"
+              >
+                <span className="flex items-center gap-3">
+                  <ShoppingCart className="w-5 h-5" />
+                  {t.header.cart}
+                </span>
+                {cartItemCount > 0 && (
+                  <span className="min-w-6 h-6 px-2 bg-yellow-400 text-black text-xs rounded-full flex items-center justify-center font-bold">
+                    {cartItemCount > 99 ? "99+" : cartItemCount}
+                  </span>
+                )}
+              </Link>
+              <Link
+                href="/wishlist"
+                onClick={() => setShowMobileMenu(false)}
+                className="flex items-center gap-3 px-4 py-3 text-white hover:bg-gray-800 rounded-lg transition-colors"
+              >
+                <Heart className="w-5 h-5" />
+                {t.header.favorites}
+              </Link>
+              <div className="px-4 py-3">
+                <LanguageSwitcher />
+              </div>
+              <div className="border-t border-gray-700 my-2" />
               <Link
                 href="/"
                 onClick={() => setShowMobileMenu(false)}

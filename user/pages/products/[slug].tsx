@@ -319,27 +319,7 @@ export default function ProductDetailPage() {
                         <h1 className="text-3xl md:text-4xl font-bold text-white">
                             {product.name}
                         </h1>
-
-                        {/* Rating */}
-                        {product.rating && product.rating > 0 && (
-                            <div className="flex items-center gap-2">
-                                <div className="flex items-center">
-                                    {[...Array(5)].map((_, i) => (
-                                        <Star
-                                            key={i}
-                                            className={`w-5 h-5 ${
-                                                i < Math.floor(product.rating || 0)
-                                                    ? "text-yellow-400 fill-yellow-400"
-                                                    : "text-gray-400"
-                                            }`}
-                                        />
-                                    ))}
-                                </div>
-                                <span className="text-purple-200">
-                                    {product.rating?.toFixed(1)} ({product.reviewCount || 0} {t.common.reviews})
-                                </span>
-                            </div>
-                        )}
+               
 
                         {/* Price */}
                         <div className="space-y-2">

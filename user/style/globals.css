@@ -26,6 +26,27 @@ body {
     Oxygen,
     Ubuntu,
     sans-serif;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+#__next {
+  width: 100%;
+  max-width: 100%;
+}
+
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
+}
+
+pre,
+code {
+  max-width: 100%;
+  overflow-x: auto;
 }
 
 * {

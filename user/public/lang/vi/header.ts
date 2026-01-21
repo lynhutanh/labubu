@@ -7,4 +7,5 @@ export default {
     favorites: "Yêu thích",
     logout: "Đăng xuất",
     login: "Đăng nhập",
+    cart: "Giỏ hàng"
 };

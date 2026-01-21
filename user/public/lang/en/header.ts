@@ -7,4 +7,5 @@ export default {
     favorites: "Favorites",
     logout: "Logout",
     login: "Login",
+    cart: "Cart"
 };
