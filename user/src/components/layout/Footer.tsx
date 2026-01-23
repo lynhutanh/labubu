@@ -48,7 +48,7 @@ export default function Footer() {
                     href={`tel:${contactInfo.phone.replace(/\s/g, "")}`}
                     className="hover:text-pink-400 transition-colors"
                   >
-                    {contactInfo.phone}
+                    +1 929 505 8028
                   </a>
                 </li>
               )}

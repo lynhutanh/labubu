@@ -265,7 +265,7 @@ export default function OrderDetailPage() {
                                 {order.ghnOrderCode && (
                                     <button
                                         onClick={() => {
-                                            window.open("https://5sao.ghn.dev/", "_blank");
+                                            window.open("https://khachhang.ghn.vn/", "_blank");
                                         }}
                                         className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg hover:opacity-90 transition-all text-sm"
                                         title="Xem đơn hàng trên GHN"
