@@ -4,9 +4,9 @@ import {
   Globe,
   Phone,
   CreditCard,
-  DollarSign,
   Save,
   Truck,
+  Lock,
 } from "lucide-react";
 import { settingsService } from "src/services";
 import {
@@ -52,6 +52,13 @@ const getTabConfig = (): TabConfig[] => [
     icon: Phone,
     color: "from-purple-500 to-pink-500",
     description: "Cấu hình thông tin đội ngũ hỗ trợ.",
+  },
+  {
+    key: "admin",
+    title: "Đổi mật khẩu",
+    icon: Lock,
+    color: "from-red-500 to-orange-500",
+    description: "Thay đổi mật khẩu tài khoản admin.",
   },
 ];
 
