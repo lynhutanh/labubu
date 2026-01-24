@@ -434,6 +434,38 @@ export class SePayService implements OnModuleInit {
     }
 
     /**
+     * Get random SePay account (account 1 or account 2)
+     */
+    private async getRandomSePayAccount(): Promise<{ account: string; bank: string }> {
+        await this.refreshSettings();
+        
+        const account1 = await this.settingService.get("sepayAccount");
+        const bank1 = await this.settingService.get("sepayBank");
+        const account2 = await this.settingService.get("sepay2Account");
+        const bank2 = await this.settingService.get("sepay2Bank");
+
+        const accounts: Array<{ account: string; bank: string }> = [];
+
+        if (account1 && bank1) {
+            accounts.push({ account: account1, bank: bank1 });
+        }
+
+        if (account2 && bank2) {
+            accounts.push({ account: account2, bank: bank2 });
+        }
+
+        if (accounts.length === 0) {
+            return {
+                account: this.account || "",
+                bank: this.bank || "VIB",
+            };
+        }
+
+        const randomIndex = Math.floor(Math.random() * accounts.length);
+        return accounts[randomIndex];
+    }
+
+    /**
      * Get payment info for order
      */
     async getPaymentInfo(orderCode: string): Promise<{
@@ -442,7 +474,6 @@ export class SePayService implements OnModuleInit {
         qrUrl: string;
         expiredAt: Date;
     }> {
-        // Refresh settings trước khi sử dụng (có thể đã được cập nhật từ admin)
         await this.refreshSettings();
         const order = await this.orderModel.findOne({
             orderNumber: orderCode,
@@ -457,10 +488,11 @@ export class SePayService implements OnModuleInit {
             throw new BadRequestException("Đơn hàng chưa có payment_ref");
         }
 
+        const selectedAccount = await this.getRandomSePayAccount();
 
         const qrUrl = this.generateQRUrl({
-            account: this.account,
-            bank: this.bank,
+            account: selectedAccount.account,
+            bank: selectedAccount.bank,
             amount: order.total,
             description: order.paymentRef,
         });

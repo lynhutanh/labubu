@@ -313,7 +313,11 @@ export class AdminOrderService {
       width,
       height,
       codAmount:
-        order.paymentMethod === PAYMENT_METHOD.COD ? Number(order.total) : 0,
+        order.paymentStatus === PAYMENT_STATUS.PAID
+          ? 0
+          : order.paymentMethod === PAYMENT_METHOD.COD
+            ? Number(order.total)
+            : 0,
       fromName: (siteName ? String(siteName) : "Shop").trim() || "Shop",
       fromPhone: (contactPhone ? String(contactPhone) : "").trim(),
       fromAddress: (senderAddress ? String(senderAddress) : "").trim(),

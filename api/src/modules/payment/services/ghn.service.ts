@@ -396,6 +396,7 @@ export class GhnService {
         returned: "Đã hoàn",
         cancel: "Đã hủy",
         warehouse_departure: "Xuất hàng đi khỏi kho",
+        money_collect_picking: "Thu tiền khi lấy hàng",
       };
       
       const statusName = data.status_name || statusMap[status] || status || "";
@@ -481,8 +482,13 @@ export class GhnService {
 
           let description = logStatusName;
           const statusLower = logStatusName.toLowerCase();
+          const logStatusLower = logStatus.toLowerCase();
           
-          if (statusLower.includes("trung chuyển") && stationName) {
+          if (logStatusLower === "money_collect_picking") {
+            description = stationName 
+              ? `Nhân viên đang thu tiền khi lấy hàng tại ${stationName}`
+              : "Nhân viên đang thu tiền khi lấy hàng";
+          } else if (statusLower.includes("trung chuyển") && stationName) {
             description = `Đơn hàng đang trung chuyển đến ${stationName}`;
           } else if (statusLower.includes("xuất") && stationName) {
             description = `Đơn hàng đã xuất khỏi Bưu Cục đến ${stationName}`;
