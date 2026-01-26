@@ -208,9 +208,7 @@ export class UserService {
     const user = await this.userModel.findById(id);
     if (!user) throw new EntityNotFoundException();
 
-    await this.userModel.findByIdAndUpdate(id, {
-      $set: { status: STATUS.INACTIVE, updatedAt: new Date() },
-    });
+    await this.userModel.findByIdAndDelete(id);
 
     return true;
   }

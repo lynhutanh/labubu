@@ -14,6 +14,7 @@ import {
   HttpStatus,
   forwardRef,
   Inject,
+  NotFoundException,
 } from "@nestjs/common";
 import { ApiTags, ApiOperation } from "@nestjs/swagger";
 import { DataResponse } from "src/kernel";
@@ -122,6 +123,14 @@ export class AdminUserController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Admin delete user" })
   async deleteUser(@Param("id") id: string): Promise<DataResponse<boolean>> {
+    const user = await this.userService.findById(id);
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
+
+    await this.authService.deleteManySession({ sourceId: id });
+    await this.authService.deleteMany({ source: SOURCE_TYPE.USER, sourceId: id });
+    
     const result = await this.userService.delete(id);
     return DataResponse.ok(result);
   }

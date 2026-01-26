@@ -181,6 +181,11 @@ export class AuthService {
     return result.deletedCount > 0;
   }
 
+  public async deleteMany(query: any): Promise<boolean> {
+    const result = await this.AuthModel.deleteMany(query);
+    return result.deletedCount > 0;
+  }
+
   public generateJWT(): string {
     return "session_token_placeholder";
   }

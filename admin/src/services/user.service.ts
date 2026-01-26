@@ -35,7 +35,7 @@ class UserService extends APIRequest {
   }
 
   public async delete(id: string): Promise<void> {
-    await this.del(`/users/${id}`);
+    await this.del(`/admin/users/${id}`);
   }
 
   public async changeStatus(id: string, status: string): Promise<UserResponse> {
