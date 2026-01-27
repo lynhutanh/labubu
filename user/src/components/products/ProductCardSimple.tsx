@@ -1,5 +1,5 @@
 import { Star, ShoppingCart, Heart, Eye } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
@@ -10,8 +10,8 @@ import toast from "react-hot-toast";
 import { useTrans } from "../../hooks/useTrans";
 
 interface ProductCardSimpleProps {
-    id: string | number; // For URL (slug or _id)
-    productId?: string; // Actual product _id for API calls
+    id: string | number;
+    productId?: string;
     name: string;
     brand: string;
     price: number;
@@ -40,12 +40,12 @@ export default function ProductCardSimple({
 }: ProductCardSimpleProps) {
     const router = useRouter();
     const t = useTrans();
+    const shouldReduceMotion = useReducedMotion();
     const [isInWishlist, setIsInWishlist] = useState(false);
     const [isAddingToCart, setIsAddingToCart] = useState(false);
     const [isTogglingWishlist, setIsTogglingWishlist] = useState(false);
     const isInStock = stock === undefined || stock === null || stock > 0;
 
-    // Check if product is in wishlist on mount
     useEffect(() => {
         const checkWishlistStatus = async () => {
             const user = storage.getUser();
@@ -55,7 +55,6 @@ export default function ProductCardSimple({
                 const isInWishlist = await wishlistService.checkProduct(productId);
                 setIsInWishlist(isInWishlist);
             } catch (error) {
-                // Silently fail - user might not be logged in
                 console.error("Failed to check wishlist status:", error);
             }
         };
@@ -81,7 +80,6 @@ export default function ProductCardSimple({
 
         setIsAddingToCart(true);
         try {
-            // Use productId if provided, otherwise use id (might be _id or slug)
             const actualProductId = productId || (typeof id === "string" ? id : String(id));
             await cartService.addToCart({
                 productId: actualProductId,
@@ -135,12 +133,24 @@ export default function ProductCardSimple({
         }
     };
 
+    const animationVariants = {
+        fadeIn: {
+            opacity: shouldReduceMotion ? 1 : 0,
+            y: shouldReduceMotion ? 0 : 20,
+        },
+    };
+
+    const animationTransition = {
+        duration: shouldReduceMotion ? 0 : 0.3,
+        ease: "easeOut",
+    };
+
     return (
         <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={animationVariants.fadeIn}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.3 }}
+            transition={animationTransition}
             className="group relative rounded-2xl overflow-hidden transition-all duration-300"
             style={{
                 background:
@@ -149,14 +159,13 @@ export default function ProductCardSimple({
                 boxShadow:
                     "0 4px 6px rgba(0, 0, 0, 0.3), 0 0 20px rgba(168, 85, 247, 0.1)",
             }}
-            whileHover={{
+            whileHover={shouldReduceMotion ? {} : {
                 scale: 1.02,
                 boxShadow:
                     "0 8px 12px rgba(0, 0, 0, 0.4), 0 0 30px rgba(168, 85, 247, 0.3), 0 0 50px rgba(236, 72, 153, 0.2)",
                 borderColor: "rgba(168, 85, 247, 0.6)",
             }}
         >
-            {/* Galaxy Glow Effect */}
             <div
                 className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                 style={{
@@ -165,18 +174,16 @@ export default function ProductCardSimple({
                 }}
             />
 
-            {/* Image Container */}
             <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-purple-900/20 to-indigo-900/20">
                 <img
                     src={image}
                     alt={name}
                     className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                    loading="lazy"
                 />
 
-                {/* Overlay Gradient */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-                {/* Wishlist Button - Top Left */}
                 <button
                     onClick={handleToggleWishlist}
                     disabled={isTogglingWishlist}
@@ -194,7 +201,6 @@ export default function ProductCardSimple({
                     />
                 </button>
 
-                {/* Badges - Top Right */}
                 <div className="absolute top-3 right-3 flex flex-col gap-2 z-10">
                     {badge && (
                         <span
@@ -226,7 +232,6 @@ export default function ProductCardSimple({
                     )}
                 </div>
 
-                {/* Quick Actions - Bottom Overlay */}
                 <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/90 via-black/70 to-transparent translate-y-full group-hover:translate-y-0 transition-transform duration-300 backdrop-blur-sm">
                     <div className="flex flex-col gap-2">
                         <Link 
@@ -259,9 +264,7 @@ export default function ProductCardSimple({
                 </div>
             </div>
 
-            {/* Content */}
             <div className="p-4 bg-gradient-to-b from-transparent to-black/20 backdrop-blur-sm">
-                {/* Product Name */}
                 <Link href={`/products/${id}`}>
                     <h3
                         className="font-semibold text-white line-clamp-2 mb-3 min-h-[2.5rem] hover:text-purple-300 transition-colors cursor-pointer"
@@ -273,7 +276,6 @@ export default function ProductCardSimple({
                     </h3>
                 </Link>
 
-                {/* Stock Status */}
                 <div className="mb-3">
                     {isInStock ? (
                         <span
@@ -298,7 +300,6 @@ export default function ProductCardSimple({
                     )}
                 </div>
 
-                {/* Price */}
                 <div className="flex items-center gap-2">
                     <span
                         className="text-lg font-bold"

@@ -1,7 +1,7 @@
 import Head from "next/head";
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/router";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import {
     CreditCard,
     Wallet,
@@ -38,6 +38,7 @@ interface PaymentInfo {
 export default function CheckoutPage() {
     const router = useRouter();
     const t = useTrans();
+    const shouldReduceMotion = useReducedMotion();
     const [cart, setCart] = useState<Cart | null>(null);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
@@ -80,9 +81,10 @@ export default function CheckoutPage() {
             id: i,
             left: Math.random() * 100,
             top: Math.random() * 100,
-            width: Math.random() * 3 + 1,
-            height: Math.random() * 3 + 1,
-            opacity: Math.random() * 0.8 + 0.2,
+            width: Math.random() * 2 + 1,
+            height: Math.random() * 2 + 1,
+            opacity: Math.random() * 0.6 + 0.3,
+            delay: Math.random() * 3,
         }));
     }, [mounted]);
 
@@ -509,6 +511,7 @@ export default function CheckoutPage() {
                             width: `${star.width}px`,
                             height: `${star.height}px`,
                             opacity: star.opacity,
+                            animation: shouldReduceMotion ? "none" : `twinkle ${star.delay + 2}s infinite`,
                         }}
                     />
                 ))}
@@ -518,8 +521,9 @@ export default function CheckoutPage() {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     {/* Header */}
                     <motion.div
-                        initial={{ opacity: 0, y: -20 }}
+                        initial={{ opacity: shouldReduceMotion ? 1 : 0, y: shouldReduceMotion ? 0 : -20 }}
                         animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: shouldReduceMotion ? 0 : 0.4 }}
                         className="mb-8"
                     >
                         <button
@@ -546,8 +550,9 @@ export default function CheckoutPage() {
                     {orderCreated && selectedPayment === "sepay" && paymentInfo ? (
                         // Payment QR Screen
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.9 }}
+                            initial={{ opacity: shouldReduceMotion ? 1 : 0, scale: shouldReduceMotion ? 1 : 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: shouldReduceMotion ? 0 : 0.4 }}
                             className="max-w-2xl mx-auto"
                         >
                             <div className="galaxy-card rounded-2xl p-8 backdrop-blur-sm text-center">
@@ -608,8 +613,9 @@ export default function CheckoutPage() {
                             <div className="lg:col-span-2 space-y-6">
                                 {/* Shipping Address */}
                                 <motion.div
-                                    initial={{ opacity: 0, y: 20 }}
+                                    initial={{ opacity: shouldReduceMotion ? 1 : 0, y: shouldReduceMotion ? 0 : 20 }}
                                     animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: shouldReduceMotion ? 0 : 0.4 }}
                                     className="galaxy-card rounded-2xl p-6 backdrop-blur-sm"
                                 >
                                     <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
@@ -779,9 +785,9 @@ export default function CheckoutPage() {
 
                                 {/* Payment Method */}
                                 <motion.div
-                                    initial={{ opacity: 0, y: 20 }}
+                                    initial={{ opacity: shouldReduceMotion ? 1 : 0, y: shouldReduceMotion ? 0 : 20 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.1 }}
+                                    transition={{ duration: shouldReduceMotion ? 0 : 0.4, delay: shouldReduceMotion ? 0 : 0.1 }}
                                     className="galaxy-card rounded-2xl p-6 backdrop-blur-sm"
                                 >
                                     <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
@@ -863,9 +869,9 @@ export default function CheckoutPage() {
                             {/* Right Column - Order Summary */}
                             <div className="lg:col-span-1">
                                 <motion.div
-                                    initial={{ opacity: 0, y: 20 }}
+                                    initial={{ opacity: shouldReduceMotion ? 1 : 0, y: shouldReduceMotion ? 0 : 20 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.2 }}
+                                    transition={{ duration: shouldReduceMotion ? 0 : 0.4, delay: shouldReduceMotion ? 0 : 0.2 }}
                                     className="galaxy-card rounded-2xl p-6 backdrop-blur-sm sticky top-4"
                                 >
                                     <h2 className="text-xl font-bold text-white mb-4">

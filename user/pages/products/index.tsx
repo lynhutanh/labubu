@@ -1,15 +1,13 @@
 import Head from "next/head";
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { useState, useEffect, useMemo } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import { Search, Grid3x3, List, SlidersHorizontal } from "lucide-react";
 import Layout from "../../src/components/layout/Layout";
 import ProductCardSimple from "../../src/components/products/ProductCardSimple";
 import { productService, Product } from "../../src/services/product.service";
 import { categoryService, Category } from "../../src/services/category.service";
 
-// Helper function to map Product from API to ProductCardSimple format
 const mapProductToCard = (product: Product) => {
-    // Get image from files array or coverImage
     const firstImage = 
         product.files?.[0]?.url || 
         product.files?.[0]?.thumbnailUrl || 
@@ -22,7 +20,6 @@ const mapProductToCard = (product: Product) => {
         ? Math.round(((originalPrice - displayPrice) / originalPrice) * 100)
         : undefined;
     
-    // Determine badge based on product data
     let badge: "Best Seller" | "Hot" | "New" | undefined = undefined;
     if (product.soldCount && product.soldCount > 50) {
         badge = "Best Seller";
@@ -32,7 +29,6 @@ const mapProductToCard = (product: Product) => {
         badge = "New";
     }
 
-    // Get category name - categoryId might be string ID or object
     let categoryName = "Labubu";
     if (product.categoryId) {
         if (typeof product.categoryId === "object" && product.categoryId.name) {
@@ -43,8 +39,8 @@ const mapProductToCard = (product: Product) => {
     }
 
     return {
-        id: product.slug || product._id, // Use slug for URL, fallback to _id
-        productId: product._id, // Actual product _id for API calls
+        id: product.slug || product._id,
+        productId: product._id,
         name: product.name,
         brand: categoryName,
         price: displayPrice,
@@ -59,6 +55,7 @@ const mapProductToCard = (product: Product) => {
 };
 
 export default function ProductsPage() {
+    const shouldReduceMotion = useReducedMotion();
     const [products, setProducts] = useState<Product[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
@@ -70,16 +67,55 @@ export default function ProductsPage() {
     const [priceRange, setPriceRange] = useState("all");
     const [sortBy, setSortBy] = useState("default");
 
-    // Debounce search query
+    const stars = useMemo(() => {
+        return Array.from({ length: 50 }, (_, i) => ({
+            id: i,
+            left: Math.random() * 100,
+            top: Math.random() * 100,
+            width: Math.random() * 2 + 1,
+            height: Math.random() * 2 + 1,
+            opacity: Math.random() * 0.6 + 0.3,
+            delay: Math.random() * 3,
+        }));
+    }, []);
+
+    const nebulaClouds = useMemo(() => [
+        {
+            className: "absolute top-20 left-10 w-96 h-96 bg-purple-500 rounded-full opacity-15 blur-3xl",
+            animate: {
+                x: [0, 50, 0],
+                y: [0, 30, 0],
+                scale: [1, 1.2, 1],
+            },
+            transition: {
+                duration: 20,
+                repeat: Infinity,
+                repeatType: "reverse" as const,
+            },
+        },
+        {
+            className: "absolute top-40 right-20 w-80 h-80 bg-pink-500 rounded-full opacity-15 blur-3xl",
+            animate: {
+                x: [0, -40, 0],
+                y: [0, 50, 0],
+                scale: [1, 1.3, 1],
+            },
+            transition: {
+                duration: 25,
+                repeat: Infinity,
+                repeatType: "reverse" as const,
+            },
+        },
+    ], []);
+
     useEffect(() => {
         const timer = setTimeout(() => {
             setDebouncedSearchQuery(searchQuery);
-        }, 500); // Wait 500ms after user stops typing
+        }, 500);
 
         return () => clearTimeout(timer);
     }, [searchQuery]);
 
-    // Load categories on mount
     useEffect(() => {
         const loadCategories = async () => {
             try {
@@ -92,28 +128,23 @@ export default function ProductsPage() {
         loadCategories();
     }, []);
 
-    // Load products with filters whenever filters change
     useEffect(() => {
         const loadProducts = async () => {
             try {
                 setLoading(true);
                 
-                // Build search params
                 const searchParams: any = {
                     limit: 100,
                 };
 
-                // Add keyword if search query exists
                 if (debouncedSearchQuery) {
                     searchParams.keyword = debouncedSearchQuery;
                 }
 
-                // Add category filter
                 if (selectedCategory !== "all") {
                     searchParams.categoryId = selectedCategory;
                 }
 
-                // Add price range filter
                 if (priceRange !== "all") {
                     const [min, max] = priceRange.split("-").map(Number);
                     searchParams.minPrice = min;
@@ -122,7 +153,6 @@ export default function ProductsPage() {
                     }
                 }
 
-                // Add sort
                 if (sortBy === "price-asc") {
                     searchParams.sortBy = "price";
                     searchParams.sortOrder = "asc";
@@ -136,7 +166,6 @@ export default function ProductsPage() {
                     searchParams.sortBy = "createdAt";
                     searchParams.sortOrder = "desc";
                 } else {
-                    // default
                     searchParams.sortBy = "createdAt";
                     searchParams.sortOrder = "desc";
                 }
@@ -153,8 +182,19 @@ export default function ProductsPage() {
         loadProducts();
     }, [debouncedSearchQuery, selectedCategory, priceRange, sortBy]);
 
-    // Use products directly (already filtered by API)
     const filteredProducts = products;
+
+    const animationVariants = {
+        fadeIn: {
+            opacity: shouldReduceMotion ? 1 : 0,
+            y: shouldReduceMotion ? 0 : 20,
+        },
+    };
+
+    const animationTransition = {
+        duration: shouldReduceMotion ? 0 : 0.4,
+        ease: "easeOut",
+    };
 
     return (
         <Layout>
@@ -166,83 +206,53 @@ export default function ProductsPage() {
                 />
             </Head>
 
-            {/* Galaxy Background - Common for entire page */}
             <div className="fixed inset-0 bg-gradient-to-br from-purple-900 via-indigo-900 to-black -z-10 overflow-hidden">
-                {/* Stars Effect */}
-                {[...Array(100)].map((_, i) => (
+                {stars.map((star) => (
                     <div
-                        key={i}
+                        key={star.id}
                         className="absolute rounded-full bg-white"
                         style={{
-                            left: `${Math.random() * 100}%`,
-                            top: `${Math.random() * 100}%`,
-                            width: `${Math.random() * 3 + 1}px`,
-                            height: `${Math.random() * 3 + 1}px`,
-                            opacity: Math.random() * 0.8 + 0.2,
-                            animation: `twinkle ${Math.random() * 3 + 2}s infinite`,
+                            left: `${star.left}%`,
+                            top: `${star.top}%`,
+                            width: `${star.width}px`,
+                            height: `${star.height}px`,
+                            opacity: star.opacity,
+                            animation: shouldReduceMotion ? "none" : `twinkle ${star.delay + 2}s infinite`,
                         }}
                     />
                 ))}
 
-                {/* Nebula Clouds */}
-                <div className="absolute top-0 left-0 w-full h-full">
-                    <motion.div
-                        className="absolute top-20 left-10 w-96 h-96 bg-purple-500 rounded-full opacity-20 blur-3xl"
-                        animate={{
-                            x: [0, 50, 0],
-                            y: [0, 30, 0],
-                            scale: [1, 1.2, 1],
-                        }}
-                        transition={{
-                            duration: 20,
-                            repeat: Infinity,
-                            repeatType: "reverse",
-                        }}
-                    />
-                    <motion.div
-                        className="absolute top-40 right-20 w-80 h-80 bg-pink-500 rounded-full opacity-20 blur-3xl"
-                        animate={{
-                            x: [0, -40, 0],
-                            y: [0, 50, 0],
-                            scale: [1, 1.3, 1],
-                        }}
-                        transition={{
-                            duration: 25,
-                            repeat: Infinity,
-                            repeatType: "reverse",
-                        }}
-                    />
-                    <motion.div
-                        className="absolute bottom-20 left-1/3 w-72 h-72 bg-indigo-500 rounded-full opacity-15 blur-3xl"
-                        animate={{
-                            x: [0, 60, 0],
-                            y: [0, -40, 0],
-                            scale: [1, 1.1, 1],
-                        }}
-                        transition={{
-                            duration: 30,
-                            repeat: Infinity,
-                            repeatType: "reverse",
-                        }}
-                    />
-                </div>
+                {!shouldReduceMotion && (
+                    <div className="absolute top-0 left-0 w-full h-full">
+                        {nebulaClouds.map((cloud, index) => (
+                            <motion.div
+                                key={index}
+                                className={cloud.className}
+                                animate={cloud.animate}
+                                transition={cloud.transition}
+                            />
+                        ))}
+                    </div>
+                )}
             </div>
 
-            {/* Hero Section */}
             <section className="relative py-20">
                 <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                     <motion.h1
-                        initial={{ opacity: 0, y: -20 }}
+                        initial={animationVariants.fadeIn}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6 }}
+                        transition={animationTransition}
                         className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4"
                     >
                         Sản Phẩm
                     </motion.h1>
                     <motion.p
-                        initial={{ opacity: 0, y: -20 }}
+                        initial={animationVariants.fadeIn}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6, delay: 0.2 }}
+                        transition={{
+                            ...animationTransition,
+                            delay: shouldReduceMotion ? 0 : 0.2,
+                        }}
                         className="text-xl md:text-2xl text-white/90 max-w-2xl mx-auto"
                     >
                         Khám phá bộ sưu tập Labubu đa dạng, chất lượng cao
@@ -250,17 +260,14 @@ export default function ProductsPage() {
                 </div>
             </section>
 
-            {/* Main Content */}
             <section className="relative py-12 min-h-screen">
                 <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    {/* Search and Filter Bar */}
                     <motion.div
-                        initial={{ opacity: 0, y: 20 }}
+                        initial={animationVariants.fadeIn}
                         animate={{ opacity: 1, y: 0 }}
                         className="galaxy-card rounded-2xl p-6 mb-8 backdrop-blur-sm"
                     >
                         <div className="flex flex-col lg:flex-row gap-4">
-                            {/* Search Input */}
                             <div className="flex-1 relative">
                                 <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-purple-300 w-5 h-5 z-10" />
                                 <input
@@ -272,7 +279,6 @@ export default function ProductsPage() {
                                 />
                             </div>
 
-                            {/* Filter Buttons */}
                             <div className="flex gap-3">
                                 <button
                                     onClick={() => setShowFilters(!showFilters)}
@@ -282,7 +288,6 @@ export default function ProductsPage() {
                                     Lọc
                                 </button>
 
-                                {/* View Mode Toggle */}
                                 <div className="flex border border-purple-500/30 rounded-lg overflow-hidden backdrop-blur-sm">
                                     <button
                                         onClick={() => setViewMode("grid")}
@@ -290,7 +295,7 @@ export default function ProductsPage() {
                                                 ? "bg-gradient-to-r from-pink-500 to-purple-600 text-white"
                                                 : "bg-white/10 text-purple-200 hover:bg-white/20"
                                             }`}
-                                        style={viewMode === "grid" ? {
+                                        style={viewMode === "grid" && !shouldReduceMotion ? {
                                             boxShadow: "0 0 20px rgba(236, 72, 153, 0.4)",
                                         } : {}}
                                     >
@@ -302,7 +307,7 @@ export default function ProductsPage() {
                                                 ? "bg-gradient-to-r from-pink-500 to-purple-600 text-white"
                                                 : "bg-white/10 text-purple-200 hover:bg-white/20"
                                             }`}
-                                        style={viewMode === "list" ? {
+                                        style={viewMode === "list" && !shouldReduceMotion ? {
                                             boxShadow: "0 0 20px rgba(236, 72, 153, 0.4)",
                                         } : {}}
                                     >
@@ -312,7 +317,6 @@ export default function ProductsPage() {
                             </div>
                         </div>
 
-                        {/* Advanced Filters */}
                         {showFilters && (
                             <motion.div
                                 initial={{ opacity: 0, height: 0 }}
@@ -321,7 +325,6 @@ export default function ProductsPage() {
                                 className="mt-6 pt-6 border-t border-purple-500/30"
                             >
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    {/* Category Filter */}
                                     <div>
                                         <label className="block text-sm font-medium text-purple-200 mb-2">
                                             Danh mục
@@ -340,7 +343,6 @@ export default function ProductsPage() {
                                         </select>
                                     </div>
 
-                                    {/* Price Range Filter */}
                                     <div>
                                         <label className="block text-sm font-medium text-purple-200 mb-2">
                                             Khoảng giá
@@ -357,7 +359,6 @@ export default function ProductsPage() {
                                         </select>
                                     </div>
 
-                                    {/* Sort By */}
                                     <div>
                                         <label className="block text-sm font-medium text-purple-200 mb-2">
                                             Sắp xếp
@@ -379,7 +380,6 @@ export default function ProductsPage() {
                         )}
                     </motion.div>
 
-                    {/* Results Count */}
                     <div className="mb-6 flex items-center justify-between">
                         <p className="text-white">
                             {loading ? (
@@ -396,7 +396,6 @@ export default function ProductsPage() {
                         </p>
                     </div>
 
-                    {/* Products Grid */}
                     {loading ? (
                         <div className="text-center py-20">
                             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500"></div>
@@ -410,26 +409,19 @@ export default function ProductsPage() {
                                     : "space-y-6"
                             }
                         >
-                            {filteredProducts.map((product, index) => (
-                                <motion.div
+                            {filteredProducts.map((product) => (
+                                <ProductCardSimple
                                     key={product._id}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{
-                                        duration: 0.4,
-                                        delay: index * 0.1,
-                                    }}
-                                >
-                                    <ProductCardSimple {...mapProductToCard(product)} />
-                                </motion.div>
+                                    {...mapProductToCard(product)}
+                                />
                             ))}
                         </div>
                     ) : (
                         <div className="text-center py-20">
                             <motion.div
-                                initial={{ opacity: 0, scale: 0.8 }}
+                                initial={animationVariants.fadeIn}
                                 animate={{ opacity: 1, scale: 1 }}
-                                transition={{ duration: 0.5 }}
+                                transition={animationTransition}
                                 className="max-w-md mx-auto"
                             >
                                 <div className="w-32 h-32 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
@@ -459,4 +451,3 @@ export default function ProductsPage() {
         </Layout>
     );
 }
-

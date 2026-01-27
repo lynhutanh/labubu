@@ -1,8 +1,8 @@
 import Head from "next/head";
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { useState, useEffect, useMemo } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import {
   ArrowRight,
   Sparkles,
@@ -18,7 +18,6 @@ import ProductCardSimple from "../src/components/products/ProductCardSimple";
 import { productService, Product } from "../src/services/product.service";
 import { useTrans } from "../src/hooks/useTrans";
 
-// Helper function to map Product from API to ProductCardSimple format
 const mapProductToCard = (product: Product) => {
   const firstImage =
     product.files?.[0]?.url || product.files?.[0]?.thumbnailUrl || "";
@@ -32,7 +31,6 @@ const mapProductToCard = (product: Product) => {
     ? Math.round(((originalPrice - displayPrice) / originalPrice) * 100)
     : undefined;
 
-  // Determine badge based on product data
   let badge: "Best Seller" | "Hot" | "New" | undefined = undefined;
   if (product.soldCount && product.soldCount > 50) {
     badge = "Best Seller";
@@ -43,8 +41,8 @@ const mapProductToCard = (product: Product) => {
   }
 
   return {
-    id: product.slug || product._id, // Use slug for URL, fallback to _id
-    productId: product._id, // Actual product _id for API calls
+    id: product.slug || product._id,
+    productId: product._id,
     name: product.name,
     brand: product.categoryId?.name || "Labubu",
     price: displayPrice,
@@ -60,9 +58,22 @@ const mapProductToCard = (product: Product) => {
 
 export default function HomePage() {
   const t = useTrans();
+  const shouldReduceMotion = useReducedMotion();
   const [newProducts, setNewProducts] = useState<Product[]>([]);
   const [bestSellers, setBestSellers] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const stars = useMemo(() => {
+    return Array.from({ length: 50 }, (_, i) => ({
+      id: i,
+      left: Math.random() * 100,
+      top: Math.random() * 100,
+      width: Math.random() * 2 + 1,
+      height: Math.random() * 2 + 1,
+      opacity: Math.random() * 0.6 + 0.3,
+      delay: Math.random() * 3,
+    }));
+  }, []);
 
   useEffect(() => {
     const loadProducts = async () => {
@@ -82,6 +93,27 @@ export default function HomePage() {
     };
     loadProducts();
   }, []);
+
+  const animationVariants = {
+    fadeIn: {
+      opacity: shouldReduceMotion ? 1 : 0,
+      y: shouldReduceMotion ? 0 : 20,
+    },
+    fadeInUp: {
+      opacity: shouldReduceMotion ? 1 : 0,
+      y: shouldReduceMotion ? 0 : 30,
+    },
+    fadeInDown: {
+      opacity: shouldReduceMotion ? 1 : 0,
+      y: shouldReduceMotion ? 0 : -20,
+    },
+  };
+
+  const animationTransition = {
+    duration: shouldReduceMotion ? 0 : 0.6,
+    ease: "easeOut",
+  };
+
   return (
     <Layout>
       <Head>
@@ -89,7 +121,6 @@ export default function HomePage() {
         <meta name="description" content={t.home.description} />
       </Head>
 
-      {/* Page Background - Common for all sections */}
       <div
         className="fixed inset-0 bg-cover bg-center bg-no-repeat bg-fixed -z-10"
         style={{
@@ -97,34 +128,28 @@ export default function HomePage() {
         }}
       />
 
-      {/* Hero Section */}
       <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
-        {/* Background Image with Animation */}
         <motion.div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
             backgroundImage: "url('/bg_hero_Section.jpg')",
           }}
-          initial={{ scale: 1.1, opacity: 0 }}
+          initial={{ scale: shouldReduceMotion ? 1 : 1.1, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 1.2, ease: "easeOut" }}
+          transition={{ duration: shouldReduceMotion ? 0 : 1.2, ease: "easeOut" }}
         />
 
-        {/* Content Container */}
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            {/* Left Side - Text Content */}
             <motion.div
-              initial={{ opacity: 0, x: -80, y: 20 }}
+              initial={animationVariants.fadeInUp}
               animate={{ opacity: 1, x: 0, y: 0 }}
               transition={{
-                duration: 0.8,
-                ease: [0.25, 0.1, 0.25, 1],
-                delay: 0.2,
+                ...animationTransition,
+                delay: shouldReduceMotion ? 0 : 0.2,
               }}
               className="text-center lg:text-left"
             >
-              {/* Headline */}
               <motion.h1
                 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight"
                 style={{
@@ -132,12 +157,11 @@ export default function HomePage() {
                     "3px 3px 6px rgba(0,0,0,0.8), -1px -1px 2px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.8)",
                   WebkitTextStroke: "2px rgba(0,0,0,0.5)",
                 }}
-                initial={{ opacity: 0, y: 30 }}
+                initial={animationVariants.fadeInDown}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{
-                  duration: 0.8,
-                  ease: "easeOut",
-                  delay: 0.4,
+                  ...animationTransition,
+                  delay: shouldReduceMotion ? 0 : 0.4,
                 }}
               >
                 {t.home.storeName}
@@ -149,12 +173,11 @@ export default function HomePage() {
                     "3px 3px 8px rgba(0,0,0,0.9), -1px -1px 3px rgba(0,0,0,0.9), 1px 1px 3px rgba(0,0,0,0.9)",
                   WebkitTextStroke: "1.5px rgba(0,0,0,0.6)",
                 }}
-                initial={{ opacity: 0, y: 20 }}
+                initial={animationVariants.fadeInDown}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{
-                  duration: 0.7,
-                  ease: "easeOut",
-                  delay: 0.6,
+                  ...animationTransition,
+                  delay: shouldReduceMotion ? 0 : 0.6,
                 }}
               >
                 {t.home.slogan}
@@ -166,28 +189,25 @@ export default function HomePage() {
                   textShadow:
                     "2px 2px 4px rgba(236, 233, 16, 0.8), -1px -1px 2px rgba(206, 61, 61, 0.8)",
                 }}
-                initial={{ opacity: 0, y: 20 }}
+                initial={animationVariants.fadeIn}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{
-                  duration: 0.7,
-                  ease: "easeOut",
-                  delay: 0.8,
+                  ...animationTransition,
+                  delay: shouldReduceMotion ? 0 : 0.8,
                 }}
               >
                 {t.home.descriptionText}
               </motion.p>
 
-              {/* CTA Button */}
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
+                initial={animationVariants.fadeIn}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{
-                  duration: 0.6,
-                  ease: "easeOut",
-                  delay: 1,
+                  ...animationTransition,
+                  delay: shouldReduceMotion ? 0 : 1,
                 }}
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.98 }}
+                whileHover={shouldReduceMotion ? {} : { scale: 1.05, y: -2 }}
+                whileTap={shouldReduceMotion ? {} : { scale: 0.98 }}
                 className="flex justify-center lg:justify-start"
               >
                 <Link
@@ -195,27 +215,29 @@ export default function HomePage() {
                   className="inline-flex items-center gap-3 px-8 py-4 bg-black text-white rounded-full font-semibold text-lg hover:bg-gray-800 transition-all shadow-xl hover:shadow-2xl"
                 >
                   {t.home.exploreNow}
-                  <motion.span
-                    animate={{ x: [0, 5, 0] }}
-                    transition={{
-                      duration: 1.5,
-                      repeat: Infinity,
-                      ease: "easeInOut",
-                    }}
-                  >
-                    <ArrowRight className="w-6 h-6" />
-                  </motion.span>
+                  {!shouldReduceMotion && (
+                    <motion.span
+                      animate={{ x: [0, 5, 0] }}
+                      transition={{
+                        duration: 1.5,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                      }}
+                    >
+                      <ArrowRight className="w-6 h-6" />
+                    </motion.span>
+                  )}
+                  {shouldReduceMotion && <ArrowRight className="w-6 h-6" />}
                 </Link>
               </motion.div>
 
-              {/* Features Grid */}
               <motion.div
                 className="grid grid-cols-2 gap-4 mt-12 max-w-md mx-auto lg:mx-0"
-                initial={{ opacity: 0 }}
+                initial={animationVariants.fadeIn}
                 animate={{ opacity: 1 }}
                 transition={{
-                  duration: 0.6,
-                  delay: 1.2,
+                  ...animationTransition,
+                  delay: shouldReduceMotion ? 0 : 1.2,
                 }}
               >
                 {[
@@ -239,14 +261,13 @@ export default function HomePage() {
                   <motion.div
                     key={index}
                     className="bg-white/90 backdrop-blur-sm rounded-lg p-4 shadow-xl border-2 border-yellow-400"
-                    initial={{ opacity: 0, y: 30, scale: 0.9 }}
+                    initial={animationVariants.fadeInUp}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     transition={{
-                      duration: 0.5,
-                      ease: "easeOut",
-                      delay: 1.3 + index * 0.1,
+                      ...animationTransition,
+                      delay: shouldReduceMotion ? 0 : 1.3 + index * 0.1,
                     }}
-                    whileHover={{
+                    whileHover={shouldReduceMotion ? {} : {
                       scale: 1.05,
                       y: -5,
                       transition: { duration: 0.2 },
@@ -266,20 +287,18 @@ export default function HomePage() {
               </motion.div>
             </motion.div>
 
-            {/* Right Side - Image/Banner */}
             <motion.div
-              initial={{ opacity: 0, x: 80, scale: 0.9 }}
+              initial={animationVariants.fadeInUp}
               animate={{ opacity: 1, x: 0, scale: 1 }}
               transition={{
-                duration: 1,
-                ease: [0.25, 0.1, 0.25, 1],
-                delay: 0.4,
+                ...animationTransition,
+                delay: shouldReduceMotion ? 0 : 0.4,
               }}
               className="relative"
             >
               <motion.div
                 className="relative w-full h-full flex items-center justify-center"
-                whileHover={{ scale: 1.02 }}
+                whileHover={shouldReduceMotion ? {} : { scale: 1.02 }}
                 transition={{ duration: 0.3 }}
               >
                 <Image
@@ -289,21 +308,20 @@ export default function HomePage() {
                   height={1200}
                   className="w-full h-auto object-contain rounded-3xl"
                   priority
+                  loading="eager"
                 />
               </motion.div>
             </motion.div>
           </div>
         </div>
 
-        {/* Bottom Service Bar */}
         <motion.div
           className="absolute bottom-0 left-0 right-0 bg-black text-white py-4"
-          initial={{ opacity: 0, y: 50 }}
+          initial={animationVariants.fadeInUp}
           animate={{ opacity: 1, y: 0 }}
           transition={{
-            duration: 0.8,
-            ease: "easeOut",
-            delay: 1.5,
+            ...animationTransition,
+            delay: shouldReduceMotion ? 0 : 1.5,
           }}
         >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -316,42 +334,36 @@ export default function HomePage() {
                 <div key={index} className="flex items-center gap-4 md:gap-6">
                   <motion.span
                     className="flex items-center gap-2"
-                    initial={{ opacity: 0, x: -20 }}
+                    initial={animationVariants.fadeIn}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{
-                      duration: 0.5,
-                      ease: "easeOut",
-                      delay: 1.6 + index * 0.15,
+                      ...animationTransition,
+                      delay: shouldReduceMotion ? 0 : 1.6 + index * 0.15,
                     }}
-                    whileHover={{ scale: 1.1 }}
+                    whileHover={shouldReduceMotion ? {} : { scale: 1.1 }}
                   >
-                    <motion.span
-                      className="w-2 h-2 bg-yellow-400 rounded-full"
-                      animate={{
-                        scale: [1, 1.3, 1],
-                        opacity: [1, 0.7, 1],
-                      }}
-                      transition={{
-                        duration: 2,
-                        repeat: Infinity,
-                        delay: index * 0.3,
-                        ease: "easeInOut",
-                      }}
-                    />
+                    {!shouldReduceMotion && (
+                      <motion.span
+                        className="w-2 h-2 bg-yellow-400 rounded-full"
+                        animate={{
+                          scale: [1, 1.3, 1],
+                          opacity: [1, 0.7, 1],
+                        }}
+                        transition={{
+                          duration: 2,
+                          repeat: Infinity,
+                          delay: index * 0.3,
+                          ease: "easeInOut",
+                        }}
+                      />
+                    )}
+                    {shouldReduceMotion && (
+                      <span className="w-2 h-2 bg-yellow-400 rounded-full" />
+                    )}
                     {item}
                   </motion.span>
                   {index < array.length - 1 && (
-                    <motion.span
-                      className="text-white/50"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{
-                        duration: 0.3,
-                        delay: 1.7 + index * 0.15,
-                      }}
-                    >
-                      |
-                    </motion.span>
+                    <span className="text-white/50">|</span>
                   )}
                 </div>
               ))}
@@ -360,33 +372,33 @@ export default function HomePage() {
         </motion.div>
       </section>
 
-      {/* Features Banner Section */}
       <section className="py-12 relative">
-        {/* SVG Filter for electric effect */}
         <svg className="absolute w-0 h-0">
           <defs>
             <filter id="turbulent-displace">
               <feTurbulence
                 type="fractalNoise"
                 baseFrequency="0.9"
-                numOctaves="3"
+                numOctaves="2"
                 result="noise"
               >
-                <animate
-                  attributeName="baseFrequency"
-                  values="0.9;1.1;0.9"
-                  dur="2s"
-                  repeatCount="indefinite"
-                />
+                {!shouldReduceMotion && (
+                  <animate
+                    attributeName="baseFrequency"
+                    values="0.9;1.1;0.9"
+                    dur="3s"
+                    repeatCount="indefinite"
+                  />
+                )}
               </feTurbulence>
               <feDisplacementMap
                 in="SourceGraphic"
                 in2="noise"
-                scale="3"
+                scale="2"
                 xChannelSelector="R"
                 yChannelSelector="G"
               />
-              <feGaussianBlur stdDeviation="1" result="blur" />
+              <feGaussianBlur stdDeviation="0.5" result="blur" />
               <feMerge>
                 <feMergeNode in="blur" />
                 <feMergeNode in="SourceGraphic" />
@@ -395,7 +407,6 @@ export default function HomePage() {
           </defs>
         </svg>
 
-        {/* Container */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
@@ -423,9 +434,9 @@ export default function HomePage() {
               ].map((feature, index) => (
                 <motion.div
                   key={index}
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={animationVariants.fadeInUp}
                   whileInView={{ opacity: 1, y: 0 }}
-                  whileHover={{ scale: 1.05 }}
+                  whileHover={shouldReduceMotion ? {} : { scale: 1.05 }}
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.1 }}
                   className="card-container h-full cursor-pointer"
@@ -436,7 +447,7 @@ export default function HomePage() {
                     background:
                       "linear-gradient(-30deg, #fbbf24, transparent, #fbbf24), linear-gradient(to bottom, #1f2937, #1f2937)",
                     backgroundSize: "200% 200%",
-                    animation: "electric-border 3s ease infinite",
+                    animation: shouldReduceMotion ? "none" : "electric-border 3s ease infinite",
                   }}
                 >
                   <div
@@ -449,104 +460,33 @@ export default function HomePage() {
                       marginTop: "-2px",
                       marginLeft: "-2px",
                       position: "relative",
-                      filter: "url(#turbulent-displace)",
+                      filter: shouldReduceMotion ? "none" : "url(#turbulent-displace)",
                       boxShadow: "0 0 2px rgba(249, 115, 22, 0.3)",
-                      animation: "electric-pulse 2s ease-in-out infinite",
+                      animation: shouldReduceMotion ? "none" : "electric-pulse 2s ease-in-out infinite",
                     }}
                   >
-                    {/* Electric sparks */}
-                    <span
-                      className="electric-spark"
-                      style={{
-                        top: "10%",
-                        left: "0",
-                        animation: "electric-spark 1.5s ease-in-out infinite",
-                        animationDelay: "0s",
-                      }}
-                    />
-                    <span
-                      className="electric-spark"
-                      style={{
-                        top: "30%",
-                        right: "0",
-                        animation: "electric-spark-2 1.8s ease-in-out infinite",
-                        animationDelay: "0.5s",
-                      }}
-                    />
-                    <span
-                      className="electric-spark"
-                      style={{
-                        bottom: "20%",
-                        left: "0",
-                        animation: "electric-spark-3 1.6s ease-in-out infinite",
-                        animationDelay: "1s",
-                      }}
-                    />
-                    <span
-                      className="electric-spark"
-                      style={{
-                        bottom: "10%",
-                        right: "0",
-                        animation: "electric-spark 1.7s ease-in-out infinite",
-                        animationDelay: "0.3s",
-                      }}
-                    />
-                    <span
-                      className="electric-spark"
-                      style={{
-                        top: "50%",
-                        left: "0",
-                        animation: "electric-spark-2 1.9s ease-in-out infinite",
-                        animationDelay: "0.8s",
-                      }}
-                    />
-                    <span
-                      className="electric-spark"
-                      style={{
-                        top: "0",
-                        left: "50%",
-                        transform: "translateX(-50%)",
-                        animation: "electric-spark-3 1.5s ease-in-out infinite",
-                        animationDelay: "0.2s",
-                      }}
-                    />
-                    <span
-                      className="electric-spark"
-                      style={{
-                        bottom: "0",
-                        left: "50%",
-                        transform: "translateX(-50%)",
-                        animation: "electric-spark 1.6s ease-in-out infinite",
-                        animationDelay: "0.6s",
-                      }}
-                    />
-                    <span
-                      className="electric-spark"
-                      style={{
-                        top: "20%",
-                        right: "0",
-                        animation: "electric-spark-3 1.4s ease-in-out infinite",
-                        animationDelay: "0.4s",
-                      }}
-                    />
-                    <span
-                      className="electric-spark"
-                      style={{
-                        bottom: "30%",
-                        right: "0",
-                        animation: "electric-spark 1.8s ease-in-out infinite",
-                        animationDelay: "0.7s",
-                      }}
-                    />
-                    <span
-                      className="electric-spark"
-                      style={{
-                        top: "70%",
-                        left: "0",
-                        animation: "electric-spark-2 1.5s ease-in-out infinite",
-                        animationDelay: "0.9s",
-                      }}
-                    />
+                    {!shouldReduceMotion && (
+                      <>
+                        <span
+                          className="electric-spark"
+                          style={{
+                            top: "10%",
+                            left: "0",
+                            animation: "electric-spark 1.5s ease-in-out infinite",
+                            animationDelay: "0s",
+                          }}
+                        />
+                        <span
+                          className="electric-spark"
+                          style={{
+                            bottom: "20%",
+                            right: "0",
+                            animation: "electric-spark-2 1.8s ease-in-out infinite",
+                            animationDelay: "0.5s",
+                          }}
+                        />
+                      </>
+                    )}
                     <div className="flex flex-col items-center justify-center flex-1">
                       <div className="w-16 h-16 rounded-full border-2 border-yellow-500 flex items-center justify-center mb-4 bg-transparent">
                         <feature.icon className="w-8 h-8 text-yellow-500" />
@@ -566,31 +506,26 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* New Products Section */}
       <section className="py-16 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <motion.div
-              initial={{ opacity: 0, y: -50, scale: 0.8 }}
+              initial={animationVariants.fadeInDown}
               whileInView={{ opacity: 1, y: 0, scale: 1 }}
               viewport={{ once: true, margin: "-100px" }}
-              transition={{
-                duration: 0.8,
-                ease: [0.25, 0.1, 0.25, 1],
-              }}
+              transition={animationTransition}
             >
               <h2 className="text-3xl md:text-4xl lg:text-5xl galaxy-glow-text mb-4">
                 {t.home.newProducts.title}
               </h2>
             </motion.div>
             <motion.div
-              initial={{ opacity: 0, y: 50, scale: 0.8 }}
+              initial={animationVariants.fadeInUp}
               whileInView={{ opacity: 1, y: 0, scale: 1 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{
-                duration: 0.8,
-                ease: [0.25, 0.1, 0.25, 1],
-                delay: 0.2,
+                ...animationTransition,
+                delay: shouldReduceMotion ? 0 : 0.2,
               }}
             >
               <p className="text-lg md:text-xl galaxy-glow-subtitle max-w-2xl mx-auto">
@@ -621,31 +556,26 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Top Selling Products Section */}
       <section className="py-16 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <motion.div
-              initial={{ opacity: 0, x: -100, rotateY: -45 }}
+              initial={animationVariants.fadeInDown}
               whileInView={{ opacity: 1, x: 0, rotateY: 0 }}
               viewport={{ once: true, margin: "-100px" }}
-              transition={{
-                duration: 0.8,
-                ease: [0.25, 0.1, 0.25, 1],
-              }}
+              transition={animationTransition}
             >
               <h2 className="text-3xl md:text-4xl lg:text-5xl galaxy-glow-text mb-4">
                 {t.home.bestSellers.title}
               </h2>
             </motion.div>
             <motion.div
-              initial={{ opacity: 0, x: 100, rotateY: 45 }}
+              initial={animationVariants.fadeInUp}
               whileInView={{ opacity: 1, x: 0, rotateY: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{
-                duration: 0.8,
-                ease: [0.25, 0.1, 0.25, 1],
-                delay: 0.2,
+                ...animationTransition,
+                delay: shouldReduceMotion ? 0 : 0.2,
               }}
             >
               <p className="text-lg md:text-xl galaxy-glow-subtitle max-w-2xl mx-auto">
@@ -676,19 +606,15 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Diecut Sticker Section */}
       <section className="relative py-16 overflow-hidden">
-        {/* Background Image */}
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
             backgroundImage: "url('/background_login.webp')",
           }}
         />
-        {/* Overlay nhẹ để text dễ đọc */}
         <div className="absolute inset-0 bg-white/10"></div>
 
-        {/* Top Black Header */}
         <div className="relative z-10 bg-black text-white py-3">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <p className="text-sm md:text-base font-medium">
@@ -706,7 +632,6 @@ export default function HomePage() {
             </h2>
           </div>
 
-          {/* Zigzag Divider */}
           <div className="my-8">
             <svg
               className="w-full h-4"
@@ -720,7 +645,6 @@ export default function HomePage() {
             </svg>
           </div>
 
-          {/* Three Content Blocks */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
             {[
               {
@@ -744,24 +668,22 @@ export default function HomePage() {
             ].map((block, index) => (
               <motion.div
                 key={index}
-                initial={{ opacity: 0, y: 30 }}
+                initial={animationVariants.fadeInUp}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: index * 0.2 }}
+                transition={{ delay: index * 0.1 }}
                 className="bg-white border-2 border-black rounded-lg overflow-hidden shadow-lg"
               >
-                {/* Image */}
                 <div className="relative h-64 overflow-hidden">
                   <Image
                     src={block.image}
                     alt={block.title}
                     fill
                     className="object-cover"
-                    unoptimized
+                    loading="lazy"
                   />
                 </div>
 
-                {/* Content */}
                 <div className="p-6">
                   <h3 className="text-xl font-bold text-black flex items-center justify-center">
                     {block.title}

@@ -58,6 +58,33 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Performance optimizations */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Optimize animations */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* GPU acceleration for animated elements */
+.galaxy-card,
+.electric-spark,
+[class*="motion"] {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
 /* Custom thin scrollbar */
 ::-webkit-scrollbar {
   width: 4px;
@@ -296,7 +323,6 @@ input[type="number"] {
 
 /* Twinkle animation for stars */
 @keyframes twinkle {
-
   0%,
   100% {
     opacity: 0.2;
@@ -307,15 +333,11 @@ input[type="number"] {
   }
 }
 
-/* Twinkle animation for stars */
-@keyframes twinkle {
-
-  0%,
-  100% {
-    opacity: 0.2;
-  }
-
-  50% {
-    opacity: 1;
-  }
+/* Galaxy Card */
+.galaxy-card {
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(168, 85, 247, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
