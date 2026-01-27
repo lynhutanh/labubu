@@ -44,9 +44,9 @@ export default function Footer() {
               {contactInfo.phone && (
                 <li className="flex items-center gap-3">
                   <Phone className="w-5 h-5 text-pink-500 flex-shrink-0" />
-                  <span className="text-gray-300">
-                    {contactInfo.phone}
-                  </span>
+                  <span className="text-gray-300 pointer-events-none select-none">
+  +1 929 505 8028
+</span>
                 </li>
               )}
               {contactInfo.email && (
