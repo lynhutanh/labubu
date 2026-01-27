@@ -160,7 +160,6 @@ export default function CartPage() {
 
   const animationTransition = {
     duration: shouldReduceMotion ? 0 : 0.3,
-    ease: "easeOut",
   };
 
   return (

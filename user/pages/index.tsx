@@ -111,7 +111,6 @@ export default function HomePage() {
 
   const animationTransition = {
     duration: shouldReduceMotion ? 0 : 0.6,
-    ease: "easeOut",
   };
 
   return (
@@ -136,7 +135,7 @@ export default function HomePage() {
           }}
           initial={{ scale: shouldReduceMotion ? 1 : 1.1, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: shouldReduceMotion ? 0 : 1.2, ease: "easeOut" }}
+          transition={{ duration: shouldReduceMotion ? 0 : 1.2 }}
         />
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
@@ -221,7 +220,6 @@ export default function HomePage() {
                       transition={{
                         duration: 1.5,
                         repeat: Infinity,
-                        ease: "easeInOut",
                       }}
                     >
                       <ArrowRight className="w-6 h-6" />
@@ -353,7 +351,6 @@ export default function HomePage() {
                           duration: 2,
                           repeat: Infinity,
                           delay: index * 0.3,
-                          ease: "easeInOut",
                         }}
                       />
                     )}

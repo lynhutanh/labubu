@@ -193,7 +193,6 @@ export default function ProductsPage() {
 
     const animationTransition = {
         duration: shouldReduceMotion ? 0 : 0.4,
-        ease: "easeOut",
     };
 
     return (
