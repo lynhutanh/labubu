@@ -1,8 +1,8 @@
 import { forwardRef, Module } from "@nestjs/common";
 import { MongoDBModule } from "src/kernel";
-import { orderProviders } from "./providers";
-import { BuyerOrderController, AdminOrderController } from "./controllers";
-import { BuyerOrderService, AdminOrderService } from "./services";
+import { orderProviders, refundRequestProviders } from "./providers";
+import { BuyerOrderController, AdminOrderController, RefundRequestController } from "./controllers";
+import { BuyerOrderService, AdminOrderService, RefundRequestService } from "./services";
 import { OrderCreatedListener, OrderCancelledListener } from "./listeners";
 import { AuthModule } from "../auth/auth.module";
 import { ProductModule } from "../products/product.module";
@@ -24,19 +24,23 @@ import { GhnOrderSyncService } from "./services/ghn-order-sync.service";
     SendgridModule,
     UserModule,
   ],
-  controllers: [BuyerOrderController, AdminOrderController],
+  controllers: [BuyerOrderController, AdminOrderController, RefundRequestController],
   providers: [
     ...orderProviders,
+    ...refundRequestProviders,
     BuyerOrderService,
     AdminOrderService,
+    RefundRequestService,
     OrderCreatedListener,
     OrderCancelledListener,
     GhnOrderSyncService,
   ],
   exports: [
     ...orderProviders,
+    ...refundRequestProviders,
     BuyerOrderService,
     AdminOrderService,
+    RefundRequestService,
     GhnOrderSyncService,
   ],
 })

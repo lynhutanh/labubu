@@ -18,6 +18,7 @@ import {
   FileText,
   Copy,
   QrCode,
+  RotateCcw,
 } from "lucide-react";
 import Layout from "../../../src/components/layout/Layout";
 import ProfileLayout from "../../../src/components/profile/ProfileLayout";
@@ -111,6 +112,9 @@ export default function OrderDetailPage() {
   const { id } = router.query;
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refunding, setRefunding] = useState(false);
+  const [refundReason, setRefundReason] = useState("");
+  const [showRefundModal, setShowRefundModal] = useState(false);
 
   useEffect(() => {
     const user = storage.getUser();
@@ -155,6 +159,33 @@ export default function OrderDetailPage() {
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast.success("Đã sao chép!");
+  };
+
+  const handleRefundRequest = async () => {
+    if (!order) return;
+
+    try {
+      setRefunding(true);
+      await orderService.createRefundRequest(order._id, refundReason);
+      toast.success("Yêu cầu hoàn tiền đã được gửi thành công!");
+      setShowRefundModal(false);
+      setRefundReason("");
+      await loadOrder();
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Không thể tạo yêu cầu hoàn tiền");
+    } finally {
+      setRefunding(false);
+    }
+  };
+
+  const canRequestRefund = () => {
+    if (!order) return false;
+    return (
+      order.paymentStatus === "paid" &&
+      order.status !== "refunded" &&
+      order.status !== "cancelled" &&
+      !order.ghnOrderCode
+    );
   };
 
   if (loading) {
@@ -457,6 +488,17 @@ export default function OrderDetailPage() {
                         </div>
                       </div>
                     )}
+                    {canRequestRefund() && (
+                      <div className="pt-4 border-t border-gray-200">
+                        <button
+                          onClick={() => setShowRefundModal(true)}
+                          className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition-all"
+                        >
+                          <RotateCcw className="w-5 h-5" />
+                          Yêu cầu hoàn tiền
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </motion.div>
               </div>
@@ -464,6 +506,55 @@ export default function OrderDetailPage() {
           </div>
         </ProfileLayout>
       </Layout>
+
+      {showRefundModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-lg shadow-xl max-w-md w-full p-6"
+          >
+            <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <RotateCcw className="w-6 h-6 text-orange-500" />
+              Yêu cầu hoàn tiền
+            </h3>
+            <p className="text-gray-600 mb-4">
+              Bạn có chắc chắn muốn yêu cầu hoàn tiền cho đơn hàng{" "}
+              <span className="font-semibold">{order?.orderNumber}</span>?
+            </p>
+            <div className="mb-4">
+              <label className="block text-gray-700 mb-2 text-sm font-medium">
+                Lý do hoàn tiền (tùy chọn)
+              </label>
+              <textarea
+                value={refundReason}
+                onChange={(e) => setRefundReason(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                rows={3}
+                placeholder="Nhập lý do hoàn tiền..."
+              />
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowRefundModal(false);
+                  setRefundReason("");
+                }}
+                className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-all"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={handleRefundRequest}
+                disabled={refunding}
+                className="flex-1 px-4 py-2 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {refunding ? "Đang xử lý..." : "Xác nhận"}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </>
   );
 }

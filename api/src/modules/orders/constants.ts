@@ -41,3 +41,11 @@ export const ORDER_TOPICS = {
   ORDER_UPDATED: "HANDLE_ORDER_UPDATED_TOPIC",
   ORDER_CANCELLED: "HANDLE_ORDER_CANCELLED_TOPIC",
 };
+
+export const REFUND_REQUEST_STATUS = {
+  PENDING: "pending",
+  APPROVED: "approved",
+  REJECTED: "rejected",
+} as const;
+
+export const REFUND_REQUEST_PROVIDER = "REFUND_REQUEST";

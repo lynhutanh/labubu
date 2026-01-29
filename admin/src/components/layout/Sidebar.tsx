@@ -14,8 +14,11 @@ import {
   Tag,
   CirclePlus,
   List,
+  RotateCcw,
 } from "lucide-react";
 import { storage } from "../../utils/storage";
+import { refundRequestService } from "../../services/refund-request.service";
+import { useState as useReactState, useEffect as useReactEffect } from "react";
 
 interface MenuItem {
   name: string;
@@ -54,6 +57,11 @@ const menuItems: MenuItem[] = [
     href: "/orders",
   },
   {
+    name: "Yêu cầu hoàn tiền",
+    icon: RotateCcw,
+    href: "/refund-requests",
+  },
+  {
     name: "Khách hàng",
     icon: Users,
     href: "/users",
@@ -72,11 +80,24 @@ export default function Sidebar() {
 
   const [user, setUser] = useState<any>(null);
   const [mounted, setMounted] = useState(false);
+  const [pendingRefundCount, setPendingRefundCount] = useState(0);
 
   useEffect(() => {
     setMounted(true);
     setUser(storage.getUser());
+    loadPendingRefundCount();
+    const interval = setInterval(loadPendingRefundCount, 30000);
+    return () => clearInterval(interval);
   }, []);
+
+  const loadPendingRefundCount = async () => {
+    try {
+      const count = await refundRequestService.getPendingCount();
+      setPendingRefundCount(count);
+    } catch (error) {
+      console.error("Failed to load pending refund count:", error);
+    }
+  };
 
   if (!mounted) return null;
 
@@ -241,7 +262,7 @@ export default function Sidebar() {
                 ) : (
                   <a
                     href={item.href}
-                    className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all ${
+                    className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all relative ${
                       active
                         ? "bg-gradient-to-r from-pink-500/30 to-purple-500/30 text-white border border-pink-400/50"
                         : "text-purple-200 hover:bg-white/10 hover:text-white"
@@ -256,7 +277,19 @@ export default function Sidebar() {
                   >
                     <Icon className="w-5 h-5 flex-shrink-0" />
                     {!collapsed && (
-                      <span className="font-medium">{item.name}</span>
+                      <>
+                        <span className="font-medium flex-1">{item.name}</span>
+                        {item.name === "Yêu cầu hoàn tiền" && pendingRefundCount > 0 && (
+                          <span className="bg-red-500 text-white text-xs font-bold rounded-full px-2 py-0.5 min-w-[20px] text-center">
+                            {pendingRefundCount > 99 ? "99+" : pendingRefundCount}
+                          </span>
+                        )}
+                      </>
+                    )}
+                    {collapsed && item.name === "Yêu cầu hoàn tiền" && pendingRefundCount > 0 && (
+                      <span className="absolute top-1 right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                        {pendingRefundCount > 9 ? "9+" : pendingRefundCount}
+                      </span>
                     )}
                   </a>
                 )}

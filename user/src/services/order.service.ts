@@ -167,6 +167,14 @@ export class OrderService extends APIRequest {
     console.log("📦 [OrderService] Parsed result:", JSON.stringify(result, null, 2));
     return result;
   }
+
+  public async createRefundRequest(orderId: string, reason?: string): Promise<any> {
+    const response = await this.post("/refund-requests", {
+      orderId,
+      reason,
+    });
+    return response.data?.data || response.data;
+  }
 }
 
 export const orderService = new OrderService();
