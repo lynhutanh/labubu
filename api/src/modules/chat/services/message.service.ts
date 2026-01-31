@@ -45,7 +45,7 @@ export class MessageService {
       .skip(skip)
       .lean();
 
-    return messages.map((msg) => new MessageDto(msg));
+    return messages.map((msg) => new MessageDto(msg as any));
   }
 
   async findUsersWithMessages(adminId?: string): Promise<any[]> {
