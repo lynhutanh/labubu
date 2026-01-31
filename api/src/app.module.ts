@@ -19,6 +19,7 @@ import { OrderModule } from "./modules/orders/order.module";
 import { PaymentModule } from "./modules/payment/payment.module";
 import { BrandModule } from "./modules/brand/brand.module";
 import { WishlistModule } from "./modules/wishlist/wishlist.module";
+import { ChatModule } from "./modules/chat/chat.module";
 import app from "./config/app";
 import file from "./config/file";
 import email from "./config/email";
@@ -104,6 +105,7 @@ import { CoreQueueModule, MongoDBModule } from "./kernel";
     PaymentModule,
     BrandModule,
     WishlistModule,
+    ChatModule,
   ],
   controllers: [AppController],
   providers: [AppService],

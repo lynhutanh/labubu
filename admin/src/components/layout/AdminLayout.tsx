@@ -72,7 +72,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       </div>
 
       <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden relative z-10">
+      <div className="flex-1 flex flex-col overflow-hidden relative z-10 p-6">
         {children}
       </div>
     </div>

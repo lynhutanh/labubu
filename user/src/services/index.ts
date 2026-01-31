@@ -12,7 +12,9 @@ export { ghnService } from "./ghn.service";
 export { settingService } from "./setting.service";
 export { addressService } from "./address.service";
 export { brandService } from "./brand.service";
+export { chatService } from "./chat.service";
 export type { ContactInfo, TeamInfo, TeamMember } from "./setting.service";
+export type { Message } from "./chat.service";
 export type { Address, CreateAddressPayload, UpdateAddressPayload } from "./address.service";
 export type { BrandResponse } from "./brand.service";
 

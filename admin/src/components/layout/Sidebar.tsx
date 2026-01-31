@@ -15,9 +15,11 @@ import {
   CirclePlus,
   List,
   RotateCcw,
+  MessageCircle,
 } from "lucide-react";
 import { storage } from "../../utils/storage";
 import { refundRequestService } from "../../services/refund-request.service";
+import { chatService } from "../../services/chat.service";
 import { useState as useReactState, useEffect as useReactEffect } from "react";
 
 interface MenuItem {
@@ -67,6 +69,11 @@ const menuItems: MenuItem[] = [
     href: "/users",
   },
   {
+    name: "Chat",
+    icon: MessageCircle,
+    href: "/chat",
+  },
+  {
     name: "Cài đặt",
     icon: Settings,
     href: "/settings",
@@ -81,13 +88,19 @@ export default function Sidebar() {
   const [user, setUser] = useState<any>(null);
   const [mounted, setMounted] = useState(false);
   const [pendingRefundCount, setPendingRefundCount] = useState(0);
+  const [unreadChatCount, setUnreadChatCount] = useState(0);
 
   useEffect(() => {
     setMounted(true);
     setUser(storage.getUser());
     loadPendingRefundCount();
-    const interval = setInterval(loadPendingRefundCount, 30000);
-    return () => clearInterval(interval);
+    loadUnreadChatCount();
+    const refundInterval = setInterval(loadPendingRefundCount, 30000);
+    const chatInterval = setInterval(loadUnreadChatCount, 10000);
+    return () => {
+      clearInterval(refundInterval);
+      clearInterval(chatInterval);
+    };
   }, []);
 
   const loadPendingRefundCount = async () => {
@@ -96,6 +109,15 @@ export default function Sidebar() {
       setPendingRefundCount(count);
     } catch (error) {
       console.error("Failed to load pending refund count:", error);
+    }
+  };
+
+  const loadUnreadChatCount = async () => {
+    try {
+      const count = await chatService.getTotalUnreadCount();
+      setUnreadChatCount(count);
+    } catch (error) {
+      console.error("Failed to load unread chat count:", error);
     }
   };
 
@@ -284,11 +306,31 @@ export default function Sidebar() {
                             {pendingRefundCount > 99 ? "99+" : pendingRefundCount}
                           </span>
                         )}
+                        {item.name === "Chat" && unreadChatCount > 0 && (
+                          <span
+                            className="bg-red-500 text-white text-xs font-bold rounded-full px-2 py-0.5 min-w-[20px] text-center"
+                            style={{
+                              boxShadow: "0 0 10px rgba(239, 68, 68, 0.5)",
+                            }}
+                          >
+                            {unreadChatCount > 99 ? "99+" : unreadChatCount}
+                          </span>
+                        )}
                       </>
                     )}
                     {collapsed && item.name === "Yêu cầu hoàn tiền" && pendingRefundCount > 0 && (
                       <span className="absolute top-1 right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                         {pendingRefundCount > 9 ? "9+" : pendingRefundCount}
+                      </span>
+                    )}
+                    {collapsed && item.name === "Chat" && unreadChatCount > 0 && (
+                      <span
+                        className="absolute top-1 right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center"
+                        style={{
+                          boxShadow: "0 0 10px rgba(239, 68, 68, 0.5)",
+                        }}
+                      >
+                        {unreadChatCount > 9 ? "9+" : unreadChatCount}
                       </span>
                     )}
                   </a>

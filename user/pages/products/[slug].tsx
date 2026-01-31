@@ -15,6 +15,7 @@ import {
     Truck,
     Shield,
     RotateCcw,
+    MessageCircle,
 } from "lucide-react";
 import Layout from "../../src/components/layout/Layout";
 import { productService, Product } from "../../src/services/product.service";
@@ -389,22 +390,53 @@ export default function ProductDetailPage() {
                             <button
                                 onClick={handleAddToCart}
                                 disabled={!isInStock || isAddingToCart}
-                                className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg font-semibold hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                                className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg text-sm font-medium hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
                                 style={{
                                     boxShadow: "0 0 25px rgba(236, 72, 153, 0.5)",
                                 }}
                             >
                                 {isAddingToCart ? (
                                     <>
-                                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                                         <span>{t.productDetail.adding}</span>
                                     </>
                                 ) : (
                                     <>
-                                        <ShoppingCart className="w-5 h-5" />
+                                        <ShoppingCart className="w-4 h-4" />
                                         <span>{t.productDetail.addToCart}</span>
                                     </>
                                 )}
+                            </button>
+                            <button
+                                onClick={() => {
+                                    const user = storage.getUser();
+                                    if (!user) {
+                                        toast.error("Vui lòng đăng nhập để chat với người bán");
+                                        router.push("/login");
+                                        return;
+                                    }
+                                    // Lấy hình ảnh đầu tiên từ files
+                                    const firstImage = images[0]?.url || images[0]?.thumbnailUrl || mainImage || "";
+                                    const productInfo = {
+                                        productId: product._id,
+                                        productName: product.name,
+                                        productSlug: product.slug,
+                                        productImage: firstImage,
+                                        productPrice: displayPrice,
+                                        productOriginalPrice: originalPrice,
+                                    };
+                                    const message = `Xin chào! Tôi quan tâm đến sản phẩm: ${product.name}`;
+                                    if ((window as any).openChatWithMessage) {
+                                        (window as any).openChatWithMessage(message, { type: "product_inquiry", product: productInfo });
+                                    }
+                                }}
+                                className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-600 text-white rounded-lg text-sm font-medium hover:opacity-90 transition-all shadow-lg"
+                                style={{
+                                    boxShadow: "0 0 25px rgba(251, 191, 36, 0.5)",
+                                }}
+                            >
+                                <MessageCircle className="w-4 h-4" />
+                                <span>Chat với người bán</span>
                             </button>
                             <button
                                 onClick={handleToggleWishlist}

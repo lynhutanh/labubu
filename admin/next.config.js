@@ -27,6 +27,8 @@ const nextConfig = {
       "http://localhost:5001",
     NEXT_PUBLIC_SITE_URL:
       process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || "",
+    NEXT_PUBLIC_USER_SITE_URL:
+      process.env.NEXT_PUBLIC_USER_SITE_URL || "http://localhost:5002",
   },
 };
 

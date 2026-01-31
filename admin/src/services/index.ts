@@ -7,6 +7,7 @@ export { orderService } from './order.service';
 export { productService } from './product.service';
 export { userService } from './user.service';
 export { settingsService } from './settings.service';
+export { chatService } from './chat.service';
 
 // Export API Request base class
 export { APIRequest, TOKEN } from './api-request';
