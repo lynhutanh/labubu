@@ -123,7 +123,8 @@ export class OrderService extends APIRequest {
     if (params?.page) queryParams.append("page", params.page.toString());
     if (params?.limit) queryParams.append("limit", params.limit.toString());
     if (params?.status) queryParams.append("status", params.status);
-    if (params?.paymentStatus) queryParams.append("paymentStatus", params.paymentStatus);
+    if (params?.paymentStatus)
+      queryParams.append("paymentStatus", params.paymentStatus);
 
     const queryString = queryParams.toString();
     const url = `/orders${queryString ? `?${queryString}` : ""}`;
@@ -160,15 +161,27 @@ export class OrderService extends APIRequest {
   }
 
   public async trackOrder(orderId: string): Promise<TrackingInfo> {
-    console.log("🔍 [OrderService] Calling API:", `/orders/${orderId}/tracking`);
+    console.log(
+      "🔍 [OrderService] Calling API:",
+      `/orders/${orderId}/tracking`,
+    );
     const response = await this.get(`/orders/${orderId}/tracking`);
-    console.log("📦 [OrderService] Raw API response:", JSON.stringify(response, null, 2));
+    console.log(
+      "📦 [OrderService] Raw API response:",
+      JSON.stringify(response, null, 2),
+    );
     const result = response.data?.data || response.data;
-    console.log("📦 [OrderService] Parsed result:", JSON.stringify(result, null, 2));
+    console.log(
+      "📦 [OrderService] Parsed result:",
+      JSON.stringify(result, null, 2),
+    );
     return result;
   }
 
-  public async createRefundRequest(orderId: string, reason?: string): Promise<any> {
+  public async createRefundRequest(
+    orderId: string,
+    reason?: string,
+  ): Promise<any> {
     const response = await this.post("/refund-requests", {
       orderId,
       reason,

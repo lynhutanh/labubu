@@ -258,16 +258,16 @@ export default function ChatBubble() {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-50 bg-black border-2 border-yellow-400 rounded-full p-4 shadow-2xl transition-all duration-200 hover:scale-110 hover:shadow-yellow-400/50 group"
+        className="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-50 bg-black border-2 border-yellow-400 rounded-full p-3 md:p-4 shadow-2xl transition-all duration-200 hover:scale-110 hover:shadow-yellow-400/50 group"
         style={{
           boxShadow: "0 0 20px rgba(251, 191, 36, 0.4), 0 0 40px rgba(251, 191, 36, 0.2)",
         }}
         aria-label="Open chat"
       >
-        <MessageCircle size={24} className="text-yellow-400 group-hover:text-yellow-300 transition-colors" />
+        <MessageCircle size={20} className="md:w-6 md:h-6 text-yellow-400 group-hover:text-yellow-300 transition-colors" />
         {unreadCount > 0 && (
           <span
-            className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center border-2 border-black"
+            className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 md:w-6 md:h-6 flex items-center justify-center border-2 border-black text-[10px] md:text-xs"
             style={{
               boxShadow: "0 0 10px rgba(239, 68, 68, 0.8)",
             }}
@@ -282,41 +282,41 @@ export default function ChatBubble() {
   return (
     <div
       ref={chatContainerRef}
-      className="fixed bottom-6 right-6 z-50 w-96 h-[600px] bg-black border-2 border-gray-700 rounded-lg shadow-2xl flex flex-col overflow-hidden"
+      className="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-50 w-[calc(100vw-2rem)] md:w-96 h-[calc(100vh-8rem)] md:h-[600px] max-h-[600px] bg-black border-2 border-gray-700 rounded-lg shadow-2xl flex flex-col overflow-hidden"
       style={{
         boxShadow: "0 0 30px rgba(0, 0, 0, 0.8), 0 0 60px rgba(251, 191, 36, 0.1)",
       }}
     >
       <div
-        className="bg-gradient-to-r from-gray-900 to-black border-b-2 border-yellow-400/30 text-white p-4 flex items-center justify-between"
+        className="bg-gradient-to-r from-gray-900 to-black border-b-2 border-yellow-400/30 text-white p-3 md:p-4 flex items-center justify-between"
         style={{
           boxShadow: "0 2px 10px rgba(251, 191, 36, 0.2)",
         }}
       >
-        <div className="flex items-center gap-2">
-          <MessageCircle size={20} className="text-yellow-400" />
-          <h3 className="font-semibold text-yellow-400">Chat với Admin</h3>
+        <div className="flex items-center gap-2 min-w-0">
+          <MessageCircle size={18} className="md:w-5 md:h-5 text-yellow-400 flex-shrink-0" />
+          <h3 className="font-semibold text-yellow-400 text-sm md:text-base truncate">Chat với Admin</h3>
           {unreadCount > 0 && (
             <span
-              className="bg-red-500 text-white text-xs font-bold rounded-full px-2 py-0.5 ml-2"
+              className="bg-red-500 text-white text-xs font-bold rounded-full px-1.5 py-0.5 ml-2 flex-shrink-0"
               style={{
                 boxShadow: "0 0 10px rgba(239, 68, 68, 0.6)",
               }}
             >
-              {unreadCount}
+              {unreadCount > 99 ? "99+" : unreadCount}
             </span>
           )}
         </div>
         <button
           onClick={() => setIsOpen(false)}
-          className="hover:bg-gray-800 rounded-full p-1 transition-colors text-gray-400 hover:text-white"
+          className="hover:bg-gray-800 rounded-full p-1 transition-colors text-gray-400 hover:text-white flex-shrink-0"
           aria-label="Close chat"
         >
-          <X size={20} />
+          <X size={18} className="md:w-5 md:h-5" />
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-900 scrollbar-hide">
+      <div className="flex-1 overflow-y-auto p-3 md:p-4 space-y-3 bg-gray-900 scrollbar-hide">
         {messages.length === 0 ? (
           <div className="text-center text-gray-400 mt-8">
             <MessageCircle className="w-12 h-12 mx-auto mb-3 opacity-50" />
@@ -388,7 +388,7 @@ export default function ChatBubble() {
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="border-t-2 border-gray-700 p-4 bg-black">
+      <div className="border-t-2 border-gray-700 p-3 md:p-4 bg-black">
         <div className="flex items-center gap-2">
           <input
             type="text"
@@ -396,13 +396,13 @@ export default function ChatBubble() {
             onChange={(e) => setInputMessage(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Nhập tin nhắn..."
-            className="flex-1 px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 text-white placeholder-gray-500"
+            className="flex-1 px-3 md:px-4 py-2 text-sm md:text-base bg-gray-900 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 text-white placeholder-gray-500"
             disabled={!isConnected}
           />
           <button
             onClick={sendMessage}
             disabled={!inputMessage.trim() || !isConnected}
-            className="bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-300 hover:to-yellow-400 disabled:from-gray-700 disabled:to-gray-700 disabled:cursor-not-allowed text-black rounded-lg p-2 transition-all font-semibold shadow-lg"
+            className="bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-300 hover:to-yellow-400 disabled:from-gray-700 disabled:to-gray-700 disabled:cursor-not-allowed text-black rounded-lg p-2 transition-all font-semibold shadow-lg flex-shrink-0"
             style={{
               boxShadow: !inputMessage.trim() || !isConnected
                 ? "none"
@@ -410,7 +410,7 @@ export default function ChatBubble() {
             }}
             aria-label="Send message"
           >
-            <Send size={20} />
+            <Send size={18} className="md:w-5 md:h-5" />
           </button>
         </div>
         {!isConnected && (
