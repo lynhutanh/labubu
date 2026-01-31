@@ -295,7 +295,7 @@ export default function ChatBubble() {
       >
         <div className="flex items-center gap-2 min-w-0">
           <MessageCircle size={18} className="md:w-5 md:h-5 text-yellow-400 flex-shrink-0" />
-          <h3 className="font-semibold text-yellow-400 text-sm md:text-base truncate">Chat với Admin</h3>
+          <h3 className="font-semibold text-yellow-400 text-sm md:text-base truncate">Chat với CSKH</h3>
           {unreadCount > 0 && (
             <span
               className="bg-red-500 text-white text-xs font-bold rounded-full px-1.5 py-0.5 ml-2 flex-shrink-0"
