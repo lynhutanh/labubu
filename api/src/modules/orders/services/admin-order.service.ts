@@ -365,7 +365,7 @@ export class AdminOrderService {
       },
     );
 
-    await this.sendOrderCompleteNotification(order, ghnOrderCode);
+    await this.sendOrderCompleteNotification(order);
 
     const updatedOrder = await this.updateStatus(orderId, {
       status: ORDER_STATUS.CONFIRMED,
@@ -376,7 +376,6 @@ export class AdminOrderService {
 
   private async sendOrderCompleteNotification(
     order: OrderModel,
-    ghnOrderCode: string,
   ): Promise<void> {
     try {
       const user = await this.userModel.findById(order.buyerId).lean();
@@ -387,7 +386,6 @@ export class AdminOrderService {
       await this.sendgridService.sendOrderCompleteNotification(
         user.email,
         order.orderNumber,
-        ghnOrderCode,
         order.total,
       );
     } catch (error) {

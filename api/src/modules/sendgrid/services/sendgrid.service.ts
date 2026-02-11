@@ -115,7 +115,6 @@ export class SendgridService {
   async sendOrderCompleteNotification(
     userEmail: string,
     orderCode: string,
-    ghnOrderCode: string,
     orderTotal: number,
   ): Promise<void> {
     try {
@@ -132,13 +131,12 @@ export class SendgridService {
         templateId,
         dynamicTemplateData: {
           order_code: orderCode,
-          ghn_order_code: ghnOrderCode,
           order_total: orderTotal.toLocaleString("vi-VN"),
         },
       });
 
-      this.logger.log(`[Sendgrid] Đã gửi email thông báo đơn hàng ${orderCode} (GHN: ${ghnOrderCode}) cho user ${userEmail}`);
-    } catch (error: any) {
+      this.logger.log(`[Sendgrid] Đã gửi email thông báo đơn hàng ${orderCode} cho user ${userEmail}`);
+    }catch (error: any) {
       this.logger.error(`[Sendgrid] Lỗi gửi email thông báo đơn hàng cho user: ${error?.message}`);
     }
   }

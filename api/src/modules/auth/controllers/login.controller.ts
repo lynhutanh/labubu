@@ -39,9 +39,10 @@ export class LoginController {
   public async login(
     @Body() req: LoginByUsernamePayload,
   ): Promise<DataResponse<{ token: string }>> {
+    const normalizedUsername = req.username.toLowerCase().trim();
     const user =
-      (await this.userService.findByEmail(req.username)) ||
-      (await this.userService.findByUsername(req.username));
+      (await this.userService.findByEmail(normalizedUsername)) ||
+      (await this.userService.findByUsername(normalizedUsername));
 
     if (!user) {
       throw new HttpException("This account is not found. Please sign up", 404);

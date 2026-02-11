@@ -106,7 +106,7 @@ export class UserService {
     if (existUserByEmail) throw new EmailHasBeenTakenException();
 
     const user = await this.userModel.create({
-      username: payload.username,
+      username: payload.username?.toLowerCase().trim(),
       email: payload.email.toLowerCase(),
       name: payload.name || payload.username,
       gender: payload.gender,
