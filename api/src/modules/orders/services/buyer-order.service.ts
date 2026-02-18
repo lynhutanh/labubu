@@ -201,7 +201,7 @@ export class BuyerOrderService {
     // Generate payment_ref for SePay
     let paymentRef = "";
     if (paymentMethod === PAYMENT_METHOD.SEPAY) {
-      paymentRef = `SP_${orderNumber}`;
+      paymentRef = `SP${orderNumber}`;
     }
 
     // Create order first

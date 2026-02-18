@@ -45,10 +45,10 @@ export class WalletDepositService {
     private readonly zalopayService: ZaloPayService,
     @Inject(forwardRef(() => SePayService))
     private readonly sepayService: SePayService,
-  ) {}
+  ) { }
 
   private generateTransactionCode(): string {
-    return `DEP_${Date.now()}_${uuidv4().substring(0, 8).toUpperCase()}`;
+    return `DEP${Date.now()}${uuidv4().substring(0, 8).toUpperCase()}`;
   }
 
   async createPayPalDeposit(
@@ -294,8 +294,8 @@ export class WalletDepositService {
       throw new BadRequestException("Ví không tồn tại");
     }
 
-    const depositCode = `DEP_${Date.now()}_${uuidv4().substring(0, 8).toUpperCase()}`;
-    const paymentRef = `DEPOSIT_${depositCode}`;
+    const depositCode = `DEP${Date.now()}${uuidv4().substring(0, 8).toUpperCase()}`;
+    const paymentRef = `DEPOSIT${depositCode}`;
 
     const accountInfo = this.sepayService.getAccountInfo();
     const qrUrl = this.sepayService.generateQRUrl({
@@ -341,7 +341,7 @@ export class WalletDepositService {
       // SePay transform content: "114716571705-DEPOSITDEP1768529468533FE9E6926-CHUYEN TIEN-..."
       // PaymentRef gốc: "DEPOSIT_DEP_1768529468533_FE9E6926"
       // Cần extract "DEPOSITDEP1768529468533FE9E6926" và normalize để match
-      
+
       if (!content || !content.includes("DEPOSIT")) {
         console.log(`[Wallet Deposit SePay] Not a deposit - content: ${content}`);
         return {
@@ -354,15 +354,15 @@ export class WalletDepositService {
       // Content từ SePay: "114716571705-DEPOSITDEP1768529468533FE9E6926-CHUYEN TIEN-..."
       // PaymentRef gốc: "DEPOSIT_DEP_1768529468533_FE9E6926"
       // SePay transform: "DEPOSITDEP1768529468533FE9E6926" (bỏ dấu gạch dưới)
-      
+
       // Pattern 1: DEPOSITDEP[timestamp][uuid] (SePay transform - không có dấu gạch)
       // Pattern 2: DEPOSIT_DEP_[timestamp]_[uuid] (format gốc)
       const depositPattern1 = /DEPOSITDEP([0-9]{13})([A-Z0-9]{8,})/i; // DEPOSITDEP + 13 digits timestamp + uuid
       const depositPattern2 = /DEPOSIT[_\s-]?DEP[_\s-]?([0-9]+)[_\s-]?([A-Z0-9]{8,})/i; // DEPOSIT_DEP_ + timestamp + uuid
-      
+
       let normalizedPaymentRef: string | null = null;
       let match = content.match(depositPattern1);
-      
+
       if (match) {
         // SePay transform format: DEPOSITDEP1768529468533FE9E6926
         const timestamp = match[1]; // 13 digits
@@ -386,7 +386,7 @@ export class WalletDepositService {
 
       // Try to find pending deposit
       let pendingDeposit: IPendingDeposit | undefined;
-      
+
       // Strategy 1: Try with normalized paymentRef if extracted
       if (normalizedPaymentRef) {
         pendingDeposit = this.pendingDeposits.get(normalizedPaymentRef);
@@ -394,7 +394,7 @@ export class WalletDepositService {
           console.log(`[Wallet Deposit SePay] Found by normalized paymentRef: ${normalizedPaymentRef}`);
         }
       }
-      
+
       // Strategy 2: Try exact match with original content (first part before dash)
       if (!pendingDeposit) {
         const contentFirstPart = content.split("-")[0].split(" ")[0];
@@ -403,23 +403,23 @@ export class WalletDepositService {
           console.log(`[Wallet Deposit SePay] Found by content first part: ${contentFirstPart}`);
         }
       }
-      
+
       // Strategy 3: Try partial match (normalize and compare)
       if (!pendingDeposit) {
         console.log(`[Wallet Deposit SePay] Exact match not found, trying partial match...`);
         const normalizedContent = content.replace(/[_\s-]/g, "").toUpperCase();
-        
+
         for (const [key, value] of this.pendingDeposits.entries()) {
           const normalizedKey = key.replace(/[_\s-]/g, "").toUpperCase();
-          
+
           // Extract timestamp and uuid from both
           const contentMatch = normalizedContent.match(/DEPOSITDEP([0-9]+)([A-Z0-9]{8,})/i);
           const keyMatch = normalizedKey.match(/DEPOSITDEP([0-9]+)([A-Z0-9]{8,})/i);
-          
+
           if (contentMatch && keyMatch) {
             // Match by timestamp and first 8 chars of uuid
-            if (contentMatch[1] === keyMatch[1] && 
-                contentMatch[2].substring(0, 8) === keyMatch[2].substring(0, 8)) {
+            if (contentMatch[1] === keyMatch[1] &&
+              contentMatch[2].substring(0, 8) === keyMatch[2].substring(0, 8)) {
               console.log(`[Wallet Deposit SePay] Found partial match: ${key} -> ${content}`);
               pendingDeposit = value;
               break;
