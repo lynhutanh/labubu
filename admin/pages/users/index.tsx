@@ -1,12 +1,13 @@
 import Head from "next/head";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { Search, Users, Trash2, Filter } from "lucide-react";
+import { Search, Users, Trash2, Filter, Edit } from "lucide-react";
 import { userService } from "../../src/services";
 import { UserResponse, UserSearchParams } from "../../src/interfaces";
 import { storage } from "../../src/utils/storage";
 import AdminLayout from "../../src/components/layout/AdminLayout";
 import DataTable, { Column } from "../../src/components/common/DataTable";
+import UserEditModal from "../../src/components/users/UserEditModal";
 import toast from "react-hot-toast";
 
 const ROLES = [
@@ -33,6 +34,7 @@ export default function UsersPage() {
   });
   const [total, setTotal] = useState(0);
   const [keyword, setKeyword] = useState("");
+  const [editingUser, setEditingUser] = useState<UserResponse | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -184,7 +186,7 @@ export default function UsersPage() {
                   className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white backdrop-blur-sm"
                 >
                   {ROLES.map((role) => (
-                    <option key={role.value} value={role.value}>
+                    <option key={role.value} value={role.value} className="bg-slate-800">
                       {role.label}
                     </option>
                   ))}
@@ -199,7 +201,7 @@ export default function UsersPage() {
                   className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white backdrop-blur-sm"
                 >
                   {STATUSES.map((status) => (
-                    <option key={status.value} value={status.value}>
+                    <option key={status.value} value={status.value} className="bg-slate-800">
                       {status.label}
                     </option>
                   ))}
@@ -326,16 +328,28 @@ export default function UsersPage() {
                 label: "Thao tác",
                 align: "right",
                 render: (user) => (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDelete(user._id, user.name || user.username);
-                    }}
-                    className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-all border border-red-500/30"
-                    title="Xóa"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center justify-end gap-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingUser(user);
+                      }}
+                      className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-all border border-blue-500/30"
+                      title="Chỉnh sửa"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(user._id, user.name || user.username);
+                      }}
+                      className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-all border border-red-500/30"
+                      title="Xóa"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 ),
               },
             ]}
@@ -401,6 +415,16 @@ export default function UsersPage() {
           )}
         </main>
       </div>
+
+      {editingUser && (
+        <UserEditModal
+          user={editingUser}
+          onClose={() => setEditingUser(null)}
+          onUpdate={() => {
+            loadUsers();
+          }}
+        />
+      )}
     </AdminLayout>
   );
 }

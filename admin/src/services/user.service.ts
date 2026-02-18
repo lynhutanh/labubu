@@ -20,17 +20,17 @@ class UserService extends APIRequest {
   }
 
   public async getById(id: string): Promise<UserResponse> {
-    const response = await this.get(`/users/${id}`);
+    const response = await this.get(`/admin/users/${id}`);
     return response.data;
   }
 
   public async create(data: CreateUserPayload): Promise<UserResponse> {
-    const response = await this.post('/users/register', data);
+    const response = await this.post('/admin/users', data);
     return response.data;
   }
 
   public async update(id: string, data: UpdateUserPayload): Promise<UserResponse> {
-    const response = await this.put(`/users/${id}`, data);
+    const response = await this.put(`/admin/users/${id}`, data);
     return response.data;
   }
 
@@ -39,12 +39,12 @@ class UserService extends APIRequest {
   }
 
   public async changeStatus(id: string, status: string): Promise<UserResponse> {
-    const response = await this.put(`/users/${id}/status`, { status });
+    const response = await this.put(`/admin/users/${id}`, { status });
     return response.data;
   }
 
   public async changeRole(id: string, role: string): Promise<UserResponse> {
-    const response = await this.put(`/users/${id}/role`, { role });
+    const response = await this.put(`/admin/users/${id}`, { role });
     return response.data;
   }
 }

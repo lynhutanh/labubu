@@ -29,7 +29,7 @@ export class WalletService {
     @Inject(WALLET_TRANSACTION_MODEL_PROVIDER)
     private readonly walletTransactionModel: Model<WalletTransactionModel>,
     private readonly queueEventService: QueueMessageService,
-  ) {}
+  ) { }
 
   private generateTransactionCode(): string {
     return `WTX_${Date.now()}_${uuidv4().substring(0, 8).toUpperCase()}`;
@@ -444,9 +444,9 @@ export class WalletService {
       return;
     }
 
-    if (systemWallet.balance < amount) {
-      throw new BadRequestException("Số dư ví hệ thống không đủ");
-    }
+    // if (systemWallet.balance < amount) {
+    //   throw new BadRequestException("Số dư ví hệ thống không đủ");
+    // }
 
     const balanceBefore = systemWallet.balance;
     const balanceAfter = balanceBefore - amount;

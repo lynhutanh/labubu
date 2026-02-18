@@ -74,7 +74,7 @@ export const WalletTransactionSchema = new Schema(
     },
     referenceType: {
       type: String,
-      enum: ["order", "deposit", "withdraw", "refund", "transfer"],
+      enum: ["order", "deposit", "withdraw", "refund", "transfer", "admin_adjustment"],
       sparse: true,
     },
     metadata: {

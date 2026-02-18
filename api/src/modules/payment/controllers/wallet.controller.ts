@@ -5,6 +5,8 @@ import {
   Body,
   Query,
   UseGuards,
+  Param,
+  BadRequestException,
   HttpCode,
   HttpStatus,
 } from "@nestjs/common";
@@ -27,7 +29,7 @@ export class WalletController {
   constructor(
     private readonly walletService: WalletService,
     private readonly walletTransactionService: WalletTransactionService,
-  ) {}
+  ) { }
 
   @Get("balance")
   @UseGuards(AuthGuard)
@@ -183,7 +185,7 @@ export class AdminWalletController {
   constructor(
     private readonly walletService: WalletService,
     private readonly walletTransactionService: WalletTransactionService,
-  ) {}
+  ) { }
 
   @Get("system/stats")
   @UseGuards(RoleGuard)
@@ -266,6 +268,59 @@ export class AdminWalletController {
   @ApiOperation({ summary: "Khởi tạo ví hệ thống" })
   async initSystemWallet(): Promise<DataResponse<any>> {
     const wallet = await this.walletService.getOrCreateSystemWallet();
+    return DataResponse.ok(wallet);
+  }
+
+  @Get("users/:userId/balance")
+  @UseGuards(RoleGuard)
+  @Role(ROLE.ADMIN)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Lấy số dư ví người dùng" })
+  async getUserBalance(@Param("userId") userId: string): Promise<DataResponse<any>> {
+    const balance = await this.walletService.getBalance(userId, WALLET_OWNER_TYPE.USER);
+    return DataResponse.ok(balance);
+  }
+
+  @Post("users/:userId/adjust-balance")
+  @UseGuards(RoleGuard)
+  @Role(ROLE.ADMIN)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Điều chỉnh số dư ví người dùng" })
+  async adjustUserBalance(
+    @Param("userId") userId: string,
+    @Body() payload: { amount: number; type: "deposit" | "withdraw"; description?: string },
+  ): Promise<DataResponse<any>> {
+    const { amount, type, description } = payload;
+
+    if (amount <= 0) {
+      throw new BadRequestException("Số tiền phải lớn hơn 0");
+    }
+
+    let wallet;
+    if (type === "deposit") {
+      wallet = await this.walletService.deposit(
+        userId,
+        WALLET_OWNER_TYPE.USER,
+        {
+          amount,
+          description: description || "Admin nạp tiền",
+          referenceType: "admin_adjustment",
+        }
+      );
+    } else {
+      wallet = await this.walletService.withdraw(
+        userId,
+        WALLET_OWNER_TYPE.USER,
+        {
+          amount,
+          description: description || "Admin trừ tiền",
+          referenceType: "admin_adjustment",
+        }
+      );
+    }
+
     return DataResponse.ok(wallet);
   }
 }
