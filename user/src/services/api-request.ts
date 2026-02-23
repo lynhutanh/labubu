@@ -55,7 +55,7 @@ export abstract class APIRequest {
         if (error?.response?.status === 401) {
           if (typeof window !== "undefined") {
             localStorage.removeItem(TOKEN);
-            window.location.href = "/auth/login";
+            window.location.href = "/login";
           }
           throw new Error("Please login!");
         }
