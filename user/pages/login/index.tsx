@@ -135,21 +135,37 @@ export default function LoginPage() {
   const handleGoogleLoginSuccess = async (
     credentialResponse: CredentialResponse | { credential?: string },
   ) => {
+    console.log("[FE Google Login] Success callback triggered");
+    console.log("[FE Google Login] Credential Response:", credentialResponse?.credential?.substring(0, 50) + "...");
+    
     if (!credentialResponse?.credential) {
+      console.error("[FE Google Login] ERROR: No credential in response");
       toast.error(t.login.googleLoginFailed);
       return;
     }
 
     setIsLoading(true);
     try {
-      await authService.loginWithGoogle(credentialResponse.credential);
+      console.log("[FE Google Login] Sending credential to backend...");
+      const result = await authService.loginWithGoogle(credentialResponse.credential);
+      console.log("[FE Google Login] Backend response received:", result);
+      console.log("[FE Google Login] Token:", result?.token?.substring(0, 50) + "...");
+      console.log("[FE Google Login] User:", result?.user);
+      
       toast.success(t.login.loginSuccess);
+      console.log("[FE Google Login] Redirecting to home page...");
       router.push("/");
     } catch (error: any) {
+      console.error("[FE Google Login] ERROR:", error);
+      console.error("[FE Google Login] Error response:", error?.response);
+      console.error("[FE Google Login] Error data:", error?.data);
+      console.error("[FE Google Login] Error message:", error?.message);
+      
       const errorMessage =
         error?.message ||
         error?.data?.message ||
         t.login.googleLoginFailed;
+      console.error("[FE Google Login] Final error message:", errorMessage);
       toast.error(Array.isArray(errorMessage) ? errorMessage[0] : errorMessage);
     } finally {
       setIsLoading(false);

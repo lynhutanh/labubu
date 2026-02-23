@@ -38,8 +38,14 @@ export class GoogleLoginController {
   public async googleLogin(
     @Body() req: GoogleLoginPayload,
   ): Promise<DataResponse<{ token: string }>> {
+    console.log("[Google Login] Starting Google login process");
+    console.log("[Google Login] Received credential:", req.credential?.substring(0, 50) + "...");
+    
     const clientId = process.env.GOOGLE_CLIENT_ID;
+    console.log("[Google Login] Client ID configured:", !!clientId);
+    
     if (!clientId) {
+      console.error("[Google Login] ERROR: Google client ID is not configured");
       throw new HttpException(
         "Google client ID is not configured",
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -50,12 +56,16 @@ export class GoogleLoginController {
 
     let payload: Record<string, any> | undefined;
     try {
+      console.log("[Google Login] Verifying ID token...");
       const ticket = await client.verifyIdToken({
         idToken: req.credential,
         audience: clientId,
       });
       payload = ticket.getPayload();
-    } catch {
+      console.log("[Google Login] Token verified successfully");
+      console.log("[Google Login] Payload:", JSON.stringify(payload, null, 2));
+    } catch (error: any) {
+      console.error("[Google Login] ERROR verifying token:", error.message);
       throw new HttpException(
         "Invalid Google credential",
         HttpStatus.UNAUTHORIZED,
@@ -63,6 +73,7 @@ export class GoogleLoginController {
     }
 
     if (!payload || !payload.email) {
+      console.error("[Google Login] ERROR: No email in payload");
       throw new HttpException(
         "Google account does not have a verified email",
         HttpStatus.BAD_REQUEST,
@@ -72,10 +83,14 @@ export class GoogleLoginController {
     const googleId = payload.sub;
     const email = payload.email.toLowerCase();
     const name = payload.name || payload.email.split("@")[0];
+    
+    console.log("[Google Login] Email:", email, "Google ID:", googleId);
 
     let user = await this.userService.findByEmail(email);
+    console.log("[Google Login] User found in DB:", !!user);
 
     if (!user) {
+      console.log("[Google Login] Creating new user...");
       const baseUsername = email.split("@")[0];
       let username = baseUsername;
       let suffix = 1;
@@ -92,12 +107,16 @@ export class GoogleLoginController {
         name,
         role: ROLE.USER,
       });
+      console.log("[Google Login] New user created:", user._id);
     }
 
+    console.log("[Google Login] User status:", user.status);
     if (user.status === STATUS.INACTIVE) {
+      console.error("[Google Login] ERROR: User account is inactive");
       throw new AccountInactiveException();
     }
 
+    console.log("[Google Login] Creating/updating auth record...");
     await this.authService.createOrUpdateAuth({
       source: SOURCE_TYPE.USER,
       sourceId: user._id,
@@ -105,17 +124,23 @@ export class GoogleLoginController {
       key: googleId,
       value: payload.email,
     });
+    console.log("[Google Login] Auth record created/updated");
 
+    console.log("[Google Login] Generating auth session token...");
     const expiresInSeconds = 60 * 60 * 24;
     const token = await this.authService.updateAuthSession(
       SOURCE_TYPE.USER,
       user._id,
       expiresInSeconds,
     );
+    console.log("[Google Login] Token generated:", token?.substring(0, 50) + "...");
 
     const userDto = new UserDto(user);
     const userResponse = userDto.toResponse(true);
     userResponse.role = user.role;
+    
+    console.log("[Google Login] SUCCESS: Login completed for user", user._id);
+    console.log("[Google Login] Response:", JSON.stringify({ token: token?.substring(0, 50) + "...", user: userResponse }, null, 2));
 
     return DataResponse.ok({ token, user: userResponse });
   }
