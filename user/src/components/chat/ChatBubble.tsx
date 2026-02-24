@@ -287,8 +287,24 @@ export default function ChatBubble() {
         boxShadow: "0 0 30px rgba(0, 0, 0, 0.8), 0 0 60px rgba(251, 191, 36, 0.1)",
       }}
     >
+      {/* Banner Image */}
+      <div className="relative w-full h-24 md:h-32 flex-shrink-0">
+        <img
+          src="/gen-n-banner.jpg"
+          alt="Banner"
+          className="w-full h-full object-cover"
+        />
+        <button
+          onClick={() => setIsOpen(false)}
+          className="absolute top-2 right-2 bg-black/60 hover:bg-black/80 rounded-full p-1.5 transition-all text-white flex-shrink-0"
+          aria-label="Close chat"
+        >
+          <X size={16} className="w-4 h-4" />
+        </button>
+      </div>
+
       <div
-        className="bg-gradient-to-r from-gray-900 to-black border-b-2 border-yellow-400/30 text-white p-3 md:p-4 flex items-center justify-between"
+        className="bg-gradient-to-r from-gray-900 to-black border-b-2 border-yellow-400/30 text-white p-3 md:p-4 flex items-center flex-shrink-0"
         style={{
           boxShadow: "0 2px 10px rgba(251, 191, 36, 0.2)",
         }}
@@ -307,13 +323,6 @@ export default function ChatBubble() {
             </span>
           )}
         </div>
-        <button
-          onClick={() => setIsOpen(false)}
-          className="hover:bg-gray-800 rounded-full p-1 transition-colors text-gray-400 hover:text-white flex-shrink-0"
-          aria-label="Close chat"
-        >
-          <X size={18} className="md:w-5 md:h-5" />
-        </button>
       </div>
 
       <div className="flex-1 overflow-y-auto p-3 md:p-4 space-y-3 bg-gray-900 scrollbar-hide">
