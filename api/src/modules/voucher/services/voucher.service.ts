@@ -122,7 +122,7 @@ export class VoucherService {
   }
 
   async validateVoucher(code: string, orderAmount: number, userId?: string): Promise<{ valid: boolean; discount: number; message?: string }> {
-    const voucher = await this.voucherModel.findOne({ code: code.toUpperCase() }).lean();
+    const voucher = (await this.voucherModel.findOne({ code: code.toUpperCase() }).lean()) as any;
     if (!voucher) return { valid: false, discount: 0, message: 'Voucher không tồn tại' };
 
     const now = new Date();
