@@ -16,6 +16,7 @@ import {
   List,
   RotateCcw,
   MessageCircle,
+  Ticket,
 } from "lucide-react";
 import { storage } from "../../utils/storage";
 import { refundRequestService } from "../../services/refund-request.service";
@@ -72,6 +73,15 @@ const menuItems: MenuItem[] = [
     name: "Chat",
     icon: MessageCircle,
     href: "/chat",
+  },
+  {
+    name: "Voucher",
+    icon: Ticket,
+    href: "/vouchers",
+    children: [
+      { name: "Danh sách", icon: List, href: "/vouchers" },
+      { name: "Tạo mới", icon: CirclePlus, href: "/vouchers/create" },
+    ],
   },
   {
     name: "Cài đặt",

@@ -1,17 +1,18 @@
-// Export all services
-export { authService } from './auth.service';
-export { brandService } from './brand.service';
+﻿// Export all services
+export { authService }from './auth.service';
+export { brandService }from './brand.service';
 export { categoryService } from './category.service';
-export { fileService } from './file.service';
+export { fileService }from './file.service';
 export { orderService } from './order.service';
-export { productService } from './product.service';
+export { productService }from './product.service';
 export { userService } from './user.service';
 export { settingsService } from './settings.service';
 export { chatService } from './chat.service';
+export { voucherService } from './voucher.service';
 
 // Export API Request base class
-export { APIRequest, TOKEN } from './api-request';
-export type { IResponse } from './api-request';
+export { APIRequest, TOKEN }from './api-request';
+export type { IResponse }from './api-request';
 
 // Re-export all interfaces from interfaces folder
 export type {
@@ -58,4 +59,13 @@ export type {
   ISetting,
   TabConfig,
   SettingFormItemProps
-} from '../interfaces';
+}from '../interfaces';
+
+// Voucher types
+export type {
+  VoucherResponse,
+  VoucherSearchParams,
+  VoucherSearchResponse,
+  CreateVoucherPayload,
+  UpdateVoucherPayload,
+} from './voucher.service';
