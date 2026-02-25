@@ -1,6 +1,6 @@
 import {
   Injectable, BadRequestException, NotFoundException, Inject,
-}from '@nestjs/common';
+} from '@nestjs/common';
 import { Model } from 'mongoose';
 import { ObjectId } from 'mongodb';
 import { VOUCHER_PROVIDER } from '../providers';
@@ -14,7 +14,7 @@ export class VoucherService {
   constructor(
     @Inject(VOUCHER_PROVIDER)
     private readonly voucherModel: Model<any>,
-  ) {}
+  ) { }
 
   async findById(id: string): Promise<VoucherDto | null> {
     if (!id || !ObjectId.isValid(id)) return null;
@@ -135,11 +135,18 @@ export class VoucherService {
     let discount = 0;
     if (voucher.type === 'percentage') {
       discount = (orderAmount * voucher.value) / 100;
-    }else {
+    } else {
       discount = voucher.value;
     }
     discount = Math.min(discount, voucher.maxDiscountAmount);
 
     return { valid: true, discount };
+  }
+
+  async useVoucher(code: string): Promise<void> {
+    await this.voucherModel.updateOne(
+      { code: code.toUpperCase() },
+      { $inc: { usedQuantity: 1 } },
+    );
   }
 }

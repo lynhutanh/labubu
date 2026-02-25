@@ -13,6 +13,8 @@ export { settingService } from "./setting.service";
 export { addressService } from "./address.service";
 export { brandService } from "./brand.service";
 export { chatService } from "./chat.service";
+export { voucherService } from "./voucher.service";
+export type { Voucher, VouchersResponse, VoucherValidation } from "./voucher.service";
 export type { ContactInfo, TeamInfo, TeamMember } from "./setting.service";
 export type { Message } from "./chat.service";
 export type { Address, CreateAddressPayload, UpdateAddressPayload } from "./address.service";

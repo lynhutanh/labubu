@@ -18,6 +18,7 @@ export interface CreateOrderPayload {
     note?: string;
   };
   paymentMethod: "cod" | "wallet" | "paypal" | "zalopay" | "sepay";
+  voucherCode?: string;
 }
 
 export interface Order {
@@ -41,6 +42,7 @@ export interface Order {
   paymentRef?: string;
   paymentStatus: string;
   status: string;
+  voucherCode?: string;
   shippingAddress: {
     fullName: string;
     phone: string;

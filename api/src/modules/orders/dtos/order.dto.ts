@@ -109,6 +109,9 @@ export class OrderDto {
   total: number;
 
   @Expose()
+  voucherCode?: string;
+
+  @Expose()
   shippingAddress: ShippingAddressDto;
 
   @Expose()
@@ -170,6 +173,7 @@ export class OrderDto {
       this.shippingFee = init.shippingFee || 0;
       this.discount = init.discount || 0;
       this.total = init.total;
+      this.voucherCode = init.voucherCode;
       this.shippingAddress = new ShippingAddressDto(init.shippingAddress);
       this.paymentMethod = init.paymentMethod;
       this.paymentStatus = init.paymentStatus;
@@ -201,6 +205,7 @@ export class OrderDto {
       shippingFee: this.shippingFee,
       discount: this.discount,
       total: this.total,
+      voucherCode: this.voucherCode,
       shippingAddress: this.shippingAddress,
       paymentMethod: this.paymentMethod,
       paymentStatus: this.paymentStatus,

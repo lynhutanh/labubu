@@ -11,6 +11,7 @@ import { PaymentModule } from "../payment/payment.module";
 import { SettingModule } from "../settings/setting.module";
 import { SendgridModule } from "../sendgrid/sendgrid.module";
 import { UserModule } from "../user/user.module";
+import { VoucherModule } from "../voucher/voucher.module";
 import { GhnOrderSyncService } from "./services/ghn-order-sync.service";
 
 @Module({
@@ -23,6 +24,7 @@ import { GhnOrderSyncService } from "./services/ghn-order-sync.service";
     forwardRef(() => SettingModule),
     SendgridModule,
     UserModule,
+    forwardRef(() => VoucherModule),
   ],
   controllers: [BuyerOrderController, AdminOrderController, RefundRequestController],
   providers: [
@@ -44,4 +46,4 @@ import { GhnOrderSyncService } from "./services/ghn-order-sync.service";
     GhnOrderSyncService,
   ],
 })
-export class OrderModule {}
+export class OrderModule { }

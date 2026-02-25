@@ -110,4 +110,9 @@ export class CreateOrderPayload {
     message: "Phương thức thanh toán không hợp lệ",
   })
   paymentMethod?: string = PAYMENT_METHOD.COD;
+
+  @ApiPropertyOptional({ description: "Voucher code" })
+  @IsOptional()
+  @IsString()
+  voucherCode?: string;
 }

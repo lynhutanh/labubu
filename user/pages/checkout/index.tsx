@@ -15,6 +15,9 @@ import {
     Phone,
     User,
     AlertCircle,
+    Ticket,
+    Tag,
+    X,
 } from "lucide-react";
 import Layout from "../../src/components/layout/Layout";
 import { useTrans } from "../../src/hooks/useTrans";
@@ -22,6 +25,7 @@ import { cartService, Cart } from "../../src/services/cart.service";
 import { orderService, CreateOrderPayload } from "../../src/services/order.service";
 import { ghnService } from "../../src/services/ghn.service";
 import { addressService, Address } from "../../src/services";
+import { voucherService, Voucher } from "../../src/services/voucher.service";
 import { storage } from "../../src/utils/storage";
 import toast from "react-hot-toast";
 import { formatCurrency } from "../../src/lib/string";
@@ -33,6 +37,12 @@ interface PaymentInfo {
     paymentRef: string;
     qrUrl: string;
     expiredAt: string;
+}
+
+interface VoucherWithStatus extends Voucher {
+    isValid: boolean;
+    discountAmount: number;
+    message?: string;
 }
 
 export default function CheckoutPage() {
@@ -70,6 +80,13 @@ export default function CheckoutPage() {
     const [savedAddresses, setSavedAddresses] = useState<Address[]>([]);
     const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
     const [mounted, setMounted] = useState(false);
+
+    // Voucher state
+    const [vouchers, setVouchers] = useState<VoucherWithStatus[]>([]);
+    const [vouchersLoading, setVouchersLoading] = useState(false);
+    const [selectedVoucher, setSelectedVoucher] = useState<VoucherWithStatus | null>(null);
+    const [showVoucherModal, setShowVoucherModal] = useState(false);
+    const [voucherDiscount, setVoucherDiscount] = useState(0);
 
     useEffect(() => {
         setMounted(true);
@@ -117,6 +134,16 @@ export default function CheckoutPage() {
         loadCart();
     }, [router]);
 
+    const subtotal = useMemo(() => {
+        if (!cart) return 0;
+        return cart.items.reduce((sum, item) => {
+            const price = item.product?.salePrice || item.product?.price || 0;
+            return sum + price * item.quantity;
+        }, 0);
+    }, [cart]);
+
+    const total = useMemo(() => Math.max(0, subtotal - voucherDiscount), [subtotal, voucherDiscount]);
+
     useEffect(() => {
         const loadProvinces = async () => {
             try {
@@ -144,6 +171,61 @@ export default function CheckoutPage() {
         loadProvinces();
         loadSavedAddresses();
     }, []);
+
+    const loadVouchers = async (amount: number) => {
+        try {
+            setVouchersLoading(true);
+            const response = await voucherService.getActiveVouchers();
+            const list = response.vouchers || [];
+
+            const vouchersWithStatus = await Promise.all(
+                list.map(async (v) => {
+                    const validation = await voucherService.validateVoucher(v.code, amount);
+                    return {
+                        ...v,
+                        isValid: validation.valid,
+                        discountAmount: validation.discount,
+                        message: validation.message,
+                    };
+                })
+            );
+
+            // Sắp xếp: voucher hợp lệ lên đầu
+            const sorted = vouchersWithStatus.sort((a, b) => {
+                if (a.isValid && !b.isValid) return -1;
+                if (!a.isValid && b.isValid) return 1;
+                return 0;
+            });
+
+            setVouchers(sorted);
+        } catch (error) {
+            console.error("Failed to load vouchers:", error);
+        } finally {
+            setVouchersLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (subtotal > 0) {
+            loadVouchers(subtotal);
+        }
+    }, [subtotal]);
+
+    const handleSelectVoucher = (v: VoucherWithStatus) => {
+        if (!v.isValid) {
+            toast.error(v.message || "Voucher không đủ điều kiện");
+            return;
+        }
+        setSelectedVoucher(v);
+        setVoucherDiscount(v.discountAmount);
+        setShowVoucherModal(false);
+        toast.success(`Đã áp dụng mã ${v.code}`);
+    };
+
+    const removeVoucher = () => {
+        setSelectedVoucher(null);
+        setVoucherDiscount(0);
+    };
 
     // Countdown timer
     useEffect(() => {
@@ -390,6 +472,7 @@ export default function CheckoutPage() {
                     note: formData.note,
                 },
                 paymentMethod: selectedPayment,
+                voucherCode: selectedVoucher?.code,
             };
 
             const order = await orderService.createOrder(payload);
@@ -455,11 +538,6 @@ export default function CheckoutPage() {
         );
     }
 
-    const subtotal = cart.items.reduce((sum, item) => {
-        const price = item.product?.salePrice || item.product?.price || 0;
-        return sum + price * item.quantity;
-    }, 0);
-    const total = subtotal;
 
     const paymentMethods = [
         {
@@ -805,55 +883,50 @@ export default function CheckoutPage() {
                                                     type="button"
                                                     onClick={() => !isDisabled && setSelectedPayment(method.id)}
                                                     disabled={isDisabled}
-                                                    className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
-                                                        isDisabled
-                                                            ? "border-gray-500/30 bg-white/5 opacity-50 cursor-not-allowed"
-                                                            : isSelected
+                                                    className={`w-full p-4 rounded-lg border-2 transition-all text-left ${isDisabled
+                                                        ? "border-gray-500/30 bg-white/5 opacity-50 cursor-not-allowed"
+                                                        : isSelected
                                                             ? "border-pink-500 bg-pink-500/20"
                                                             : "border-purple-500/30 bg-white/5 hover:border-purple-500/50"
-                                                    }`}
+                                                        }`}
                                                 >
                                                     <div className="flex items-center gap-3">
                                                         <div
-                                                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                                                                isDisabled
-                                                                    ? "border-gray-500"
-                                                                    : isSelected
+                                                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${isDisabled
+                                                                ? "border-gray-500"
+                                                                : isSelected
                                                                     ? "border-pink-500 bg-pink-500"
                                                                     : "border-purple-400"
-                                                            }`}
+                                                                }`}
                                                         >
                                                             {isSelected && !isDisabled && (
                                                                 <CheckCircle2 className="w-3 h-3 text-white" />
                                                             )}
                                                         </div>
                                                         <Icon
-                                                            className={`w-6 h-6 ${
-                                                                isDisabled
-                                                                    ? "text-gray-500"
-                                                                    : isSelected
+                                                            className={`w-6 h-6 ${isDisabled
+                                                                ? "text-gray-500"
+                                                                : isSelected
                                                                     ? "text-pink-400"
                                                                     : "text-purple-300"
-                                                            }`}
+                                                                }`}
                                                         />
                                                         <div className="flex-1">
                                                             <div
-                                                                className={`font-semibold ${
-                                                                    isDisabled
-                                                                        ? "text-gray-400"
-                                                                        : isSelected
+                                                                className={`font-semibold ${isDisabled
+                                                                    ? "text-gray-400"
+                                                                    : isSelected
                                                                         ? "text-white"
                                                                         : "text-purple-200"
-                                                                }`}
+                                                                    }`}
                                                             >
                                                                 {method.name}
                                                             </div>
                                                             <div
-                                                                className={`text-sm ${
-                                                                    isDisabled
-                                                                        ? "text-gray-500 italic"
-                                                                        : "text-purple-300"
-                                                                }`}
+                                                                className={`text-sm ${isDisabled
+                                                                    ? "text-gray-500 italic"
+                                                                    : "text-purple-300"
+                                                                    }`}
                                                             >
                                                                 {method.description}
                                                             </div>
@@ -877,18 +950,51 @@ export default function CheckoutPage() {
                                     <h2 className="text-xl font-bold text-white mb-4">
                                         {t.checkout.orderSummary}
                                     </h2>
-                                    <div className="space-y-3 mb-6">
-                                        <div className="flex justify-between text-purple-200">
-                                            <span>{t.checkout.subtotal}</span>
-                                            <span className="text-white">{formatCurrency(subtotal)}₫</span>
-                                        </div>
-                                        <div className="border-t border-purple-500/30 pt-3">
-                                            <div className="flex justify-between text-lg font-bold text-white">
-                                                <span>{t.checkout.total}</span>
-                                                <span className="text-2xl text-pink-400">
-                                                    {formatCurrency(total)}₫
-                                                </span>
+                                    <div className="flex justify-between text-purple-200">
+                                        <span>{t.checkout.subtotal}</span>
+                                        <span className="text-white">{formatCurrency(subtotal)}₫</span>
+                                    </div>
+
+                                    {/* Voucher Section */}
+                                    <div className="py-3 border-t border-purple-500/30">
+                                        {!selectedVoucher ? (
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowVoucherModal(true)}
+                                                className="w-full flex items-center justify-between p-3 bg-white/5 border border-dashed border-purple-500/50 rounded-lg hover:bg-white/10 transition-all text-purple-200"
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    <Ticket className="w-5 h-5 text-pink-400" />
+                                                    <span>Chọn hoặc nhập mã</span>
+                                                </div>
+                                                <ArrowLeft className="w-4 h-4 rotate-180" />
+                                            </button>
+                                        ) : (
+                                            <div className="flex items-center justify-between p-3 bg-pink-500/10 border border-pink-500/30 rounded-lg">
+                                                <div className="flex items-center gap-2">
+                                                    <Tag className="w-5 h-5 text-pink-400" />
+                                                    <div>
+                                                        <div className="text-white font-bold">{selectedVoucher.code}</div>
+                                                        <div className="text-xs text-pink-300">Giảm {formatCurrency(voucherDiscount)}₫</div>
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={removeVoucher}
+                                                    className="p-1 hover:bg-white/10 rounded-full text-purple-300 hover:text-white"
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </button>
                                             </div>
+                                        )}
+                                    </div>
+
+                                    <div className="border-t border-purple-500/30 pt-3">
+                                        <div className="flex justify-between text-lg font-bold text-white">
+                                            <span>{t.checkout.total}</span>
+                                            <span className="text-2xl text-pink-400">
+                                                {formatCurrency(total)}₫
+                                            </span>
                                         </div>
                                     </div>
                                     <button
@@ -914,6 +1020,150 @@ export default function CheckoutPage() {
                     )}
                 </div>
             </section>
+
+            <style jsx>{`
+                .custom-scrollbar::-webkit-scrollbar {
+                    width: 6px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-track {
+                    background: rgba(255, 255, 255, 0.05);
+                    border-radius: 10px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb {
+                    background: rgba(168, 85, 247, 0.3);
+                    border-radius: 10px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                    background: rgba(168, 85, 247, 0.5);
+                }
+            `}</style>
+
+            {/* Voucher Selection Modal */}
+            {
+                showVoucherModal && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setShowVoucherModal(false)}
+                            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            className="relative w-full max-w-lg bg-indigo-950 border border-purple-500/30 rounded-2xl overflow-hidden shadow-2xl shadow-purple-500/20"
+                        >
+                            <div className="p-4 border-b border-purple-500/30 flex items-center justify-between bg-indigo-900/50">
+                                <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                                    <Ticket className="w-6 h-6 text-pink-400" />
+                                    Chọn Voucher
+                                </h3>
+                                <button
+                                    onClick={() => setShowVoucherModal(false)}
+                                    className="p-2 hover:bg-white/10 rounded-full text-purple-300 transition-colors"
+                                >
+                                    <X className="w-6 h-6" />
+                                </button>
+                            </div>
+
+                            <div className="p-4 max-h-[60vh] overflow-y-auto space-y-4 custom-scrollbar">
+                                {vouchersLoading ? (
+                                    <div className="flex flex-col items-center justify-center py-10 gap-3">
+                                        <Loader2 className="w-10 h-10 animate-spin text-pink-500" />
+                                        <p className="text-purple-300">Đang tải danh sách voucher...</p>
+                                    </div>
+                                ) : vouchers.length > 0 ? (
+                                    vouchers.map((v) => (
+                                        <div
+                                            key={v._id}
+                                            onClick={() => handleSelectVoucher(v)}
+                                            className={`relative group cursor-pointer transition-all duration-300 ${v.isValid
+                                                ? "opacity-100 hover:scale-[1.02]"
+                                                : "opacity-60 grayscale-[0.5]"
+                                                }`}
+                                        >
+                                            <div
+                                                className={`absolute -inset-0.5 rounded-xl bg-gradient-to-r transition-all duration-300 ${v.isValid
+                                                    ? "from-pink-500 to-purple-600 opacity-30 group-hover:opacity-100 blur"
+                                                    : "from-gray-500 to-gray-700 opacity-0"
+                                                    }`}
+                                            />
+                                            <div className={`relative flex items-stretch rounded-xl overflow-hidden bg-indigo-900/80 border ${v.isValid ? "border-pink-500/50" : "border-white/10"
+                                                }`}>
+                                                {/* Left color bar */}
+                                                <div className={`w-2 ${v.isValid ? "bg-gradient-to-b from-pink-500 to-purple-600" : "bg-gray-600"}`} />
+
+                                                <div className="p-4 flex-1 flex items-start gap-4">
+                                                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center shrink-0 ${v.isValid ? "bg-pink-500/20 text-pink-400" : "bg-white/5 text-gray-500"
+                                                        }`}>
+                                                        <Tag className="w-6 h-6" />
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex justify-between items-start">
+                                                            <h4 className={`font-bold truncate ${v.isValid ? "text-white" : "text-gray-400"}`}>
+                                                                {v.name}
+                                                            </h4>
+                                                            <span className={`text-xs font-mono px-2 py-0.5 rounded border ${v.isValid
+                                                                ? "border-pink-500/50 text-pink-300 bg-pink-500/10"
+                                                                : "border-gray-500/30 text-gray-500 bg-white/5"
+                                                                }`}>
+                                                                {v.code}
+                                                            </span>
+                                                        </div>
+                                                        <div className={`mt-1 space-y-1 ${v.isValid ? "text-purple-200" : "text-gray-500"}`}>
+                                                            <div className="text-sm font-bold flex items-center gap-2">
+                                                                <span className="text-pink-400">
+                                                                    {v.type === 'percentage' ? `Giảm ${v.value}%` : `Giảm ${formatCurrency(v.value)}đ`}
+                                                                </span>
+                                                                {v.type === 'percentage' && v.maxDiscountAmount > 0 && (
+                                                                    <span className="text-xs font-normal opacity-80">
+                                                                        (Tối đa {formatCurrency(v.maxDiscountAmount)}đ)
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <div className="text-xs flex flex-wrap gap-x-3 gap-y-1 opacity-90">
+                                                                <span className="flex items-center gap-1">
+                                                                    • Đơn tối thiểu: {formatCurrency(v.minOrderAmount)}đ
+                                                                </span>
+                                                                {v.description && (
+                                                                    <span className="italic flex-1 min-w-full italic mt-0.5 opacity-70">
+                                                                        {v.description}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        {!v.isValid && v.message && (
+                                                            <div className="flex items-center gap-1 mt-2 text-xs text-red-400 bg-red-400/10 px-2 py-1 rounded">
+                                                                <AlertCircle className="w-3 h-3" />
+                                                                {v.message}
+                                                            </div>
+                                                        )}
+                                                        {v.isValid && (
+                                                            <div className="mt-2 text-xs text-green-400 font-medium">
+                                                                Sẵn sàng sử dụng
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="text-center py-10 space-y-2">
+                                        <Ticket className="w-12 h-12 text-purple-500/30 mx-auto" />
+                                        <p className="text-purple-300">Hiện không có voucher nào khả dụng.</p>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="p-4 bg-indigo-900/30 text-center text-xs text-purple-400 border-t border-purple-500/10">
+                                Áp dụng voucher để hưởng thêm ưu đãi cho đơn hàng.
+                            </div>
+                        </motion.div>
+                    </div>
+                )
+            }
         </Layout>
     );
 }

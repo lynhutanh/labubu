@@ -50,6 +50,7 @@ import { SettingService } from "src/modules/settings/services";
 import { SendgridService } from "src/modules/sendgrid/services/sendgrid.service";
 import { UserModel } from "src/modules/user/models";
 import { USER_MODEL_PROVIDER } from "src/modules/user/providers";
+import { VoucherService } from "src/modules/voucher/services";
 
 interface IPaymentResult {
   paymentUrl?: string;
@@ -81,7 +82,9 @@ export class BuyerOrderService {
     private readonly sendgridService: SendgridService,
     @Inject(USER_MODEL_PROVIDER)
     private readonly userModel: Model<UserModel>,
-  ) {}
+    @Inject(forwardRef(() => VoucherService))
+    private readonly voucherService: VoucherService,
+  ) { }
 
   private getBuyerInfo(user: any): { buyerId: ObjectId; buyerType: string } {
     return {
@@ -157,8 +160,26 @@ export class BuyerOrderService {
     const subtotal = orderItems.reduce((sum, item) => sum + item.subtotal, 0);
     const totalItems = orderItems.reduce((sum, item) => sum + item.quantity, 0);
     const shippingFee = 0;
-    const discount = 0;
-    const total = subtotal + shippingFee - discount;
+    let discount = 0;
+    let voucherCode = null;
+
+    if (payload.voucherCode) {
+      const voucherResult = await this.voucherService.validateVoucher(
+        payload.voucherCode,
+        subtotal,
+        user._id,
+      );
+      if (voucherResult.valid) {
+        discount = voucherResult.discount;
+        voucherCode = payload.voucherCode.toUpperCase();
+      } else {
+        throw new BadRequestException(
+          voucherResult.message || "Voucher không hợp lệ",
+        );
+      }
+    }
+
+    const total = Math.max(0, subtotal + shippingFee - discount);
 
     const walletTransactionId = null;
     let paymentStatus: string = PAYMENT_STATUS.PENDING;
@@ -214,6 +235,7 @@ export class BuyerOrderService {
       subtotal,
       shippingFee,
       discount,
+      voucherCode,
       total,
       shippingAddress,
       paymentMethod: paymentMethod || PAYMENT_METHOD.COD,
@@ -247,6 +269,10 @@ export class BuyerOrderService {
       await this.productModel.findByIdAndUpdate(update.productId, {
         $inc: { stock: -update.quantity, soldCount: update.quantity },
       });
+    }
+
+    if (voucherCode) {
+      await this.voucherService.useVoucher(voucherCode);
     }
 
     const orderDto = new OrderDto(order);
@@ -317,7 +343,7 @@ export class BuyerOrderService {
       if (zaloPayPayment.returncode !== 1) {
         throw new BadRequestException(
           zaloPayPayment.returnmessage ||
-            "Không thể tạo đơn thanh toán ZaloPay",
+          "Không thể tạo đơn thanh toán ZaloPay",
         );
       }
 
@@ -563,7 +589,7 @@ export class BuyerOrderService {
   async trackOrder(user: any, orderId: string) {
     const { buyerId } = this.getBuyerInfo(user);
     console.log("🔍 [BuyerOrderService] Tracking order:", { orderId, buyerId: buyerId.toString() });
-    
+
     const order = await this.orderModel.findOne({
       _id: new ObjectId(orderId),
       buyerId,
