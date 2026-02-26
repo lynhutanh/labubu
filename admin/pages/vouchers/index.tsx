@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 import {
   Plus, Trash2, Search, Tag, Edit, ToggleLeft, ToggleRight,
   Percent, DollarSign, Truck, Calendar, Users, Copy, CheckCircle,
-}from "lucide-react";
+} from "lucide-react";
 import { voucherService, VoucherResponse } from "../../src/services/voucher.service";
 import { storage } from "../../src/utils/storage";
 import AdminLayout from "../../src/components/layout/AdminLayout";
@@ -52,7 +52,7 @@ export default function VouchersPage() {
     try {
       const data = await voucherService.getStats();
       setStats(data);
-    } catch {}
+    } catch { }
   };
 
   const loadVouchers = async () => {
@@ -70,14 +70,17 @@ export default function VouchersPage() {
       setTotalPages(data.totalPages || 1);
     } catch (error: any) {
       toast.error("Không thể tải danh sách voucher");
-    }finally {
+    } finally {
       setLoading(false);
     }
   };
 
   const handleSearch = () => {
-    setPage(1);
-    loadVouchers();
+    if (page === 1) {
+      loadVouchers();
+    } else {
+      setPage(1);
+    }
   };
 
   const handleDelete = async (id: string, code: string) => {
@@ -99,7 +102,7 @@ export default function VouchersPage() {
       toast.success(`Voucher đã ${newStatus === "active" ? "bật" : "tắt"}`);
       loadVouchers();
       loadStats();
-    }catch (error: any) {
+    } catch (error: any) {
       toast.error("Cập nhật thất bại");
     }
   };
@@ -284,11 +287,10 @@ export default function VouchersPage() {
                       </button>
                       <button
                         onClick={() => handleToggleStatus(voucher)}
-                        className={`flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                          voucher.status === "active"
+                        className={`flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${voucher.status === "active"
                             ? "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 hover:bg-yellow-500/30"
                             : "bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30"
-                        }`}
+                          }`}
                       >
                         {voucher.status === "active" ? <ToggleRight className="w-3 h-3" /> : <ToggleLeft className="w-3 h-3" />}
                         {voucher.status === "active" ? "Tắt" : "Bật"}

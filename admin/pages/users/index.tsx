@@ -363,7 +363,7 @@ export default function UsersPage() {
           {/* Pagination */}
           {total > (searchParams.limit || 20) && (
             <div className="flex items-center justify-between mt-6">
-              <div className="text-sm text-gray-700">
+              <div className="text-sm text-purple-200">
                 Hiển thị {(searchParams.offset || 0) + 1} đến{" "}
                 {Math.min(
                   (searchParams.offset || 0) + (searchParams.limit || 20),

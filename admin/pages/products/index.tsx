@@ -20,24 +20,27 @@ export default function ProductsPage() {
   const [products, setProducts] = useState<ProductResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const [mounted, setMounted] = useState(false);
+  const limit = 10;
 
   useEffect(() => {
-    setMounted(true);
-    const user = storage.getUser();
-    if (!user) {
-      router.push("/login");
-      return;
-    }
-
-    loadProducts();
-  }, [router]);
+    if (mounted) loadProducts();
+  }, [mounted, page]);
 
   const loadProducts = async () => {
     try {
       setLoading(true);
-      const data = await productService.getAll();
-      setProducts(data);
+      const data = await productService.search({
+        page,
+        limit,
+        keyword: searchTerm || undefined,
+      });
+      setProducts(data.products || []);
+      setTotal(data.total || 0);
+      setTotalPages(data.totalPages || 1);
     } catch (error: any) {
       toast.error(
         `Không thể tải danh sách sản phẩm: ${error.response?.data?.message || error.message || "Lỗi không xác định"}`,
@@ -118,14 +121,23 @@ export default function ProductsPage() {
     return null;
   };
 
-  const filteredProducts = products.filter((product) => {
-    const brandName = getBrandName(product.brand);
-    return (
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.sku?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      brandName.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  });
+  // Tải dữ liệu ban đầu
+  useEffect(() => {
+    setMounted(true);
+    const user = storage.getUser();
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+  }, [router]);
+
+  const handleSearch = () => {
+    if (page === 1) {
+      loadProducts();
+    } else {
+      setPage(1);
+    }
+  };
 
   if (!mounted) {
     return null;
@@ -183,9 +195,16 @@ export default function ProductsPage() {
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                 placeholder="Tìm kiếm sản phẩm theo tên, SKU hoặc thương hiệu..."
                 className="w-full pl-10 pr-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white placeholder-purple-300 backdrop-blur-sm"
               />
+              <button
+                onClick={handleSearch}
+                className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 bg-purple-500 text-white rounded-md text-xs hover:bg-purple-600 transition-colors"
+              >
+                Tìm kiếm
+              </button>
             </div>
           </div>
 
@@ -195,7 +214,7 @@ export default function ProductsPage() {
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-400 mx-auto"></div>
               <p className="mt-4 text-purple-200">Đang tải...</p>
             </div>
-          ) : filteredProducts.length === 0 ? (
+          ) : products.length === 0 ? (
             <div className="galaxy-card rounded-xl p-8 text-center">
               <Package className="w-16 h-16 text-purple-400 mx-auto" />
               <p className="mt-4 text-purple-200">Chưa có sản phẩm nào</p>
@@ -253,7 +272,7 @@ export default function ProductsPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-purple-500/20">
-                    {filteredProducts.map((product, index) => {
+                    {products.map((product, index) => {
                       const displayImage = getDisplayImage(product);
                       return (
                         <tr
@@ -261,7 +280,7 @@ export default function ProductsPage() {
                           className="hover:bg-white/5 transition-colors"
                         >
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
-                            {index + 1}
+                            {(page - 1) * limit + index + 1}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             {displayImage ? (
@@ -361,6 +380,29 @@ export default function ProductsPage() {
                   </tbody>
                 </table>
               </div>
+            </div>
+          )}
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 mt-6">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="px-4 py-2 bg-white/10 border border-purple-500/30 text-white rounded-lg disabled:opacity-40 hover:bg-white/20 transition-all text-sm"
+              >
+                Trước
+              </button>
+              <div className="px-4 py-2 text-purple-300 text-sm">
+                Trang {page} / {totalPages} ({total} sản phẩm)
+              </div>
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="px-4 py-2 bg-white/10 border border-purple-500/30 text-white rounded-lg disabled:opacity-40 hover:bg-white/20 transition-all text-sm"
+              >
+                Sau
+              </button>
             </div>
           )}
         </main>

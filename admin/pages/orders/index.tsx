@@ -34,16 +34,10 @@ export default function OrdersPage() {
   const [orders, setOrders] = useState<OrderResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
-  const [searchParams, setSearchParams] = useState<{
-    limit: number;
-    offset: number;
-    q?: string;
-    status?: string;
-  }>({
-    limit: 20,
-    offset: 0,
-  });
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
   const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const [keyword, setKeyword] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
 
@@ -61,21 +55,20 @@ export default function OrdersPage() {
     if (mounted) {
       loadOrders();
     }
-  }, [searchParams, mounted]);
+  }, [page, statusFilter, mounted]);
 
   const loadOrders = async () => {
     try {
       setLoading(true);
-      const params: any = { ...searchParams };
-      if (keyword) {
-        params.q = keyword;
-      }
-      if (statusFilter) {
-        params.status = statusFilter;
-      }
-      const response = await orderService.search(params);
+      const response = await orderService.search({
+        page,
+        limit,
+        keyword: keyword || undefined,
+        status: statusFilter || undefined,
+      });
       setOrders(response?.data || []);
       setTotal(response?.total || 0);
+      setTotalPages(response?.totalPages || 1);
     } catch (error: any) {
       console.error("Error loading orders:", error);
       toast.error(
@@ -89,16 +82,16 @@ export default function OrdersPage() {
   };
 
   const handleSearch = () => {
-    setSearchParams({ ...searchParams, offset: 0, q: keyword });
+    if (page === 1) {
+      loadOrders();
+    } else {
+      setPage(1);
+    }
   };
 
   const handleStatusFilter = (status: string) => {
     setStatusFilter(status);
-    setSearchParams({
-      ...searchParams,
-      offset: 0,
-      status: status || undefined,
-    });
+    setPage(1);
   };
 
   const formatDate = (date: Date | string | undefined) => {
@@ -222,7 +215,7 @@ export default function OrdersPage() {
                 label: "STT",
                 render: (_, index) => (
                   <span className="text-white">
-                    {(searchParams.offset || 0) + index + 1}
+                    {(page - 1) * limit + index + 1}
                   </span>
                 ),
               },
@@ -463,52 +456,27 @@ export default function OrdersPage() {
           />
 
           {/* Pagination */}
-          {total > (searchParams.limit || 20) && (
+          {totalPages > 1 && (
             <div className="flex items-center justify-between mt-6">
               <div className="text-sm text-purple-200">
-                Hiển thị {(searchParams.offset || 0) + 1} đến{" "}
-                {Math.min(
-                  (searchParams.offset || 0) + (searchParams.limit || 20),
-                  total,
-                )}{" "}
-                trong tổng số {total} đơn hàng
+                Hiển thị {(page - 1) * limit + 1} đến{" "}
+                {Math.min(page * limit, total)} trong tổng số {total} đơn hàng
               </div>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() =>
-                    setSearchParams({
-                      ...searchParams,
-                      offset: Math.max(
-                        0,
-                        (searchParams.offset || 0) - (searchParams.limit || 20),
-                      ),
-                    })
-                  }
-                  disabled={(searchParams.offset || 0) === 0}
-                  className="px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-white/20 transition-all text-white"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-white/20 transition-all text-white text-sm"
                 >
                   Trước
                 </button>
-                <span className="px-4 py-2 text-purple-200">
-                  Trang{" "}
-                  {Math.floor(
-                    (searchParams.offset || 0) / (searchParams.limit || 20),
-                  ) + 1}{" "}
-                  / {Math.ceil(total / (searchParams.limit || 20))}
-                </span>
+                <div className="px-4 py-2 text-purple-300 text-sm">
+                  Trang {page} / {totalPages}
+                </div>
                 <button
-                  onClick={() =>
-                    setSearchParams({
-                      ...searchParams,
-                      offset:
-                        (searchParams.offset || 0) + (searchParams.limit || 20),
-                    })
-                  }
-                  disabled={
-                    (searchParams.offset || 0) + (searchParams.limit || 20) >=
-                    total
-                  }
-                  className="px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-white/20 transition-all text-white"
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  className="px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-white/20 transition-all text-white text-sm"
                 >
                   Sau
                 </button>
