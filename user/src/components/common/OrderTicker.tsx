@@ -42,18 +42,20 @@ export default function OrderTicker() {
         .animate-marquee {
           display: inline-block;
           animation: marquee 30s linear infinite;
+          will-change: transform;
         }
         .animate-marquee-duplicate {
           display: inline-block;
-          animation: marquee-duplicate 30s linear infinite;
+          animation: marquee 30s linear infinite;
+          will-change: transform;
         }
         @keyframes marquee {
-          from { transform: translateX(0); }
-          to { transform: translateX(-100%); }
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-100%); }
         }
-        @keyframes marquee-duplicate {
-          from { transform: translateX(0); }
-          to { transform: translateX(-100%); }
+        @-webkit-keyframes marquee {
+          0% { -webkit-transform: translateX(0); }
+          100% { -webkit-transform: translateX(-100%); }
         }
       `}</style>
         </div>
