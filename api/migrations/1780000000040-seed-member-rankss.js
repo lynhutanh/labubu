@@ -2,6 +2,15 @@ const { DB } = require('./lib/index.cjs');
 
 const ranks = [
     {
+        key: 'memberNew',
+        name: 'Thành viên mới',
+        threshold: 0,
+        order: 1,
+        color: '#ebe8e5ff',
+        logoPath: '/ranks/silver.png',
+        description: 'Thành viên mới'
+    },
+    {
         key: 'copper',
         name: 'Đồng',
         threshold: 0,

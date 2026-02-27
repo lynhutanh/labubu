@@ -21,6 +21,7 @@ export const USER_RANK = {
   SILVER: "silver",
   GOLD: "gold",
   DIAMOND: "diamond",
+  PLATINUM: "platinum",
   EMERALD: "emerald",
 };
 

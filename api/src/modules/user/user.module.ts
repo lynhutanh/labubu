@@ -8,6 +8,7 @@ import { UserOrderListener } from "./listeners/user-order.listener";
 import { SettingModule } from "../settings/setting.module";
 import { VoucherModule } from "../voucher/voucher.module";
 import { PaymentModule } from "../payment/payment.module";
+import { MemberRankModule } from "../member-rank/member-rank.module";
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { PaymentModule } from "../payment/payment.module";
     forwardRef(() => SettingModule),
     forwardRef(() => VoucherModule),
     forwardRef(() => PaymentModule),
+    forwardRef(() => MemberRankModule),
   ],
   controllers: [UserController, AdminUserController, AddressController],
   providers: [

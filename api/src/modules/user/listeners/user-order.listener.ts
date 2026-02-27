@@ -11,6 +11,7 @@ import { SettingService } from "src/modules/settings/services";
 import { VoucherService } from "src/modules/voucher/services";
 import { TransactionService } from "src/modules/payment/services";
 import { ORDER_STATUS } from "src/modules/orders/constants";
+import { RankService } from "src/modules/member-rank/services/rank.service";
 
 @Injectable()
 export class UserOrderListener {
@@ -23,6 +24,8 @@ export class UserOrderListener {
         private readonly voucherService: VoucherService,
         @Inject(forwardRef(() => TransactionService))
         private readonly transactionService: TransactionService,
+        @Inject(forwardRef(() => RankService))
+        private readonly rankService: RankService,
     ) {
         this.queueEventService.subscribe(
             PAYMENT_CHANNELS.PAYMENT_SUCCESS,
@@ -79,39 +82,31 @@ export class UserOrderListener {
         const newTotalSpent = (user.totalSpent || 0) + amount;
         user.totalSpent = newTotalSpent;
 
-        // 2. Get ranking config from settings
-        const rankingConfig = await this.settingService.get("membership_ranking");
-        if (!rankingConfig) {
+        // 2. Get all ranks
+        const { data: ranks } = await this.rankService.search();
+        if (!ranks || ranks.length === 0) {
             await user.save();
             return;
         }
 
         // 3. Determine new rank
-        let newRank = user.rank || USER_RANK.COPPER;
-        const ranks = [
-            { key: USER_RANK.COPPER, threshold: 0 },
-            { key: USER_RANK.SILVER, threshold: rankingConfig.silverThreshold || 1000000 },
-            { key: USER_RANK.GOLD, threshold: rankingConfig.goldThreshold || 5000000 },
-            { key: USER_RANK.DIAMOND, threshold: rankingConfig.diamondThreshold || 20000000 },
-            { key: USER_RANK.EMERALD, threshold: rankingConfig.emeraldThreshold || 100000000 },
-        ];
-
-        // Find the highest rank that user qualifies for
+        let currentRank = ranks[0]; // Default to lowest
         for (let i = ranks.length - 1; i >= 0; i--) {
             if (newTotalSpent >= ranks[i].threshold) {
-                newRank = ranks[i].key;
+                currentRank = ranks[i];
                 break;
             }
         }
 
-        const oldRank = user.rank;
-        user.rank = newRank;
+        const oldRankKey = user.rank;
+        const newRankKey = currentRank.key;
+        user.rank = newRankKey;
 
         // 4. Handle Rewards if rank changed
-        if (newRank !== oldRank) {
-            const rewardVoucherCode = rankingConfig[`${newRank}RewardVoucher`];
-            if (rewardVoucherCode && !user.receivedRewards.includes(rewardVoucherCode)) {
-                await this.giveReward(user, rewardVoucherCode);
+        if (newRankKey !== oldRankKey) {
+            // Check if user has already received this rank's reward
+            if (currentRank.rewardVoucherCode && !user.receivedRewards.includes(currentRank.rewardVoucherCode)) {
+                await this.giveReward(user, currentRank.rewardVoucherCode);
             }
         }
 
