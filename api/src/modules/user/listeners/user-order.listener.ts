@@ -10,6 +10,7 @@ import { USER_RANK } from "../constants";
 import { SettingService } from "src/modules/settings/services";
 import { VoucherService } from "src/modules/voucher/services";
 import { TransactionService } from "src/modules/payment/services";
+import { ORDER_STATUS } from "src/modules/orders/constants";
 
 @Injectable()
 export class UserOrderListener {
@@ -28,6 +29,11 @@ export class UserOrderListener {
             PAYMENT_TOPICS.PAYMENT_SUCCESS,
             this.handlePaymentSuccess.bind(this),
         );
+        this.queueEventService.subscribe(
+            'ORDER_UPDATED_CHANNEL',
+            'HANDLE_ORDER_RANKING',
+            this.handleOrderUpdated.bind(this),
+        );
     }
 
     public async handlePaymentSuccess({ data: event }: QueueEventListener) {
@@ -44,6 +50,24 @@ export class UserOrderListener {
             await this.updateUserRank(transaction.userId.toString(), transaction.amount);
         } catch (e) {
             logError("handlePaymentSuccess", e);
+        }
+    }
+
+    public async handleOrderUpdated({ data: event }: QueueEventListener) {
+        const { eventName, data } = event;
+        if (eventName !== EVENT.UPDATED) return;
+
+        try {
+            const order = data;
+            if (!order || !order.buyerId) return;
+
+            // Handle refund status
+            if (order.status === ORDER_STATUS.REFUNDED) {
+                // Deduct total spent by the order total amount
+                await this.updateUserRank(order.buyerId.toString(), -order.total);
+            }
+        } catch (e) {
+            logError("handleOrderUpdated", e);
         }
     }
 

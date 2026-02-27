@@ -29,6 +29,10 @@ import { OrderModel } from "../models";
 import { WalletService } from "src/modules/payment/services";
 import { WALLET_OWNER_TYPE } from "src/modules/payment/constants";
 import { calculateOffset } from "../helpers";
+import { QueueMessageService } from "src/kernel";
+import { EVENT } from "src/kernel/constants";
+import { ORDER_CHANNELS } from "../constants";
+import { OrderDto } from "../dtos";
 
 @Injectable()
 export class RefundRequestService {
@@ -39,7 +43,8 @@ export class RefundRequestService {
     private readonly orderModel: Model<OrderModel>,
     @Inject(forwardRef(() => WalletService))
     private readonly walletService: WalletService,
-  ) {}
+    private readonly queueEventService: QueueMessageService,
+  ) { }
 
   async createRefundRequest(
     user: any,
@@ -212,7 +217,7 @@ export class RefundRequestService {
       }
 
       console.log("🔵 [RefundRequestService] Processing refund without transaction (standalone MongoDB)");
-      
+
       try {
         console.log("🔵 [RefundRequestService] Calling walletService.refund");
         await this.walletService.refund(
@@ -250,21 +255,27 @@ export class RefundRequestService {
         if (!updatedRequest) {
           throw new NotFoundException("Không thể tải lại yêu cầu hoàn tiền sau khi xử lý");
         }
-        
+
+        // Publish event to update user rank (deduct points)
+        await this.queueEventService.publish(ORDER_CHANNELS.ORDER_UPDATED, {
+          eventName: EVENT.UPDATED,
+          data: new OrderDto(orderToUpdate.toObject()),
+        });
+
         console.log("🔵 [RefundRequestService] Process completed successfully");
         return new RefundRequestDto(updatedRequest);
       } catch (error: any) {
         console.error("❌ [RefundRequestService] Error processing refund:", error);
         console.error("❌ [RefundRequestService] Error message:", error?.message);
         console.error("❌ [RefundRequestService] Error stack:", error?.stack);
-        
+
         if (error?.code === 20 || error?.message?.includes("Transaction numbers")) {
           console.log("⚠️ [RefundRequestService] MongoDB standalone detected, retrying without transaction");
           throw new BadRequestException(
             "MongoDB đang chạy ở chế độ standalone. Vui lòng cấu hình MongoDB replica set để sử dụng transactions, hoặc liên hệ admin để xử lý thủ công."
           );
         }
-        
+
         throw error;
       }
     } catch (error: any) {
