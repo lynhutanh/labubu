@@ -5,7 +5,7 @@ const ranks = [
         key: 'memberNew',
         name: 'Thành viên mới',
         threshold: 0,
-        order: 1,
+        order: 0,
         color: '#ebe8e5ff',
         logoPath: '/ranks/silver.png',
         description: 'Thành viên mới'
