@@ -5,12 +5,13 @@ async function updateRank() {
     try {
         console.log('--- Bắt đầu script đồng bộ chi tiêu và cập nhật thứ hạng ---');
 
-        if (!process.env.MONGO_URI) {
-            console.error('❌ Thiếu MONGO_URI trong file .env');
+        const uri = process.env.MONGO_URI || process.env.MONGODB_URL;
+        if (!uri) {
+            console.error('❌ Thiếu biến môi trường MONGO_URI hoặc MONGODB_URL trong file .env');
             process.exit(1);
         }
 
-        await mongoose.connect(process.env.MONGO_URI);
+        await mongoose.connect(uri);
         console.log('✅ Đã kết nối MongoDB');
 
         const db = mongoose.connection.db;
