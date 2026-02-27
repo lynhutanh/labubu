@@ -615,4 +615,33 @@ export class BuyerOrderService {
     return trackingInfo;
   }
 
+  async getRecentPublicOrders(): Promise<any[]> {
+    const orders = await this.orderModel
+      .find({ paymentStatus: PAYMENT_STATUS.PAID })
+      .sort({ createdAt: -1 })
+      .limit(10)
+      .lean();
+
+    const result = [];
+    for (const order of orders) {
+      const user = await this.userModel.findById(order.buyerId).lean();
+      if (!user) continue;
+
+      const name = user.name || user.email || "Khách hàng";
+      const maskedName = name.length > 3
+        ? `${name.substring(0, 3)}****${name.substring(name.length - 2)}`
+        : `${name}****`;
+
+      const productNames = order.items.map(item => item.name).join(", ");
+
+      result.push({
+        maskedName,
+        productNames,
+        createdAt: order.createdAt
+      });
+    }
+
+    return result;
+  }
+
 }

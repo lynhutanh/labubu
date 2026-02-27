@@ -190,6 +190,11 @@ export class OrderService extends APIRequest {
     });
     return response.data?.data || response.data;
   }
+
+  public async getRecentPublicOrders(): Promise<any[]> {
+    const response = await this.get("/orders/public/recent");
+    return response.data?.data || response.data || [];
+  }
 }
 
 export const orderService = new OrderService();

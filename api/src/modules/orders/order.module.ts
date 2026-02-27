@@ -4,6 +4,7 @@ import { orderProviders, refundRequestProviders } from "./providers";
 import { BuyerOrderController, AdminOrderController, RefundRequestController } from "./controllers";
 import { BuyerOrderService, AdminOrderService, RefundRequestService } from "./services";
 import { OrderCreatedListener, OrderCancelledListener } from "./listeners";
+import { PublicOrderController } from "./controllers/public-order.controller";
 import { AuthModule } from "../auth/auth.module";
 import { ProductModule } from "../products/product.module";
 import { CartModule } from "../cart/cart.module";
@@ -26,7 +27,7 @@ import { GhnOrderSyncService } from "./services/ghn-order-sync.service";
     forwardRef(() => UserModule),
     forwardRef(() => VoucherModule),
   ],
-  controllers: [BuyerOrderController, AdminOrderController, RefundRequestController],
+  controllers: [BuyerOrderController, AdminOrderController, RefundRequestController, PublicOrderController],
   providers: [
     ...orderProviders,
     ...refundRequestProviders,
