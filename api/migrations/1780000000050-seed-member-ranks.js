@@ -2,15 +2,6 @@ const { DB } = require('./lib/index.cjs');
 
 const ranks = [
     {
-        key: 'memberNew',
-        name: 'Thành viên mới',
-        threshold: 0,
-        order: 0,
-        color: '#ebe8e5ff',
-        logoPath: '/ranks/silver.png',
-        description: 'Thành viên mới'
-    },
-    {
         key: 'copper',
         name: 'Đồng',
         threshold: 0,
@@ -57,43 +48,30 @@ const ranks = [
     }
 ];
 
-module.exports.up = async function () {
-    console.log('Member ranks migration started');
+module.exports.up = async function up() {
+    console.log('--- Bắt đầu cập nhật cấp bậc thành viên ---');
 
+    // Xóa toàn bộ dữ liệu cũ trong collection 'ranks' nếu có
+    await DB.collection('ranks').deleteMany({});
+    console.log('✅ Đã xóa toàn bộ cấp bậc cũ');
+
+    // Thêm mới toàn bộ dữ liệu từ danh sách
     for (const rank of ranks) {
-        const exists = await DB.collection('ranks').findOne({ key: rank.key });
-
-        if (!exists) {
-            await DB.collection('ranks').insertOne({
-                ...rank,
-                rewardVoucherCode: '',
-                createdAt: new Date(),
-                updatedAt: new Date()
-            });
-            console.log(`Inserted rank: ${rank.key}`);
-        } else {
-            await DB.collection('ranks').updateOne(
-                { key: rank.key },
-                {
-                    $set: {
-                        name: rank.name,
-                        threshold: rank.threshold,
-                        order: rank.order,
-                        color: rank.color,
-                        logoPath: rank.logoPath,
-                        description: rank.description,
-                        updatedAt: new Date()
-                    }
-                }
-            );
-            console.log(`Updated rank: ${rank.key}`);
-        }
+        await DB.collection('ranks').insertOne({
+            ...rank,
+            rewardVoucherCode: '',
+            createdAt: new Date(),
+            updatedAt: new Date()
+        });
+        console.log(`✅ Đã tạo mới cấp bậc: ${rank.name} (${rank.key})`);
     }
 
-    console.log('Member ranks migration completed');
+    console.log('--- Hoàn tất cập nhật cấp bậc! ---');
 };
 
-module.exports.down = async function () {
-    await DB.collection('ranks').deleteMany({ key: { $in: ranks.map(r => r.key) } });
-    console.log('Rollback member ranks completed');
+module.exports.down = async function down() {
+    await DB.collection('ranks').deleteMany({
+        key: { $in: ranks.map((r) => r.key) }
+    });
+    console.log('✅ Đã xóa các cấp bậc đã tạo');
 };
