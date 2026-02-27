@@ -26,6 +26,12 @@ export class UserModel extends Document {
 
   address?: string;
 
+  rank?: string;
+
+  totalSpent?: number;
+
+  receivedRewards?: string[];
+
   createdAt: Date;
 
   updatedAt: Date;

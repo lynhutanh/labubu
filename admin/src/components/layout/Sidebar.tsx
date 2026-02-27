@@ -70,6 +70,11 @@ const menuItems: MenuItem[] = [
     href: "/users",
   },
   {
+    name: "Thành viên",
+    icon: Users,
+    href: "/memberships",
+  },
+  {
     name: "Chat",
     icon: MessageCircle,
     href: "/chat",
@@ -170,9 +175,8 @@ export default function Sidebar() {
 
   return (
     <div
-      className={`relative backdrop-blur-lg border-r border-purple-500/30 flex flex-col transition-all duration-300 ${
-        collapsed ? "w-20" : "w-64"
-      }`}
+      className={`relative backdrop-blur-lg border-r border-purple-500/30 flex flex-col transition-all duration-300 ${collapsed ? "w-20" : "w-64"
+        }`}
       style={{
         background:
           "linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(79, 70, 229, 0.2) 50%, rgba(0, 0, 0, 0.3) 100%)",
@@ -240,16 +244,15 @@ export default function Sidebar() {
                   <>
                     <button
                       onClick={() => toggleMenu(item.name)}
-                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all ${
-                        active
+                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all ${active
                           ? "bg-gradient-to-r from-pink-500/30 to-purple-500/30 text-white border border-pink-400/50"
                           : "text-purple-200 hover:bg-white/10 hover:text-white"
-                      }`}
+                        }`}
                       style={
                         active
                           ? {
-                              boxShadow: "0 0 15px rgba(236, 72, 153, 0.3)",
-                            }
+                            boxShadow: "0 0 15px rgba(236, 72, 153, 0.3)",
+                          }
                           : {}
                       }
                     >
@@ -276,11 +279,10 @@ export default function Sidebar() {
                             <li key={child.name}>
                               <a
                                 href={child.href}
-                                className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all ${
-                                  childActive
+                                className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all ${childActive
                                     ? "bg-gradient-to-r from-purple-500/20 to-indigo-500/20 text-white border border-purple-400/30"
                                     : "text-purple-300 hover:bg-white/10 hover:text-white"
-                                }`}
+                                  }`}
                               >
                                 <ChildIcon className="w-4 h-4" />
                                 <span>{child.name}</span>
@@ -294,16 +296,15 @@ export default function Sidebar() {
                 ) : (
                   <a
                     href={item.href}
-                    className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all relative ${
-                      active
+                    className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all relative ${active
                         ? "bg-gradient-to-r from-pink-500/30 to-purple-500/30 text-white border border-pink-400/50"
                         : "text-purple-200 hover:bg-white/10 hover:text-white"
-                    }`}
+                      }`}
                     style={
                       active
                         ? {
-                            boxShadow: "0 0 15px rgba(236, 72, 153, 0.3)",
-                          }
+                          boxShadow: "0 0 15px rgba(236, 72, 153, 0.3)",
+                        }
                         : {}
                     }
                   >

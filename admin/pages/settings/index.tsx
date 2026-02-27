@@ -7,6 +7,7 @@ import {
   Save,
   Truck,
   Lock,
+  Users,
 } from "lucide-react";
 import { settingsService } from "src/services";
 import {

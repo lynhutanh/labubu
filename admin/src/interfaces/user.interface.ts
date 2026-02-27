@@ -18,6 +18,8 @@ export interface UserResponse {
   dateOfBirth?: Date;
   gender?: string;
   address?: string;
+  rank?: string;
+  totalSpent?: number;
   createdAt: Date;
   updatedAt: Date;
 }

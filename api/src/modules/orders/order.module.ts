@@ -23,7 +23,7 @@ import { GhnOrderSyncService } from "./services/ghn-order-sync.service";
     forwardRef(() => PaymentModule),
     forwardRef(() => SettingModule),
     SendgridModule,
-    UserModule,
+    forwardRef(() => UserModule),
     forwardRef(() => VoucherModule),
   ],
   controllers: [BuyerOrderController, AdminOrderController, RefundRequestController],

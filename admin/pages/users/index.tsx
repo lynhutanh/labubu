@@ -6,7 +6,7 @@ import { userService } from "../../src/services";
 import { UserResponse, UserSearchParams } from "../../src/interfaces";
 import { storage } from "../../src/utils/storage";
 import AdminLayout from "../../src/components/layout/AdminLayout";
-import DataTable, { Column } from "../../src/components/common/DataTable";
+import DataTable from "../../src/components/common/DataTable";
 import UserEditModal from "../../src/components/users/UserEditModal";
 import toast from "react-hot-toast";
 
@@ -274,6 +274,35 @@ export default function UsersPage() {
                 render: (user) => (
                   <span className="text-sm text-purple-200">
                     {user.phone || "-"}
+                  </span>
+                ),
+              },
+              {
+                key: "rank",
+                label: "Hạng",
+                render: (user) => {
+                  const rankColors: Record<string, string> = {
+                    copper: "bg-orange-900/40 text-orange-400 border-orange-500/30",
+                    silver: "bg-slate-400/20 text-slate-300 border-slate-400/30",
+                    gold: "bg-yellow-500/20 text-yellow-300 border-yellow-500/30",
+                    diamond: "bg-blue-400/20 text-blue-300 border-blue-400/30",
+                    emerald: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
+                  };
+                  return (
+                    <span
+                      className={`px-3 py-1 text-xs font-medium rounded-full border ${rankColors[user.rank || "copper"]}`}
+                    >
+                      {(user.rank || "copper").toUpperCase()}
+                    </span>
+                  );
+                },
+              },
+              {
+                key: "totalSpent",
+                label: "Tổng chi tiêu",
+                render: (user) => (
+                  <span className="text-sm font-medium text-pink-400">
+                    {(user.totalSpent || 0).toLocaleString("vi-VN")}đ
                   </span>
                 ),
               },

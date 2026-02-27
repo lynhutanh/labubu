@@ -26,6 +26,12 @@ export class UserDto {
 
   address: string;
 
+  rank: string;
+
+  totalSpent: number;
+
+  receivedRewards: string[];
+
   createdAt: Date;
 
   updatedAt: Date;
@@ -46,6 +52,9 @@ export class UserDto {
         "dateOfBirth",
         "gender",
         "address",
+        "rank",
+        "totalSpent",
+        "receivedRewards",
         "createdAt",
         "updatedAt",
       ]),
@@ -73,6 +82,9 @@ export class UserDto {
       dateOfBirth: this.dateOfBirth,
       gender: this.gender,
       address: this.address,
+      rank: this.rank,
+      totalSpent: this.totalSpent,
+      receivedRewards: this.receivedRewards,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
     };

@@ -3,7 +3,9 @@ import { useRouter } from "next/router";
 import Head from "next/head";
 import Layout from "../../src/components/layout/Layout";
 import ProfileLayout from "../../src/components/profile/ProfileLayout";
+import MembershipProgress from "../../src/components/profile/MembershipProgress";
 import { storage } from "../../src/utils/storage";
+import { userService } from "../../src/services/user.service";
 import { User, Lock } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useTrans } from "../../src/hooks/useTrans";
@@ -34,6 +36,14 @@ export default function ProfilePage() {
             currentPassword: "",
             newPassword: "",
             confirmPassword: "",
+        });
+
+        userService.getProfile().then((data: any) => {
+            const upToDateUser = { ...currentUser, ...data };
+            setUser(upToDateUser);
+            storage.setUser(upToDateUser);
+        }).catch(err => {
+            console.error(err);
         });
     }, [router]);
 
@@ -78,6 +88,7 @@ export default function ProfilePage() {
             </Head>
             <ProfileLayout>
                 <div className="bg-white rounded-lg shadow-sm p-6 space-y-8">
+                    <MembershipProgress user={user} />
                     <div>
                         <h2 className="text-xl font-bold text-gray-900 mb-6">
                             {t.profile.personalInfo}
@@ -128,8 +139,8 @@ export default function ProfilePage() {
                                     }
                                     disabled={!isEditingEmail}
                                     className={`flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent ${!isEditingEmail
-                                            ? "bg-gray-100 cursor-not-allowed"
-                                            : ""
+                                        ? "bg-gray-100 cursor-not-allowed"
+                                        : ""
                                         }`}
                                     placeholder={t.profile.emailPlaceholder}
                                 />

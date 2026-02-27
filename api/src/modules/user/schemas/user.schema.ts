@@ -55,6 +55,20 @@ export const UserSchema = new Schema(
       type: String,
       default: "",
     },
+    rank: {
+      type: String,
+      default: "copper",
+      enum: ["copper", "silver", "gold", "diamond", "emerald"],
+      index: true,
+    },
+    totalSpent: {
+      type: Number,
+      default: 0,
+    },
+    receivedRewards: {
+      type: [String],
+      default: [],
+    },
   },
   { timestamps: true },
 );

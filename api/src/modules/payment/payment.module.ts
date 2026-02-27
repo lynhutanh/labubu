@@ -37,7 +37,7 @@ import { UserModule } from "../user/user.module";
     forwardRef(() => SettingModule),
     forwardRef(() => OrderModule),
     SendgridModule,
-    UserModule,
+    forwardRef(() => UserModule),
   ],
   controllers: [
     TransactionController,
@@ -77,4 +77,4 @@ import { UserModule } from "../user/user.module";
     GhnService,
   ],
 })
-export class PaymentModule {}
+export class PaymentModule { }

@@ -8,6 +8,8 @@ export interface User {
   phone?: string;
   address?: string;
   avatar?: string;
+  rank?: string;
+  totalSpent?: number;
   wallet?: {
     balance: number;
     currency: string;

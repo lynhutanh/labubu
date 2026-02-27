@@ -65,9 +65,22 @@ export default function ProfileLayout({ children }: ProfileLayoutProps) {
                   <h3 className="text-base font-bold text-gray-200 mb-1 truncate">
                     {user.username || user.name || "User"}
                   </h3>
-                  <p className="text-xs text-gray-400 break-all">
+                  <p className="text-xs text-gray-400 break-all mb-2">
                     {user.email || ""}
                   </p>
+                  {user.rank && (
+                    <div className="flex items-center gap-1">
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${user.rank === 'copper' ? 'bg-orange-900/40 text-orange-400 border border-orange-500/30' :
+                          user.rank === 'silver' ? 'bg-slate-400/20 text-slate-300 border border-slate-400/30' :
+                            user.rank === 'gold' ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30' :
+                              user.rank === 'diamond' ? 'bg-blue-400/20 text-blue-300 border border-blue-400/30' :
+                                user.rank === 'emerald' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' :
+                                  'bg-orange-900/40 text-orange-400 border border-orange-500/30'
+                        }`}>
+                        {user.rank}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -75,18 +88,17 @@ export default function ProfileLayout({ children }: ProfileLayoutProps) {
               <nav className="space-y-2">
                 {menuItems.map((item) => {
                   const Icon = item.icon;
-                  const isActive = currentPath === item.path || 
+                  const isActive = currentPath === item.path ||
                     (item.path === "/profile" && currentPath === "/profile");
-                  
+
                   return (
                     <button
                       key={item.id}
                       onClick={() => router.push(item.path)}
-                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                        isActive
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive
                           ? "bg-gray-700 text-white"
                           : "text-gray-400 hover:bg-gray-800 hover:text-white"
-                      }`}
+                        }`}
                     >
                       <Icon className="w-5 h-5" />
                       <span className="text-sm font-medium">{item.label}</span>

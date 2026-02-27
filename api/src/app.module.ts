@@ -1,26 +1,27 @@
-import { Module }from "@nestjs/common";
+import { Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { MongooseModule } from "@nestjs/mongoose";
-import { RedisModule }from "@nestjs-modules/ioredis";
+import { RedisModule } from "@nestjs-modules/ioredis";
 import { ServeStaticModule } from "@nestjs/serve-static";
 import { ScheduleModule } from "@nestjs/schedule";
 import { join } from "path";
 import { AppController } from "./app.controller";
-import { AppService }from "./app.service";
+import { AppService } from "./app.service";
 import { AuthModule } from "./modules/auth/auth.module";
-import { UserModule }from "./modules/user/user.module";
+import { UserModule } from "./modules/user/user.module";
 import { SettingModule } from "./modules/settings/setting.module";
-import { SocketModule }from "./modules/websocket/socket.module";
-import { FileModule }from "./modules/file/file.module";
+import { SocketModule } from "./modules/websocket/socket.module";
+import { FileModule } from "./modules/file/file.module";
 import { CategoryModule } from "./modules/category/category.module";
 import { ProductModule } from "./modules/products/product.module";
 import { CartModule } from "./modules/cart/cart.module";
-import { OrderModule }from "./modules/orders/order.module";
+import { OrderModule } from "./modules/orders/order.module";
 import { PaymentModule } from "./modules/payment/payment.module";
-import { BrandModule }from "./modules/brand/brand.module";
+import { BrandModule } from "./modules/brand/brand.module";
 import { WishlistModule } from "./modules/wishlist/wishlist.module";
 import { ChatModule } from "./modules/chat/chat.module";
 import { VoucherModule } from "./modules/voucher/voucher.module";
+import { MemberRankModule } from "./modules/member-rank/member-rank.module";
 import app from "./config/app";
 import file from "./config/file";
 import email from "./config/email";
@@ -61,7 +62,7 @@ import { CoreQueueModule, MongoDBModule } from "./kernel";
             res.setHeader("Content-Type", "image/jpeg");
           } else if (ext === "png") {
             res.setHeader("Content-Type", "image/png");
-          }else if (ext === "gif") {
+          } else if (ext === "gif") {
             res.setHeader("Content-Type", "image/gif");
           } else if (ext === "webp") {
             res.setHeader("Content-Type", "image/webp");
@@ -107,8 +108,9 @@ import { CoreQueueModule, MongoDBModule } from "./kernel";
     WishlistModule,
     ChatModule,
     VoucherModule,
+    MemberRankModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }

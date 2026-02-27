@@ -16,6 +16,14 @@ export const GENDERS = {
   OTHER: "other",
 };
 
+export const USER_RANK = {
+  COPPER: "copper",
+  SILVER: "silver",
+  GOLD: "gold",
+  DIAMOND: "diamond",
+  EMERALD: "emerald",
+};
+
 export const USER_CHANNELS = {
   DELETE_USER: "DELETE_USER_CHANNEL",
   USER_ROLE_UPDATED: "USER_ROLE_UPDATED_CHANNEL",
