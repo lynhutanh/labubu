@@ -10,7 +10,11 @@ import {
     ORDER_STATUS,
     PAYMENT_STATUS,
 } from "src/modules/orders/constants";
-import { PAYMENT_PROVIDER, PAYMENT_METHOD } from "../constants";
+import {
+    PAYMENT_PROVIDER,
+    PAYMENT_METHOD,
+    TRANSACTION_STATUS,
+} from "../constants";
 import { TRANSACTION_MODEL_PROVIDER } from "../providers";
 import { CreateTransactionDto } from "../dtos";
 import { SettingService } from "src/modules/settings/services";
@@ -367,6 +371,13 @@ export class SePayService implements OnModuleInit {
                 session,
             );
 
+            // Cập nhật trạng thái giao dịch thành COMPLETED để kích hoạt sự kiện PAYMENT_SUCCESS
+            await this.transactionService.updateTransactionStatus(
+                transaction.transactionId,
+                TRANSACTION_STATUS.COMPLETED,
+                session,
+            );
+
             await this.orderModel.updateOne(
                 { _id: order._id },
                 {
@@ -438,7 +449,7 @@ export class SePayService implements OnModuleInit {
      */
     private async getRandomSePayAccount(): Promise<{ account: string; bank: string }> {
         await this.refreshSettings();
-        
+
         const account1 = await this.settingService.get("sepayAccount");
         const bank1 = await this.settingService.get("sepayBank");
         const account2 = await this.settingService.get("sepay2Account");

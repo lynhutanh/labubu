@@ -10,7 +10,8 @@ import { USER_RANK } from "../constants";
 import { SettingService } from "src/modules/settings/services";
 import { VoucherService } from "src/modules/voucher/services";
 import { TransactionService } from "src/modules/payment/services";
-import { ORDER_STATUS } from "src/modules/orders/constants";
+import { ORDER_STATUS, PAYMENT_METHOD } from "src/modules/orders/constants";
+import { OrderModel } from "src/modules/orders/models";
 import { RankService } from "src/modules/member-rank/services/rank.service";
 
 @Injectable()
@@ -44,13 +45,19 @@ export class UserOrderListener {
         if (eventName !== EVENT.UPDATED) return;
 
         try {
-            const { transactionId } = data;
-            if (!transactionId) return;
+            let { transactionId, userId, amount } = data;
 
-            const transaction = await this.transactionService.findTransactionById(transactionId);
-            if (!transaction || !transaction.userId) return;
+            // Nếu chưa có userId hoặc amount (từ TransactionService), hãy fetch từ DB
+            if (!userId || !amount) {
+                if (!transactionId) return;
+                const transaction = await this.transactionService.findTransactionById(transactionId);
+                if (!transaction || !transaction.userId) return;
+                userId = transaction.userId;
+                amount = transaction.amount;
+            }
 
-            await this.updateUserRank(transaction.userId.toString(), transaction.amount);
+            if (!userId) return;
+            await this.updateUserRank(userId.toString(), amount);
         } catch (e) {
             logError("handlePaymentSuccess", e);
         }
@@ -61,13 +68,21 @@ export class UserOrderListener {
         if (eventName !== EVENT.UPDATED) return;
 
         try {
-            const order = data;
+            const order = data as OrderModel;
             if (!order || !order.buyerId) return;
 
-            // Handle refund status
+            // Nếu đơn hàng bị REFUNDED, trừ totalSpent
             if (order.status === ORDER_STATUS.REFUNDED) {
-                // Deduct total spent by the order total amount
                 await this.updateUserRank(order.buyerId.toString(), -order.total);
+            }
+
+            // Nếu đơn hàng chuyển sang COMPLETED
+            if (order.status === ORDER_STATUS.COMPLETED) {
+                // Đối với đơn hàng COD, lúc này mới là lúc thanh toán thành công -> cộng totalSpent
+                // Đối với thanh toán online (PayPal, ZaloPay, SePay, Wallet), totalSpent đã được cộng khi PAYMENT_SUCCESS
+                if (order.paymentMethod === PAYMENT_METHOD.COD) {
+                    await this.updateUserRank(order.buyerId.toString(), order.total);
+                }
             }
         } catch (e) {
             logError("handleOrderUpdated", e);

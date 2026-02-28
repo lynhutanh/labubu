@@ -18,7 +18,9 @@ import {
   WALLET_TRANSACTION_TYPE,
   WALLET_TRANSACTION_STATUS,
   SYSTEM_WALLET_ID,
+  PAYMENT_CHANNELS,
 } from "../constants";
+import { EVENT } from "src/kernel/constants";
 import { IDepositData, IWithdrawData, IPurchaseData } from "../interfaces";
 
 @Injectable()
@@ -306,7 +308,7 @@ export class WalletService {
     await wallet.save({ session });
 
     // Create transaction record
-    await this.walletTransactionModel.create(
+    const walletTransaction = await this.walletTransactionModel.create(
       [
         {
           transactionCode: this.generateTransactionCode(),
@@ -328,6 +330,16 @@ export class WalletService {
       ],
       { session },
     );
+
+    // Phát sự kiện PAYMENT_SUCCESS để cập nhật totalSpent và rank
+    await this.queueEventService.publish(PAYMENT_CHANNELS.PAYMENT_SUCCESS, {
+      eventName: EVENT.UPDATED,
+      data: {
+        transactionId: walletTransaction[0].transactionCode,
+        userId: ownerId,
+        amount: purchaseData.amount,
+      },
+    });
 
     return new WalletDto(wallet.toObject());
   }
@@ -383,6 +395,16 @@ export class WalletService {
       ],
       { session },
     );
+
+    // Phát sự kiện (giảm totalSpent) khi hoàn tiền
+    await this.queueEventService.publish(PAYMENT_CHANNELS.PAYMENT_SUCCESS, {
+      eventName: EVENT.UPDATED,
+      data: {
+        transactionId: `REFUND_${orderId}`,
+        userId: ownerId,
+        amount: -amount,
+      },
+    });
 
     return new WalletDto(wallet.toObject());
   }
