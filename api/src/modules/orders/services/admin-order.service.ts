@@ -53,7 +53,7 @@ export class AdminOrderService {
     private readonly sendgridService: SendgridService,
     @Inject(USER_MODEL_PROVIDER)
     private readonly userModel: Model<UserModel>,
-  ) {}
+  ) { }
 
   async findById(orderId: string): Promise<OrderDto | null> {
     const order = await this.orderModel.findById(orderId).lean();
@@ -101,8 +101,8 @@ export class AdminOrderService {
 
     const { status, cancelReason } = payload;
 
-    // Validate status transition
-    this.validateStatusTransition(order.status, status);
+    // Admin can update status to any value, no need to validate transition
+    // this.validateStatusTransition(order.status, status);
 
     const updateData: any = {
       status,
