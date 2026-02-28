@@ -12,18 +12,23 @@ export class GhnOrderSyncService {
     private readonly orderModel: Model<OrderModel>,
     @Inject(forwardRef(() => GhnService))
     private readonly ghnService: GhnService,
-  ) {}
+  ) { }
 
   private mapGhnStatusToOrderStatus(ghnStatus: string): string | null {
     const status = (ghnStatus || "").toLowerCase();
 
     if (
       status === "ready_to_pick" ||
-      status === "picking" ||
+      status === "picking"
+    ) {
+      return ORDER_STATUS.PROCESSING;
+    }
+
+    if (
       status === "picked" ||
       status === "storing"
     ) {
-      return ORDER_STATUS.PROCESSING;
+      return ORDER_STATUS.PICKED;
     }
 
     if (
@@ -54,6 +59,15 @@ export class GhnOrderSyncService {
 
   @Cron(CronExpression.EVERY_MINUTE)
   async syncGhnStatuses() {
+    const STATUS_WEIGHT: Record<string, number> = {
+      [ORDER_STATUS.PENDING]: 0,
+      [ORDER_STATUS.CONFIRMED]: 1,
+      [ORDER_STATUS.PROCESSING]: 2,
+      [ORDER_STATUS.PICKED]: 3,
+      [ORDER_STATUS.SHIPPING]: 4,
+      [ORDER_STATUS.DELIVERED]: 5,
+      [ORDER_STATUS.COMPLETED]: 6,
+    };
     const orders = await this.orderModel
       .find({
         ghnOrderCode: { $ne: "", $exists: true },
@@ -61,6 +75,7 @@ export class GhnOrderSyncService {
           $in: [
             ORDER_STATUS.CONFIRMED,
             ORDER_STATUS.PROCESSING,
+            ORDER_STATUS.PICKED,
             ORDER_STATUS.SHIPPING,
           ],
         },
@@ -91,14 +106,19 @@ export class GhnOrderSyncService {
         const mapped = this.mapGhnStatusToOrderStatus(ghnStatus);
 
         if (mapped && mapped !== order.status) {
-          await this.orderModel.updateOne(
-            { _id: order._id },
-            {
-              $set: {
-                status: mapped,
+          const currentWeight = STATUS_WEIGHT[order.status] ?? -1;
+          const mappedWeight = STATUS_WEIGHT[mapped] ?? -1;
+
+          if (mapped === ORDER_STATUS.CANCELLED || mappedWeight > currentWeight) {
+            await this.orderModel.updateOne(
+              { _id: order._id },
+              {
+                $set: {
+                  status: mapped,
+                },
               },
-            },
-          );
+            );
+          }
         }
       } catch (e) {
       }

@@ -23,6 +23,7 @@ const STATUSES = [
   { value: "", label: "Tất cả" },
   { value: "pending", label: "Chờ xử lý" },
   { value: "processing", label: "Người bán đang chuẩn bị hàng" },
+  { value: "picked", label: "Lấy hàng thành công" },
   { value: "shipping", label: "Đang giao hàng" },
   { value: "delivered", label: "Đã giao" },
   { value: "completed", label: "Hoàn thành" },
@@ -118,6 +119,8 @@ export default function OrdersPage() {
         return "bg-yellow-500/20 text-yellow-300 border-yellow-500/30";
       case "processing":
         return "bg-purple-500/20 text-purple-300 border-purple-500/30";
+      case "picked":
+        return "bg-cyan-500/20 text-cyan-300 border-cyan-500/30";
       case "shipping":
         return "bg-indigo-500/20 text-indigo-300 border-indigo-500/30";
       case "delivered":
