@@ -46,7 +46,7 @@ async function syncUserTotalSpent() {
 
             const totalSpent = stat.totalSpent || 0;
 
-            let newRank = ranks[0]?.key || 'copper';
+            let newRank = ranks[0]?.key || 'new_member';
             for (let i = ranks.length - 1; i >= 0; i--) {
                 if (totalSpent >= ranks[i].threshold) {
                     newRank = ranks[i].key;
@@ -74,7 +74,7 @@ async function syncUserTotalSpent() {
             {
                 $set: {
                     totalSpent: 0,
-                    rank: ranks[0]?.key || 'copper',
+                    rank: ranks[0]?.key || 'new_member',
                     updatedAt: new Date()
                 }
             }

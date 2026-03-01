@@ -68,19 +68,26 @@ export default function ProfileLayout({ children }: ProfileLayoutProps) {
                   <p className="text-xs text-gray-400 break-all mb-2">
                     {user.email || ""}
                   </p>
-                  {user.rank && (
-                    <div className="flex items-center gap-1">
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${user.rank === 'copper' ? 'bg-orange-900/40 text-orange-400 border border-orange-500/30' :
-                          user.rank === 'silver' ? 'bg-slate-400/20 text-slate-300 border border-slate-400/30' :
-                            user.rank === 'gold' ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30' :
-                              user.rank === 'diamond' ? 'bg-blue-400/20 text-blue-300 border border-blue-400/30' :
-                                user.rank === 'emerald' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' :
-                                  'bg-orange-900/40 text-orange-400 border border-orange-500/30'
-                        }`}>
-                        {user.rank}
-                      </span>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-1">
+                    {(() => {
+                      const rank = user.rank || 'new_member';
+                      const rankStyles: Record<string, { label: string, style: string }> = {
+                        new_member: { label: 'Thành viên mới', style: 'bg-slate-500/20 text-slate-400 border border-slate-500/30' },
+                        copper: { label: 'Đồng', style: 'bg-orange-900/40 text-orange-400 border border-orange-500/30' },
+                        silver: { label: 'Bạc', style: 'bg-slate-400/20 text-slate-300 border border-slate-400/30' },
+                        gold: { label: 'Vàng', style: 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30' },
+                        platinum: { label: 'Bạch Kim', style: 'bg-indigo-400/20 text-indigo-300 border border-indigo-400/30' },
+                        diamond: { label: 'Kim Cương', style: 'bg-blue-400/20 text-blue-300 border border-blue-400/30' },
+                        emerald: { label: 'Lục Bảo', style: 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' }
+                      };
+                      const current = rankStyles[rank] || rankStyles.new_member;
+                      return (
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${current.style}`}>
+                          {current.label}
+                        </span>
+                      );
+                    })()}
+                  </div>
                 </div>
               </div>
 
@@ -96,8 +103,8 @@ export default function ProfileLayout({ children }: ProfileLayoutProps) {
                       key={item.id}
                       onClick={() => router.push(item.path)}
                       className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive
-                          ? "bg-gray-700 text-white"
-                          : "text-gray-400 hover:bg-gray-800 hover:text-white"
+                        ? "bg-gray-700 text-white"
+                        : "text-gray-400 hover:bg-gray-800 hover:text-white"
                         }`}
                     >
                       <Icon className="w-5 h-5" />
