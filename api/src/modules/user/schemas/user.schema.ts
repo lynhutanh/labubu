@@ -57,8 +57,8 @@ export const UserSchema = new Schema(
     },
     rank: {
       type: String,
-      default: "copper",
-      enum: ["copper", "silver", "gold", "diamond", "emerald"],
+      default: "new_member",
+      enum: ["new_member", "copper", "silver", "gold", "platinum", "diamond", "emerald"],
       index: true,
     },
     totalSpent: {

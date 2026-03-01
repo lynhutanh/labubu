@@ -17,6 +17,7 @@ export const GENDERS = {
 };
 
 export const USER_RANK = {
+  NEW_MEMBER: "new_member",
   COPPER: "copper",
   SILVER: "silver",
   GOLD: "gold",
