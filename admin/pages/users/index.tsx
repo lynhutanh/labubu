@@ -281,45 +281,21 @@ export default function UsersPage() {
                 key: "rank",
                 label: "Hạng",
                 render: (user) => {
-                  const rankInfo: Record<string, { label: string; color: string }> = {
-                    new_member: {
-                      label: "Mới",
-                      color: "bg-slate-500/20 text-slate-400 border-slate-500/30",
-                    },
-                    copper: {
-                      label: "Đồng",
-                      color: "bg-orange-900/40 text-orange-400 border-orange-500/30",
-                    },
-                    silver: {
-                      label: "Bạc",
-                      color: "bg-gray-400/20 text-gray-300 border-gray-400/30",
-                    },
-                    gold: {
-                      label: "Vàng",
-                      color: "bg-yellow-500/20 text-yellow-300 border-yellow-500/30",
-                    },
-                    platinum: {
-                      label: "Bạch Kim",
-                      color: "bg-indigo-400/20 text-indigo-300 border-indigo-400/30",
-                    },
-                    diamond: {
-                      label: "Kim Cương",
-                      color: "bg-blue-400/20 text-blue-300 border-blue-400/30",
-                    },
-                    emerald: {
-                      label: "Lục Bảo",
-                      color: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
-                    },
+                  const rankColors: Record<string, string> = {
+                    new_member: "bg-slate-500/20 text-slate-400 border-slate-500/30",
+                    copper: "bg-orange-900/40 text-orange-400 border-orange-500/30",
+                    silver: "bg-slate-400/20 text-slate-300 border-slate-400/30",
+                    gold: "bg-yellow-500/20 text-yellow-300 border-yellow-500/30",
+                    platinum: "bg-indigo-400/20 text-indigo-300 border-indigo-400/30",
+                    diamond: "bg-blue-400/20 text-blue-300 border-blue-400/30",
+                    emerald: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
                   };
-
-                  const rankKey = user.rank || "new_member";
-                  const info = rankInfo[rankKey] || rankInfo.new_member;
-
+                  const rank = (user.rank || "new_member").toLowerCase();
                   return (
                     <span
-                      className={`px-3 py-1 text-xs font-medium rounded-full border ${info.color}`}
+                      className={`px-3 py-1 text-xs font-medium rounded-full border ${rankColors[rank] || rankColors.new_member}`}
                     >
-                      {info.label.toUpperCase()}
+                      {rank.toUpperCase()}
                     </span>
                   );
                 },
