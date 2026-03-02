@@ -17,6 +17,8 @@ import Layout from "../src/components/layout/Layout";
 import ProductCardSimple from "../src/components/products/ProductCardSimple";
 import { productService, Product } from "../src/services/product.service";
 import { useTrans } from "../src/hooks/useTrans";
+import { WelcomePopup } from "../src/components/common/WelcomePopup";
+import { settingService } from "../src/services/setting.service";
 
 const mapProductToCard = (product: Product) => {
   const firstImage =
@@ -62,6 +64,7 @@ export default function HomePage() {
   const [newProducts, setNewProducts] = useState<Product[]>([]);
   const [bestSellers, setBestSellers] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [welcomeNotifications, setWelcomeNotifications] = useState<any[]>([]);
 
   const stars = useMemo(() => {
     return Array.from({ length: 50 }, (_, i) => ({
@@ -79,12 +82,18 @@ export default function HomePage() {
     const loadProducts = async () => {
       try {
         setLoading(true);
-        const [newProds, bestSellProds] = await Promise.all([
+        const [newProds, bestSellProds, settings] = await Promise.all([
           productService.getNew(5),
           productService.getBestSellers(5),
+          settingService.getPublicSettings().catch(() => [])
         ]);
         setNewProducts(newProds);
         setBestSellers(bestSellProds);
+
+        const popupConfig = settings?.find((s: any) => s.key === "welcome_popup");
+        if (popupConfig && Array.isArray(popupConfig.value) && popupConfig.value.length > 0) {
+          setWelcomeNotifications(popupConfig.value);
+        }
       } catch (error) {
         console.error("Error loading products:", error);
       } finally {
@@ -119,6 +128,8 @@ export default function HomePage() {
         <title>{t.home.title}</title>
         <meta name="description" content={t.home.description} />
       </Head>
+
+      <WelcomePopup notifications={welcomeNotifications} />
 
       <div
         className="fixed inset-0 bg-cover bg-center bg-no-repeat bg-fixed -z-10"

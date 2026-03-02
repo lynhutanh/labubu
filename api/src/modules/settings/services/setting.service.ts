@@ -25,7 +25,7 @@ export class SettingService {
   constructor(
     @Inject(SETTING_MODEL_PROVIDER)
     private readonly settingModel: Model<SettingModel>,
-  ) {}
+  ) { }
 
   async syncCache() {
     const settings = await this.settingModel.find().lean();
@@ -46,10 +46,16 @@ export class SettingService {
     return null;
   }
 
-  async set(key: string, value: any): Promise<void> {
+  async set(key: string, value: any, extraInfo: any = {}): Promise<void> {
     await this.settingModel.updateOne(
       { key },
-      { $set: { value, updatedAt: new Date() } },
+      {
+        $set: {
+          value,
+          updatedAt: new Date(),
+          ...extraInfo
+        }
+      },
       { upsert: true },
     );
     this.settingsCache.set(key, value);

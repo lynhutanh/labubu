@@ -89,6 +89,11 @@ const menuItems: MenuItem[] = [
     ],
   },
   {
+    name: "Thông báo",
+    icon: MessageCircle,
+    href: "/notification",
+  },
+  {
     name: "Cài đặt",
     icon: Settings,
     href: "/settings",
@@ -245,8 +250,8 @@ export default function Sidebar() {
                     <button
                       onClick={() => toggleMenu(item.name)}
                       className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all ${active
-                          ? "bg-gradient-to-r from-pink-500/30 to-purple-500/30 text-white border border-pink-400/50"
-                          : "text-purple-200 hover:bg-white/10 hover:text-white"
+                        ? "bg-gradient-to-r from-pink-500/30 to-purple-500/30 text-white border border-pink-400/50"
+                        : "text-purple-200 hover:bg-white/10 hover:text-white"
                         }`}
                       style={
                         active
@@ -280,8 +285,8 @@ export default function Sidebar() {
                               <a
                                 href={child.href}
                                 className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all ${childActive
-                                    ? "bg-gradient-to-r from-purple-500/20 to-indigo-500/20 text-white border border-purple-400/30"
-                                    : "text-purple-300 hover:bg-white/10 hover:text-white"
+                                  ? "bg-gradient-to-r from-purple-500/20 to-indigo-500/20 text-white border border-purple-400/30"
+                                  : "text-purple-300 hover:bg-white/10 hover:text-white"
                                   }`}
                               >
                                 <ChildIcon className="w-4 h-4" />
@@ -297,8 +302,8 @@ export default function Sidebar() {
                   <a
                     href={item.href}
                     className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all relative ${active
-                        ? "bg-gradient-to-r from-pink-500/30 to-purple-500/30 text-white border border-pink-400/50"
-                        : "text-purple-200 hover:bg-white/10 hover:text-white"
+                      ? "bg-gradient-to-r from-pink-500/30 to-purple-500/30 text-white border border-pink-400/50"
+                      : "text-purple-200 hover:bg-white/10 hover:text-white"
                       }`}
                     style={
                       active

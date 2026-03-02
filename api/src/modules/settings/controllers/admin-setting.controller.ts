@@ -31,7 +31,7 @@ export class AdminSettingController {
     private readonly authService: AuthService,
     @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
-  ) {}
+  ) { }
 
   @Get()
   @UseGuards(RoleGuard)
@@ -108,6 +108,18 @@ export class AdminSettingController {
       await this.settingService.set("adminConfirmPassword", "");
 
       return DataResponse.ok({ message: "Đổi mật khẩu thành công" });
+    }
+
+    if (key === "welcome_popup") {
+      await this.settingService.set(key, body.value, {
+        name: "Welcome Popup",
+        description: "Thông báo nổi lên khi người dùng vào trang chủ",
+        public: true,
+        visible: true,
+        editable: true,
+        group: "general",
+      });
+      return DataResponse.ok({ message: "Welcome popup configuration updated" });
     }
 
     await this.settingService.set(key, body.value);
