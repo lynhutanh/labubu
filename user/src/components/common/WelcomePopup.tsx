@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X } from 'lucide-react';
+import { X, Gift } from 'lucide-react';
 import { useRouter } from 'next/router';
 
 interface NotificationRow {
@@ -51,6 +51,52 @@ export const WelcomePopup: React.FC<WelcomePopupProps> = ({ notifications }) => 
                             border: '1px solid rgba(255, 255, 255, 0.2)',
                         }}
                     >
+                        {/* Background Decorations - Gift Boxes */}
+                        <div className="absolute inset-0 pointer-events-none overflow-hidden origin-center">
+                            <motion.div
+                                animate={{
+                                    y: [0, -20, 0],
+                                    rotate: [0, 10, 0],
+                                    scale: [1, 1.1, 1]
+                                }}
+                                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                                className="absolute -top-10 -left-10 text-white/20 opacity-30"
+                            >
+                                <Gift size={180} />
+                            </motion.div>
+                            <motion.div
+                                animate={{
+                                    y: [0, 20, 0],
+                                    rotate: [0, -15, 0],
+                                    scale: [1, 1.2, 1]
+                                }}
+                                transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                                className="absolute -bottom-10 -right-10 text-white/10 opacity-20"
+                            >
+                                <Gift size={220} />
+                            </motion.div>
+                            <motion.div
+                                animate={{
+                                    x: [0, 15, 0],
+                                    rotate: [0, 25, 0]
+                                }}
+                                transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+                                className="absolute top-1/2 -right-10 text-white/10 opacity-20"
+                            >
+                                <Gift size={120} />
+                            </motion.div>
+                            <motion.div
+                                animate={{
+                                    x: [0, -10, 0],
+                                    rotate: [0, -5, 0]
+                                }}
+                                transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+                                className="absolute top-1/4 -left-5 text-white/10 opacity-20"
+                            >
+                                <Gift size={80} />
+                            </motion.div>
+                        </div>
+
                         {/* Close button */}
                         <button
                             onClick={(e) => {
