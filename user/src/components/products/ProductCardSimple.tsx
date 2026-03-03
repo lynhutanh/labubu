@@ -1,6 +1,7 @@
 import { Star, ShoppingCart, Heart, Eye } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { cartService } from "../../services/cart.service";
@@ -162,11 +163,11 @@ export default function ProductCardSimple({
         shouldReduceMotion
           ? {}
           : {
-              scale: 1.02,
-              boxShadow:
-                "0 8px 12px rgba(0, 0, 0, 0.4), 0 0 30px rgba(168, 85, 247, 0.3), 0 0 50px rgba(236, 72, 153, 0.2)",
-              borderColor: "rgba(168, 85, 247, 0.6)",
-            }
+            scale: 1.02,
+            boxShadow:
+              "0 8px 12px rgba(0, 0, 0, 0.4), 0 0 30px rgba(168, 85, 247, 0.3), 0 0 50px rgba(236, 72, 153, 0.2)",
+            borderColor: "rgba(168, 85, 247, 0.6)",
+          }
       }
     >
       <div
@@ -178,11 +179,12 @@ export default function ProductCardSimple({
       />
 
       <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-purple-900/20 to-indigo-900/20">
-        <img
+        <Image
           src={image}
           alt={name}
-          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-          loading="lazy"
+          fill
+          className="object-cover transition-transform duration-500 group-hover:scale-105"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 20vw"
         />
 
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -190,21 +192,19 @@ export default function ProductCardSimple({
         <button
           onClick={handleToggleWishlist}
           disabled={isTogglingWishlist}
-          className={`absolute top-3 left-3 z-10 w-9 h-9 rounded-full flex items-center justify-center transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
-            isInWishlist
-              ? "bg-pink-500/80 border-2 border-pink-400 shadow-lg shadow-pink-500/50"
-              : "bg-white/10 border border-white/20 hover:bg-white/20"
-          }`}
+          className={`absolute top-3 left-3 z-10 w-9 h-9 rounded-full flex items-center justify-center transition-all disabled:opacity-50 disabled:cursor-not-allowed ${isInWishlist
+            ? "bg-pink-500/80 border-2 border-pink-400 shadow-lg shadow-pink-500/50"
+            : "bg-white/10 border border-white/20 hover:bg-white/20"
+            }`}
           title={
             isInWishlist ? t.wishlist.removeFromWishlist : t.header.favorites
           }
         >
           <Heart
-            className={`w-5 h-5 transition-all ${
-              isInWishlist
-                ? "text-pink-200 fill-pink-200"
-                : "text-white group-hover:text-pink-300"
-            }`}
+            className={`w-5 h-5 transition-all ${isInWishlist
+              ? "text-pink-200 fill-pink-200"
+              : "text-white group-hover:text-pink-300"
+              }`}
           />
         </button>
 

@@ -66,6 +66,7 @@ html {
 
 /* Optimize animations */
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {
@@ -291,6 +292,7 @@ input[type="number"] {
 
 /* Twinkle animation for stars */
 @keyframes twinkle {
+
   0%,
   100% {
     opacity: 0.2;
@@ -301,11 +303,9 @@ input[type="number"] {
   }
 }
 
-/* Galaxy Card */
+/* Galaxy Card (Static background for performance) */
 .galaxy-card {
-  background: rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: rgba(30, 20, 50, 0.6);
   border: 1px solid rgba(168, 85, 247, 0.2);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
