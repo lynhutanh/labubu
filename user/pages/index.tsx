@@ -1,7 +1,7 @@
 import Head from "next/head";
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import {
   ArrowRight,
@@ -66,18 +66,6 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [welcomeNotifications, setWelcomeNotifications] = useState<any[]>([]);
 
-  const stars = useMemo(() => {
-    return Array.from({ length: 50 }, (_, i) => ({
-      id: i,
-      left: Math.random() * 100,
-      top: Math.random() * 100,
-      width: Math.random() * 2 + 1,
-      height: Math.random() * 2 + 1,
-      opacity: Math.random() * 0.6 + 0.3,
-      delay: Math.random() * 3,
-    }));
-  }, []);
-
   useEffect(() => {
     const loadProducts = async () => {
       try {
@@ -85,13 +73,19 @@ export default function HomePage() {
         const [newProds, bestSellProds, settings] = await Promise.all([
           productService.getNew(5),
           productService.getBestSellers(5),
-          settingService.getPublicSettings().catch(() => [])
+          settingService.getPublicSettings().catch(() => []),
         ]);
         setNewProducts(newProds);
         setBestSellers(bestSellProds);
 
-        const popupConfig = settings?.find((s: any) => s.key === "welcome_popup");
-        if (popupConfig && Array.isArray(popupConfig.value) && popupConfig.value.length > 0) {
+        const popupConfig = settings?.find(
+          (s: any) => s.key === "welcome_popup",
+        );
+        if (
+          popupConfig &&
+          Array.isArray(popupConfig.value) &&
+          popupConfig.value.length > 0
+        ) {
           setWelcomeNotifications(popupConfig.value);
         }
       } catch (error) {
@@ -132,7 +126,7 @@ export default function HomePage() {
       <WelcomePopup notifications={welcomeNotifications} />
 
       <div
-        className="fixed inset-0 bg-cover bg-center bg-no-repeat bg-fixed -z-10"
+        className="fixed inset-0 bg-cover bg-center bg-no-repeat -z-10"
         style={{
           backgroundImage: "url('/bg.png')",
         }}
@@ -276,11 +270,15 @@ export default function HomePage() {
                       ...animationTransition,
                       delay: shouldReduceMotion ? 0 : 1.3 + index * 0.1,
                     }}
-                    whileHover={shouldReduceMotion ? {} : {
-                      scale: 1.05,
-                      y: -5,
-                      transition: { duration: 0.2 },
-                    }}
+                    whileHover={
+                      shouldReduceMotion
+                        ? {}
+                        : {
+                          scale: 1.05,
+                          y: -5,
+                          transition: { duration: 0.2 },
+                        }
+                    }
                   >
                     <feature.icon className="w-8 h-8 text-yellow-600 mb-2" />
                     <p
@@ -383,35 +381,7 @@ export default function HomePage() {
       <section className="py-12 relative">
         <svg className="absolute w-0 h-0">
           <defs>
-            <filter id="turbulent-displace">
-              <feTurbulence
-                type="fractalNoise"
-                baseFrequency="0.9"
-                numOctaves="2"
-                result="noise"
-              >
-                {!shouldReduceMotion && (
-                  <animate
-                    attributeName="baseFrequency"
-                    values="0.9;1.1;0.9"
-                    dur="3s"
-                    repeatCount="indefinite"
-                  />
-                )}
-              </feTurbulence>
-              <feDisplacementMap
-                in="SourceGraphic"
-                in2="noise"
-                scale="2"
-                xChannelSelector="R"
-                yChannelSelector="G"
-              />
-              <feGaussianBlur stdDeviation="0.5" result="blur" />
-              <feMerge>
-                <feMergeNode in="blur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
+            {/* Removed heavy feTurbulence and feDisplacementMap filters for performance */}
           </defs>
         </svg>
 
@@ -447,15 +417,12 @@ export default function HomePage() {
                   whileHover={shouldReduceMotion ? {} : { scale: 1.05 }}
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.1 }}
-                  className="card-container h-full cursor-pointer"
+                  className="card-container h-full cursor-pointer transition-transform duration-300"
                   style={{
                     padding: "2px",
                     borderRadius: "24px",
-                    position: "relative",
                     background:
-                      "linear-gradient(-30deg, #fbbf24, transparent, #fbbf24), linear-gradient(to bottom, #1f2937, #1f2937)",
-                    backgroundSize: "200% 200%",
-                    animation: shouldReduceMotion ? "none" : "electric-border 3s ease infinite",
+                      "linear-gradient(-30deg, #fbbf24, transparent, #fbbf24)",
                   }}
                 >
                   <div
@@ -464,37 +431,12 @@ export default function HomePage() {
                       width: "100%",
                       height: "100%",
                       borderRadius: "22px",
-                      border: "1px solid #f97316",
-                      marginTop: "-2px",
-                      marginLeft: "-2px",
-                      position: "relative",
-                      filter: shouldReduceMotion ? "none" : "url(#turbulent-displace)",
-                      boxShadow: "0 0 2px rgba(249, 115, 22, 0.3)",
-                      animation: shouldReduceMotion ? "none" : "electric-pulse 2s ease-in-out infinite",
+                      border: "1px solid #fbbf24",
+                      boxShadow:
+                        "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
                     }}
                   >
-                    {!shouldReduceMotion && (
-                      <>
-                        <span
-                          className="electric-spark"
-                          style={{
-                            top: "10%",
-                            left: "0",
-                            animation: "electric-spark 1.5s ease-in-out infinite",
-                            animationDelay: "0s",
-                          }}
-                        />
-                        <span
-                          className="electric-spark"
-                          style={{
-                            bottom: "20%",
-                            right: "0",
-                            animation: "electric-spark-2 1.8s ease-in-out infinite",
-                            animationDelay: "0.5s",
-                          }}
-                        />
-                      </>
-                    )}
+                    {/* Removed heavy electric-spark animations for performance */}
                     <div className="flex flex-col items-center justify-center flex-1">
                       <div className="w-16 h-16 rounded-full border-2 border-yellow-500 flex items-center justify-center mb-4 bg-transparent">
                         <feature.icon className="w-8 h-8 text-yellow-500" />

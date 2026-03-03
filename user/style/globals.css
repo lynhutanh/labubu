@@ -269,56 +269,24 @@ input[type="number"] {
   animation-delay: 4s;
 }
 
-/* Galaxy Glow Text Effect */
-@keyframes galaxy-glow {
-
-  0%,
-  100% {
-    text-shadow:
-      0 0 10px rgba(168, 85, 247, 0.8),
-      0 0 20px rgba(168, 85, 247, 0.6),
-      0 0 30px rgba(168, 85, 247, 0.4),
-      0 0 40px rgba(236, 72, 153, 0.6),
-      0 0 50px rgba(236, 72, 153, 0.4),
-      0 0 60px rgba(59, 130, 246, 0.4);
-  }
-
-  50% {
-    text-shadow:
-      0 0 15px rgba(168, 85, 247, 1),
-      0 0 25px rgba(168, 85, 247, 0.8),
-      0 0 35px rgba(168, 85, 247, 0.6),
-      0 0 45px rgba(236, 72, 153, 0.8),
-      0 0 55px rgba(236, 72, 153, 0.6),
-      0 0 65px rgba(59, 130, 246, 0.6),
-      0 0 75px rgba(59, 130, 246, 0.4);
-  }
-}
-
+/* Galaxy Glow Text Effect (Static for performance) */
 .galaxy-glow-text {
   color: #fbbf24;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 2px;
-  animation: galaxy-glow 3s ease-in-out infinite;
   text-shadow:
-    0 0 10px rgba(168, 85, 247, 0.8),
-    0 0 20px rgba(168, 85, 247, 0.6),
-    0 0 30px rgba(168, 85, 247, 0.4),
-    0 0 40px rgba(236, 72, 153, 0.6),
-    0 0 50px rgba(236, 72, 153, 0.4),
-    0 0 60px rgba(59, 130, 246, 0.4);
+    0 0 10px rgba(168, 85, 247, 0.6),
+    0 0 20px rgba(168, 85, 247, 0.4),
+    0 0 30px rgba(236, 72, 153, 0.4);
 }
 
 .galaxy-glow-subtitle {
   color: #fcd34d;
   font-weight: 600;
-  animation: galaxy-glow 3s ease-in-out infinite;
   text-shadow:
-    0 0 8px rgba(168, 85, 247, 0.7),
-    0 0 15px rgba(168, 85, 247, 0.5),
-    0 0 25px rgba(236, 72, 153, 0.5),
-    0 0 35px rgba(59, 130, 246, 0.4);
+    0 0 8px rgba(168, 85, 247, 0.5),
+    0 0 15px rgba(236, 72, 153, 0.4);
 }
 
 /* Twinkle animation for stars */
