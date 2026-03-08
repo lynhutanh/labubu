@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 import { motion } from "framer-motion";
 import { Heart, Trash2, ShoppingCart, Eye, Loader2 } from "lucide-react";
 import Layout from "../../src/components/layout/Layout";
+import Breadcrumb from "../../src/components/common/Breadcrumb";
 import ProductCardSimple from "../../src/components/products/ProductCardSimple";
 import { wishlistService, Wishlist, WishlistItem } from "../../src/services/wishlist.service";
 import { cartService } from "../../src/services/cart.service";
@@ -254,6 +255,10 @@ export default function WishlistPage() {
             }}
           />
         </div>
+      </div>
+
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+        <Breadcrumb items={[{ label: "Yêu Thích" }]} />
       </div>
 
       {/* Hero Section */}

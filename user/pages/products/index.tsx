@@ -3,6 +3,7 @@ import { useState, useEffect, useMemo } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { Search, Grid3x3, List, SlidersHorizontal } from "lucide-react";
 import Layout from "../../src/components/layout/Layout";
+import Breadcrumb from "../../src/components/common/Breadcrumb";
 import ProductCardSimple from "../../src/components/products/ProductCardSimple";
 import { productService, Product } from "../../src/services/product.service";
 import { categoryService, Category } from "../../src/services/category.service";
@@ -227,6 +228,9 @@ export default function ProductsPage() {
 
       <section className="relative py-12 min-h-screen">
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-6">
+            <Breadcrumb items={[{ label: "Sản Phẩm" }]} />
+          </div>
           <motion.div
             initial={animationVariants.fadeIn}
             animate={{ opacity: 1, y: 0 }}
@@ -256,16 +260,15 @@ export default function ProductsPage() {
                 <div className="flex border border-purple-500/30 rounded-lg overflow-hidden backdrop-blur-sm">
                   <button
                     onClick={() => setViewMode("grid")}
-                    className={`p-3 transition-colors ${
-                      viewMode === "grid"
-                        ? "bg-gradient-to-r from-pink-500 to-purple-600 text-white"
-                        : "bg-white/10 text-purple-200 hover:bg-white/20"
-                    }`}
+                    className={`p-3 transition-colors ${viewMode === "grid"
+                      ? "bg-gradient-to-r from-pink-500 to-purple-600 text-white"
+                      : "bg-white/10 text-purple-200 hover:bg-white/20"
+                      }`}
                     style={
                       viewMode === "grid" && !shouldReduceMotion
                         ? {
-                            boxShadow: "0 0 20px rgba(236, 72, 153, 0.4)",
-                          }
+                          boxShadow: "0 0 20px rgba(236, 72, 153, 0.4)",
+                        }
                         : {}
                     }
                   >
@@ -273,16 +276,15 @@ export default function ProductsPage() {
                   </button>
                   <button
                     onClick={() => setViewMode("list")}
-                    className={`p-3 transition-colors ${
-                      viewMode === "list"
-                        ? "bg-gradient-to-r from-pink-500 to-purple-600 text-white"
-                        : "bg-white/10 text-purple-200 hover:bg-white/20"
-                    }`}
+                    className={`p-3 transition-colors ${viewMode === "list"
+                      ? "bg-gradient-to-r from-pink-500 to-purple-600 text-white"
+                      : "bg-white/10 text-purple-200 hover:bg-white/20"
+                      }`}
                     style={
                       viewMode === "list" && !shouldReduceMotion
                         ? {
-                            boxShadow: "0 0 20px rgba(236, 72, 153, 0.4)",
-                          }
+                          boxShadow: "0 0 20px rgba(236, 72, 153, 0.4)",
+                        }
                         : {}
                     }
                   >

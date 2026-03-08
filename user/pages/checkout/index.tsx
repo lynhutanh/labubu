@@ -20,6 +20,7 @@ import {
     X,
 } from "lucide-react";
 import Layout from "../../src/components/layout/Layout";
+import Breadcrumb from "../../src/components/common/Breadcrumb";
 import { useTrans } from "../../src/hooks/useTrans";
 import { cartService, Cart } from "../../src/services/cart.service";
 import { orderService, CreateOrderPayload } from "../../src/services/order.service";
@@ -597,6 +598,16 @@ export default function CheckoutPage() {
 
             <section className="relative z-10 py-12 min-h-screen">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    {/* Breadcrumb */}
+                    <div className="mb-6">
+                        <Breadcrumb
+                            items={[
+                                { label: "Giỏ Hàng", href: "/cart" },
+                                { label: "Thanh Toán" },
+                            ]}
+                        />
+                    </div>
+
                     {/* Header */}
                     <motion.div
                         initial={{ opacity: shouldReduceMotion ? 1 : 0, y: shouldReduceMotion ? 0 : -20 }}
@@ -604,13 +615,6 @@ export default function CheckoutPage() {
                         transition={{ duration: shouldReduceMotion ? 0 : 0.4 }}
                         className="mb-8"
                     >
-                        <button
-                            onClick={() => router.back()}
-                            className="flex items-center gap-2 text-purple-200 hover:text-white mb-4"
-                        >
-                            <ArrowLeft className="w-5 h-5" />
-                            Quay lại
-                        </button>
                         <h1
                             className="text-4xl font-bold mb-2"
                             style={{

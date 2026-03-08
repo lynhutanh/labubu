@@ -45,8 +45,8 @@ export default function Footer() {
                 <li className="flex items-center gap-3">
                   <Phone className="w-5 h-5 text-pink-500 flex-shrink-0" />
                   <span className="text-gray-300 pointer-events-none select-none">
-  +1 929 505 8028
-</span>
+                    +1 929 505 8028
+                  </span>
                 </li>
               )}
               {contactInfo.email && (
@@ -104,12 +104,6 @@ export default function Footer() {
                 className="hover:text-pink-400 transition-colors"
               >
                 {t.footer.terms}
-              </Link>
-              <Link
-                href="/sitemap"
-                className="hover:text-pink-400 transition-colors"
-              >
-                {t.footer.sitemap}
               </Link>
             </div>
           </div>

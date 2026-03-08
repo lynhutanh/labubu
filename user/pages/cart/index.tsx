@@ -14,6 +14,7 @@ import {
   Loader2,
 } from "lucide-react";
 import Layout from "../../src/components/layout/Layout";
+import Breadcrumb from "../../src/components/common/Breadcrumb";
 import Image from "next/image";
 import { cartService, Cart, CartItem } from "../../src/services/cart.service";
 import { storage } from "../../src/utils/storage";
@@ -197,6 +198,10 @@ export default function CartPage() {
             ))}
           </div>
         )}
+      </div>
+
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+        <Breadcrumb items={[{ label: "Giỏ Hàng" }]} />
       </div>
 
       <section className="relative py-20 overflow-hidden">

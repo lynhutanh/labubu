@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Layout from "../../src/components/layout/Layout";
+import Breadcrumb from "../../src/components/common/Breadcrumb";
 import { useTrans } from "../../src/hooks/useTrans";
 import { settingService, TeamInfo } from "../../src/services";
 
@@ -38,6 +39,9 @@ export default function ContactPage() {
 
       <section className="relative min-h-screen py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-8">
+            <Breadcrumb items={[{ label: "Liên Hệ" }]} />
+          </div>
           <motion.header
             initial={{ opacity: 0, y: -16 }}
             animate={{ opacity: 1, y: 0 }}

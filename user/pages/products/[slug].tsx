@@ -17,6 +17,7 @@ import {
     MessageCircle,
 } from "lucide-react";
 import Layout from "../../src/components/layout/Layout";
+import Breadcrumb from "../../src/components/common/Breadcrumb";
 import { productService, Product } from "../../src/services/product.service";
 import { cartService } from "../../src/services/cart.service";
 import { storage } from "../../src/utils/storage";
@@ -267,16 +268,15 @@ export default function ProductDetailPage() {
 
             {/* Main Content */}
             <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                {/* Back Button */}
-                <motion.button
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    onClick={() => router.back()}
-                    className="flex items-center gap-2 text-purple-200 hover:text-white mb-6 transition-colors"
-                >
-                    <ChevronLeft className="w-5 h-5" />
-                    <span>{t.common.back}</span>
-                </motion.button>
+                {/* Breadcrumb */}
+                <div className="mb-6">
+                    <Breadcrumb
+                        items={[
+                            { label: "Sản Phẩm", href: "/products" },
+                            { label: product.name },
+                        ]}
+                    />
+                </div>
 
                 {/* Product Detail */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
@@ -314,8 +314,8 @@ export default function ProductDetailPage() {
                                         key={index}
                                         onClick={() => setSelectedImageIndex(index)}
                                         className={`galaxy-card rounded-lg overflow-hidden aspect-square ${selectedImageIndex === index
-                                                ? "ring-2 ring-purple-500"
-                                                : "opacity-70 hover:opacity-100"
+                                            ? "ring-2 ring-purple-500"
+                                            : "opacity-70 hover:opacity-100"
                                             } transition-all`}
                                     >
                                         <div className="relative w-full h-full">
@@ -492,8 +492,8 @@ export default function ProductDetailPage() {
                             <button
                                 onClick={handleToggleWishlist}
                                 className={`p-4 rounded-lg border transition-all ${isInWishlist
-                                        ? "bg-red-500/20 border-red-400/30 text-red-300"
-                                        : "bg-white/10 border-purple-500/30 text-purple-200 hover:bg-white/20"
+                                    ? "bg-red-500/20 border-red-400/30 text-red-300"
+                                    : "bg-white/10 border-purple-500/30 text-purple-200 hover:bg-white/20"
                                     }`}
                             >
                                 <Heart

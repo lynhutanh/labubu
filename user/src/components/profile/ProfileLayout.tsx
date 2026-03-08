@@ -1,6 +1,15 @@
 import { useRouter } from "next/router";
 import { User, LayoutDashboard, Package, MapPin, CreditCard } from "lucide-react";
 import { storage } from "../../utils/storage";
+import Breadcrumb from "../common/Breadcrumb";
+
+const pageTitles: Record<string, string> = {
+  "/profile": "Tài khoản",
+  "/profile/wallet": "Ví",
+  "/profile/order": "Đơn hàng",
+  "/profile/address": "Địa chỉ",
+  "/profile/coupons": "Phiếu giảm giá",
+};
 
 interface ProfileLayoutProps {
   children: React.ReactNode;
@@ -48,10 +57,17 @@ export default function ProfileLayout({ children }: ProfileLayoutProps) {
   }
 
   const currentPath = router.pathname;
+  const pageTitle = pageTitles[currentPath] || (currentPath.startsWith("/profile/order/") ? "Chi tiết đơn hàng" : "Tài khoản");
+  const breadcrumbItems = currentPath.startsWith("/profile/order/")
+    ? [{ label: "Đơn hàng", href: "/profile/order" }, { label: "Chi tiết đơn hàng" }]
+    : [{ label: pageTitle }];
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mb-6">
+          <Breadcrumb items={breadcrumbItems} variant="light" />
+        </div>
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Left Sidebar */}
           <div className="lg:col-span-1">
