@@ -4,7 +4,7 @@ export default {
   contactInfo: "Thông tin liên hệ",
   workingHours: "Thứ 2 - Chủ nhật: 9:00 - 22:00",
   workingHoursNote: "(Mở cửa cả ngày lễ)",
-  copyright: "c 2026 - Bản Quyền Thuộc Về Labubu Store",
+  copyright: "© 2026 - Bản Quyền Thuộc Về Labubu Store",
   privacy: "Bảo mật",
   terms: "Điều khoản",
   sitemap: "Sitemap",
