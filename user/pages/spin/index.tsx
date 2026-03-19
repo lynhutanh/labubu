@@ -354,6 +354,7 @@ export default function SpinPage() {
           width: 340px;
           height: 340px;
           margin: 20px auto;
+          z-index: 2;
         }
 
         /* Outer ring */
@@ -813,10 +814,10 @@ export default function SpinPage() {
         .spin-treasure {
           width: 380px;
           max-width: 90%;
-          margin-top: -80px;
+          margin-top: -60px;
           pointer-events: none;
           position: relative;
-          z-index: 0;
+          z-index: 1;
         }
 
         @media (max-width: 420px) {
