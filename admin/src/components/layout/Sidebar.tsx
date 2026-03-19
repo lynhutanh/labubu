@@ -17,6 +17,8 @@ import {
   RotateCcw,
   MessageCircle,
   Ticket,
+  Disc3,
+  Award,
 } from "lucide-react";
 import { storage } from "../../utils/storage";
 import { refundRequestService } from "../../services/refund-request.service";
@@ -86,6 +88,15 @@ const menuItems: MenuItem[] = [
     children: [
       { name: "Danh sách", icon: List, href: "/vouchers" },
       { name: "Tạo mới", icon: CirclePlus, href: "/vouchers/create" },
+    ],
+  },
+  {
+    name: "Vòng quay",
+    icon: Disc3,
+    href: "/spin",
+    children: [
+      { name: "Cấu hình", icon: Settings, href: "/spin" },
+      { name: "Kết quả", icon: Award, href: "/spin/results" },
     ],
   },
   {

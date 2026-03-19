@@ -1,4 +1,4 @@
-﻿// Export all services
+// Export all services
 export { authService }from './auth.service';
 export { brandService }from './brand.service';
 export { categoryService } from './category.service';
@@ -9,6 +9,7 @@ export { userService } from './user.service';
 export { settingsService } from './settings.service';
 export { chatService } from './chat.service';
 export { voucherService } from './voucher.service';
+export { spinService } from './spin.service';
 
 // Export API Request base class
 export { APIRequest, TOKEN }from './api-request';

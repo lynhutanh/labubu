@@ -2,6 +2,7 @@ import "../style/globals.css";
 import type { AppProps } from "next/app";
 import { Toaster } from "react-hot-toast";
 import { GoogleOAuthProvider } from "@react-oauth/google";
+import SpinFloating from "../src/components/common/SpinFloating";
 
 function App({ Component, pageProps }: AppProps) {
   const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? "";
@@ -9,6 +10,7 @@ function App({ Component, pageProps }: AppProps) {
   return (
     <>
       <Toaster position="top-center" />
+      <SpinFloating />
       {clientId ? (
         <GoogleOAuthProvider clientId={clientId}>
           <Component {...pageProps} />

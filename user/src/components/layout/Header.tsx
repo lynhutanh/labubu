@@ -28,44 +28,46 @@ export default function Header() {
   const [cartItemCount, setCartItemCount] = useState(0);
 
   useEffect(() => {
-    // Load user from storage
     const loadUser = () => {
       const currentUser = storage.getUser();
-      setUser(currentUser);
+      setUser((prev: any) => {
+        const prevId = prev?._id || prev?.id || null;
+        const currId = currentUser?._id || currentUser?.id || null;
+        if (prevId === currId) return prev;
+        return currentUser;
+      });
     };
 
     loadUser();
 
-    // Check for user updates periodically (for login state)
-    const interval = setInterval(loadUser, 1000);
-
+    const interval = setInterval(loadUser, 5000);
     return () => clearInterval(interval);
   }, []);
 
   // Fetch cart item count
   useEffect(() => {
+    if (!user) {
+      setCartItemCount(0);
+      return;
+    }
+
     const fetchCartCount = async () => {
       const token = localStorage.getItem(TOKEN);
-      if (!token || !user) {
+      if (!token) {
         setCartItemCount(0);
         return;
       }
-
       try {
         const cart = await cartService.getCart();
         setCartItemCount(cart?.totalItems || 0);
-      } catch (error) {
-        // Silently fail - user might not have cart yet
+      } catch {
         setCartItemCount(0);
       }
     };
 
-    if (user) {
-      fetchCartCount();
-      // Refresh cart count periodically
-      const interval = setInterval(fetchCartCount, 5000);
-      return () => clearInterval(interval);
-    }
+    fetchCartCount();
+    const interval = setInterval(fetchCartCount, 30000);
+    return () => clearInterval(interval);
   }, [user]);
 
   const handleLogout = () => {
