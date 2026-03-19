@@ -22,6 +22,7 @@ export class SpinConfigDto {
   @Expose() startDate: Date;
   @Expose() endDate: Date;
   @Expose() minSpentAmount: number;
+  @Expose() maxSpinsPerUser: number;
   @Expose() status: string;
   @Expose() createdAt: Date;
   @Expose() updatedAt: Date;
@@ -37,6 +38,7 @@ export class SpinResultDto {
   _id: ObjectId;
 
   @Expose() configId: ObjectId;
+  @Expose() buyerId: ObjectId;
   @Expose() buyerPhone: string;
   @Expose() slotIndex: number;
   @Expose() slotLabel: string;

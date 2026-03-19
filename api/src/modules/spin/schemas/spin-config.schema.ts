@@ -14,6 +14,7 @@ export const spinConfigSchema = new Schema(
     startDate: { type: Date, required: true },
     endDate: { type: Date, required: true },
     minSpentAmount: { type: Number, required: true, default: 0, min: 0 },
+    maxSpinsPerUser: { type: Number, default: 0, min: 0 },
     status: { type: String, enum: ['active', 'inactive'], default: 'active', index: true },
   },
   { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } },

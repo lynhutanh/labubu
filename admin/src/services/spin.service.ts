@@ -14,6 +14,7 @@ export interface SpinConfigResponse {
   startDate: string;
   endDate: string;
   minSpentAmount: number;
+  maxSpinsPerUser: number;
   status: "active" | "inactive";
   createdAt: string;
   updatedAt: string;
@@ -61,6 +62,7 @@ export interface CreateSpinConfigPayload {
   startDate: string;
   endDate: string;
   minSpentAmount: number;
+  maxSpinsPerUser?: number;
   status?: string;
 }
 

@@ -3,6 +3,7 @@ import { Schema } from 'mongoose';
 export const spinResultSchema = new Schema(
   {
     configId: { type: Schema.Types.ObjectId, ref: 'spinconfig', required: true, index: true },
+    buyerId: { type: Schema.Types.ObjectId, default: null, index: true },
     buyerPhone: { type: String, default: '', index: true },
     slotIndex: { type: Number, required: true },
     slotLabel: { type: String, required: true },

@@ -1,9 +1,11 @@
 import {
   Controller, Get, Post, Put, Body, Param,
-  HttpCode, HttpStatus, UsePipes, ValidationPipe,
+  HttpCode, HttpStatus, UsePipes, ValidationPipe, UseGuards,
 } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { DataResponse } from "src/kernel";
+import { AuthGuard } from "src/modules/auth/guards";
+import { CurrentUser } from "src/modules/auth/decorators";
 import { SpinService } from "../services";
 import { SpinConfigDto, SpinResultDto } from "../dtos";
 import { SubmitSpinInfoPayload } from "../payloads";
@@ -19,12 +21,24 @@ export class UserSpinController {
     return DataResponse.ok(await this.spinService.getActiveConfig());
   }
 
+  @Get("turns/:configId")
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async getSpinTurns(
+    @CurrentUser() user: any,
+    @Param("configId") configId: string,
+  ): Promise<DataResponse<any>> {
+    return DataResponse.ok(await this.spinService.getSpinTurns(user._id, configId));
+  }
+
   @Post("play/:configId")
+  @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
   async play(
+    @CurrentUser() user: any,
     @Param("configId") configId: string,
   ): Promise<DataResponse<SpinResultDto>> {
-    return DataResponse.ok(await this.spinService.spin(configId));
+    return DataResponse.ok(await this.spinService.spin(configId, user._id));
   }
 
   @Put("results/:id/info")

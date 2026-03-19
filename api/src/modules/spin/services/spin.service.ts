@@ -87,21 +87,36 @@ export class SpinService {
     return true;
   }
 
-  async getSpinTurns(phone: string, configId: string): Promise<{ totalTurns: number; usedTurns: number; remainingTurns: number }> {
+  async getSpinTurns(userId: string, configId: string): Promise<{ totalTurns: number; usedTurns: number; remainingTurns: number }> {
     const config = await this.spinConfigModel.findById(configId).lean() as any;
     if (!config) throw new NotFoundException('Cấu hình không tồn tại');
 
     const minSpent = config.minSpentAmount || 0;
+    const maxSpins = config.maxSpinsPerUser || 0;
+
+    // Đếm số lượt đã quay
+    const usedTurns = await this.spinResultModel.countDocuments({
+      configId: config._id,
+      buyerId: new ObjectId(userId),
+    });
+
+    // Nếu không giới hạn tiền mua
     if (minSpent <= 0) {
-      return { totalTurns: 1, usedTurns: 0, remainingTurns: 1 };
+      // Nếu có maxSpinsPerUser thì giới hạn, không thì unlimited
+      const totalTurns = maxSpins > 0 ? maxSpins : usedTurns + 1;
+      return {
+        totalTurns,
+        usedTurns,
+        remainingTurns: Math.max(0, totalTurns - usedTurns),
+      };
     }
 
-    // Tính tổng tiền đã chi của user dựa trên SĐT trong đơn hàng completed/delivered
+    // Tính tổng tiền đã chi của user dựa trên buyerId trong đơn hàng completed/delivered
     const completedStatuses = ['completed', 'delivered'];
     const aggregateResult = await this.orderModel.aggregate([
       {
         $match: {
-          'shippingAddress.phone': phone,
+          buyerId: new ObjectId(userId),
           status: { $in: completedStatuses },
         },
       },
@@ -109,13 +124,12 @@ export class SpinService {
     ]);
 
     const totalSpent = aggregateResult.length > 0 ? aggregateResult[0].totalSpent : 0;
-    const totalTurns = Math.floor(totalSpent / minSpent);
+    let totalTurns = Math.floor(totalSpent / minSpent);
 
-    // Đếm số lượt đã quay
-    const usedTurns = await this.spinResultModel.countDocuments({
-      configId: config._id,
-      buyerPhone: phone,
-    });
+    // Giới hạn bởi maxSpinsPerUser nếu có
+    if (maxSpins > 0) {
+      totalTurns = Math.min(totalTurns, maxSpins);
+    }
 
     return {
       totalTurns,
@@ -124,7 +138,7 @@ export class SpinService {
     };
   }
 
-  async spin(configId: string): Promise<SpinResultDto> {
+  async spin(configId: string, userId: string): Promise<SpinResultDto> {
     const config = await this.spinConfigModel.findById(configId).lean() as any;
     if (!config) throw new NotFoundException('Cấu hình không tồn tại');
 
@@ -132,6 +146,15 @@ export class SpinService {
     if (config.status !== 'active') throw new BadRequestException('Sự kiện chưa được kích hoạt');
     if (now < new Date(config.startDate)) throw new BadRequestException('Sự kiện chưa bắt đầu');
     if (now > new Date(config.endDate)) throw new BadRequestException('Sự kiện đã kết thúc');
+
+    // Kiểm tra lượt quay
+    const minSpent = config.minSpentAmount || 0;
+    if (minSpent > 0) {
+      const turns = await this.getSpinTurns(userId, configId);
+      if (turns.remainingTurns <= 0) {
+        throw new BadRequestException(`Bạn đã hết lượt quay. Mua hàng đủ ${minSpent.toLocaleString('vi-VN')}đ để có thêm lượt.`);
+      }
+    }
 
     // Weighted random
     const rand = Math.random() * 100;
@@ -148,6 +171,7 @@ export class SpinService {
     const selectedSlot = config.slots[selectedIndex];
     const doc = await this.spinResultModel.create({
       configId: config._id,
+      buyerId: userId ? new ObjectId(userId) : null,
       slotIndex: selectedIndex,
       slotLabel: selectedSlot.label,
       slotImage: selectedSlot.image || '',

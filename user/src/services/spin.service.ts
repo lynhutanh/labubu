@@ -14,7 +14,14 @@ export interface SpinConfig {
   startDate: string;
   endDate: string;
   minSpentAmount: number;
+  maxSpinsPerUser: number;
   status: string;
+}
+
+export interface SpinTurns {
+  totalTurns: number;
+  usedTurns: number;
+  remainingTurns: number;
 }
 
 export interface SpinResult {
@@ -40,6 +47,11 @@ export class SpinService extends APIRequest {
 
   public async play(configId: string): Promise<SpinResult> {
     const response = await this.post(`/spin/play/${configId}`, {});
+    return response.data?.data || response.data;
+  }
+
+  public async getSpinTurns(configId: string): Promise<SpinTurns> {
+    const response = await this.get(`/spin/turns/${configId}`);
     return response.data?.data || response.data;
   }
 

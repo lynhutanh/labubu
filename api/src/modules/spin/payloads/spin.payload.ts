@@ -37,6 +37,11 @@ export class CreateSpinConfigPayload {
   @Min(0)
   minSpentAmount: number;
 
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  maxSpinsPerUser?: number;
+
   @IsEnum(['active', 'inactive'])
   @IsOptional()
   status?: string;
@@ -65,6 +70,11 @@ export class UpdateSpinConfigPayload {
   @Min(0)
   @IsOptional()
   minSpentAmount?: number;
+
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  maxSpinsPerUser?: number;
 
   @IsEnum(['active', 'inactive'])
   @IsOptional()

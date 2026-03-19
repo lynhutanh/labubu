@@ -28,6 +28,7 @@ export default function SpinConfigPage() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [minSpentAmount, setMinSpentAmount] = useState(0);
+  const [maxSpinsPerUser, setMaxSpinsPerUser] = useState(0);
   const [status, setStatus] = useState("active");
   const [slots, setSlots] = useState<Array<{
     label: string;
@@ -61,6 +62,7 @@ export default function SpinConfigPage() {
     setStartDate("");
     setEndDate("");
     setMinSpentAmount(0);
+    setMaxSpinsPerUser(0);
     setStatus("active");
     setSlots([]);
     setEditingId(null);
@@ -75,9 +77,15 @@ export default function SpinConfigPage() {
   const openEditForm = (config: SpinConfigResponse) => {
     setEditingId(config._id);
     setName(config.name);
-    setStartDate(config.startDate ? new Date(config.startDate).toISOString().slice(0, 16) : "");
-    setEndDate(config.endDate ? new Date(config.endDate).toISOString().slice(0, 16) : "");
+    const toLocal = (d: string) => {
+      const dt = new Date(d);
+      dt.setMinutes(dt.getMinutes() - dt.getTimezoneOffset());
+      return dt.toISOString().slice(0, 16);
+    };
+    setStartDate(config.startDate ? toLocal(config.startDate) : "");
+    setEndDate(config.endDate ? toLocal(config.endDate) : "");
     setMinSpentAmount(config.minSpentAmount || 0);
+    setMaxSpinsPerUser(config.maxSpinsPerUser || 0);
     setStatus(config.status);
     setSlots(config.slots.map(s => ({ ...s })));
     setShowForm(true);
@@ -128,6 +136,7 @@ export default function SpinConfigPage() {
       startDate: new Date(startDate).toISOString(),
       endDate: new Date(endDate).toISOString(),
       minSpentAmount,
+      maxSpinsPerUser,
       status,
       slots: slots.map(s => ({ ...s, rate: Number(s.rate) })),
     };
@@ -220,10 +229,15 @@ export default function SpinConfigPage() {
                   <label className="block text-sm text-purple-300 mb-1">Kết thúc</label>
                   <input type="datetime-local" value={endDate} onChange={e => setEndDate(e.target.value)} className="w-full px-3 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500" />
                 </div>
-                <div className="md:col-span-2">
+                <div>
                   <label className="block text-sm text-purple-300 mb-1">Số tiền mua hàng tối thiểu để được 1 lượt quay (VNĐ)</label>
                   <input type="number" value={minSpentAmount} onChange={e => setMinSpentAmount(Number(e.target.value))} min={0} className="w-full px-3 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500" />
                   <p className="text-xs text-purple-400 mt-1">VD: Nhập 500000 → Mỗi 500.000đ mua hàng = 1 lượt quay. Nhập 0 = không giới hạn.</p>
+                </div>
+                <div>
+                  <label className="block text-sm text-purple-300 mb-1">Số lần quay tối đa / người</label>
+                  <input type="number" value={maxSpinsPerUser} onChange={e => setMaxSpinsPerUser(Number(e.target.value))} min={0} className="w-full px-3 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500" />
+                  <p className="text-xs text-purple-400 mt-1">Nhập 0 = không giới hạn số lần quay.</p>
                 </div>
               </div>
 
@@ -349,6 +363,9 @@ export default function SpinConfigPage() {
                           </span>
                           <span>
                             Điều kiện: {config.minSpentAmount > 0 ? `${config.minSpentAmount.toLocaleString("vi-VN")}đ / lượt` : "Không giới hạn"}
+                          </span>
+                          <span>
+                            Tối đa: {config.maxSpinsPerUser > 0 ? `${config.maxSpinsPerUser} lần/người` : "Không giới hạn"}
                           </span>
                         </div>
                       </div>

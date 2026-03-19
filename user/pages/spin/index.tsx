@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import Head from "next/head";
-import { spinService, SpinConfig, SpinResult } from "../../src/services/spin.service";
+import { spinService, SpinConfig, SpinResult, SpinTurns } from "../../src/services/spin.service";
 import Layout from "../../src/components/layout/Layout";
 
 const STORAGE_KEY = "spin_result_ids";
@@ -46,6 +46,10 @@ export default function SpinPage() {
   const [historyForm, setHistoryForm] = useState({ fullName: "", phone: "", email: "", address: "" });
   const [historySubmitting, setHistorySubmitting] = useState(false);
 
+  // Turns
+  const [turns, setTurns] = useState<SpinTurns | null>(null);
+  const needsTurnsCheck = config ? ((config.minSpentAmount || 0) > 0 || (config.maxSpinsPerUser || 0) > 0) : false;
+
   useEffect(() => {
     loadConfig();
     loadHistory();
@@ -55,10 +59,22 @@ export default function SpinPage() {
     try {
       const data = await spinService.getActiveConfig();
       setConfig(data);
+      if (data && ((data.minSpentAmount || 0) > 0 || (data.maxSpinsPerUser || 0) > 0)) {
+        loadTurns(data._id);
+      }
     } catch {
       // no active config
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadTurns = async (configId: string) => {
+    try {
+      const data = await spinService.getSpinTurns(configId);
+      setTurns(data);
+    } catch {
+      // chưa đăng nhập hoặc lỗi
     }
   };
 
@@ -106,6 +122,9 @@ export default function SpinPage() {
         setSpinning(false);
         setShowResult(true);
         loadHistory();
+        if (needsTurnsCheck) {
+          loadTurns(config._id);
+        }
       }, 5000);
     } catch (err: any) {
       console.error("Spin error:", err);
@@ -313,24 +332,18 @@ export default function SpinPage() {
 
         .spin-wheel.no-transition { transition: none; }
 
-        .spin-slot {
+        .spin-slot-clip {
           position: absolute;
-          top: 0;
-          left: 50%;
-          width: 50%;
-          height: 50%;
-          transform-origin: 0% 100%;
-          overflow: hidden;
-          border-right: 1px solid rgba(200, 200, 200, 0.3);
+          inset: 0;
+          border-radius: 50%;
         }
 
-        .spin-slot-content {
+        .spin-slot-content-abs {
           position: absolute;
-          top: 15%;
-          left: 25%;
-          transform: translateX(-50%);
+          transform: translate(-50%, -50%);
           text-align: center;
           width: 80px;
+          pointer-events: none;
         }
 
         .spin-slot-image {
@@ -647,6 +660,18 @@ export default function SpinPage() {
           </div>
         </div>
 
+        {/* Turns Info */}
+        {needsTurnsCheck && turns && (
+          <div className="spin-phone-section">
+            <div className="spin-turns-detail">
+              Lượt quay: <strong>{turns.remainingTurns}</strong> / {turns.totalTurns}
+              {turns.remainingTurns <= 0 && (
+                <div className="spin-no-turns">Bạn đã hết lượt quay</div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Wheel */}
         <div className="spin-wheel-container">
           <div className="spin-wheel-outer">
@@ -676,17 +701,36 @@ export default function SpinPage() {
             style={{ transform: `rotate(${rotation}deg)` }}
           >
             {config.slots.map((slot, i) => {
-              const rotate = i * slotAngle - 90;
-              const skew = -(90 - slotAngle);
+              const startAngle = i * slotAngle - 90;
+              const midAngle = startAngle + slotAngle / 2;
+              const toRad = (deg: number) => (deg * Math.PI) / 180;
+
+              // Build clip-path polygon points
+              const points = ["50% 50%"];
+              const steps = Math.max(2, Math.ceil(slotAngle / 10));
+              for (let s = 0; s <= steps; s++) {
+                const a = toRad(startAngle + (slotAngle * s) / steps);
+                const px = 50 + 50 * Math.cos(a);
+                const py = 50 + 50 * Math.sin(a);
+                points.push(`${px}% ${py}%`);
+              }
+              const clipPath = `polygon(${points.join(", ")})`;
+
+              // Content position
+              const contentAngle = toRad(midAngle);
+              const contentR = 30;
+              const cx = 50 + contentR * Math.cos(contentAngle);
+              const cy = 50 + contentR * Math.sin(contentAngle);
+
               return (
                 <div
                   key={i}
-                  className={`spin-slot ${i % 2 === 0 ? "spin-slot-even" : "spin-slot-odd"}`}
-                  style={{ transform: `rotate(${rotate}deg) skewY(${skew}deg)` }}
+                  className={`spin-slot-clip ${i % 2 === 0 ? "spin-slot-even" : "spin-slot-odd"}`}
+                  style={{ clipPath }}
                 >
                   <div
-                    className="spin-slot-content"
-                    style={{ transform: `skewY(${-skew}deg) rotate(${slotAngle / 2}deg)` }}
+                    className="spin-slot-content-abs"
+                    style={{ left: `${cx}%`, top: `${cy}%` }}
                   >
                     {slot.image && (
                       <img src={getImageUrl(slot.image)} alt={slot.label} className="spin-slot-image" />
@@ -701,7 +745,7 @@ export default function SpinPage() {
           <button
             className="spin-center-btn"
             onClick={handleSpin}
-            disabled={spinning || !isActive}
+            disabled={spinning || !isActive || (needsTurnsCheck && (!turns || turns.remainingTurns <= 0))}
           >
             {spinning ? "..." : "Quay"}
           </button>
