@@ -293,17 +293,20 @@ export default function SpinPage() {
         /* Wheel */
         .spin-wheel-container {
           position: relative;
-          width: 340px;
-          height: 340px;
+          width: 360px;
+          height: 360px;
           margin: 24px auto;
         }
 
         .spin-wheel-outer {
           position: absolute;
-          inset: -12px;
+          inset: -16px;
           border-radius: 50%;
-          background: linear-gradient(135deg, #dc2626, #991b1b);
-          box-shadow: 0 0 30px rgba(220, 38, 38, 0.5), inset 0 0 20px rgba(0,0,0,0.2);
+          background: linear-gradient(145deg, #b91c1c, #7f1d1d);
+          box-shadow:
+            0 0 40px rgba(185, 28, 28, 0.6),
+            0 0 80px rgba(185, 28, 28, 0.2),
+            inset 0 0 30px rgba(0, 0, 0, 0.3);
         }
 
         .spin-wheel-dots {
@@ -314,11 +317,33 @@ export default function SpinPage() {
 
         .spin-wheel-dot {
           position: absolute;
-          width: 8px;
-          height: 8px;
+          width: 12px;
+          height: 12px;
           border-radius: 50%;
-          background: #FFD700;
-          box-shadow: 0 0 6px #FFD700;
+          background: #fbbf24;
+          box-shadow: 0 0 8px #fbbf24, 0 0 16px rgba(251, 191, 36, 0.4);
+          transition: all 0.15s;
+        }
+
+        .spinning .spin-wheel-dot {
+          animation: ledBlink 0.3s infinite alternate;
+        }
+
+        .spinning .spin-wheel-dot:nth-child(odd) {
+          animation-delay: 0.15s;
+        }
+
+        @keyframes ledBlink {
+          0% {
+            background: #fbbf24;
+            box-shadow: 0 0 8px #fbbf24, 0 0 20px rgba(251, 191, 36, 0.6);
+            transform: translate(-50%, -50%) scale(1.3);
+          }
+          100% {
+            background: #92400e;
+            box-shadow: 0 0 2px #92400e;
+            transform: translate(-50%, -50%) scale(0.8);
+          }
         }
 
         .spin-wheel {
@@ -328,6 +353,7 @@ export default function SpinPage() {
           overflow: hidden;
           transition: transform 5s cubic-bezier(0.17, 0.67, 0.12, 0.99);
           background: white;
+          box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
         }
 
         .spin-wheel.no-transition { transition: none; }
@@ -342,29 +368,47 @@ export default function SpinPage() {
           position: absolute;
           transform: translate(-50%, -50%);
           text-align: center;
-          width: 80px;
+          width: 90px;
           pointer-events: none;
         }
 
         .spin-slot-image {
-          width: 40px;
-          height: 40px;
-          object-fit: contain;
+          width: 48px;
+          height: 48px;
+          object-fit: cover;
           margin: 0 auto 4px;
+          border-radius: 8px;
+          border: 2px solid rgba(255, 255, 255, 0.8);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
         }
 
         .spin-slot-label {
-          font-size: 8px;
-          font-weight: 600;
+          font-size: 9px;
+          font-weight: 700;
           color: #333;
           line-height: 1.2;
-          max-width: 70px;
+          max-width: 80px;
           margin: 0 auto;
           word-wrap: break-word;
+          text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
         }
 
-        .spin-slot-even { background: #fff5f5; }
-        .spin-slot-odd { background: white; }
+        .spin-slot-even {
+          background: linear-gradient(180deg, #fef3c7 0%, #fde68a 100%);
+        }
+        .spin-slot-odd {
+          background: linear-gradient(180deg, #ffffff 0%, #fef9c3 100%);
+        }
+
+        /* Separator lines via pseudo */
+        .spin-wheel::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          border-radius: 50%;
+          pointer-events: none;
+          z-index: 5;
+        }
 
         /* Center button */
         .spin-center-btn {
@@ -372,43 +416,94 @@ export default function SpinPage() {
           top: 50%;
           left: 50%;
           transform: translate(-50%, -50%);
-          width: 70px;
-          height: 70px;
+          width: 76px;
+          height: 76px;
           border-radius: 50%;
-          background: linear-gradient(135deg, #f59e0b, #f97316);
-          border: 4px solid #FFD700;
+          background: linear-gradient(145deg, #f59e0b, #ea580c);
+          border: 4px solid #fbbf24;
           color: white;
           font-weight: 900;
-          font-size: 13px;
+          font-size: 15px;
           cursor: pointer;
           z-index: 10;
-          box-shadow: 0 4px 20px rgba(245, 158, 11, 0.5);
+          box-shadow:
+            0 4px 20px rgba(245, 158, 11, 0.5),
+            0 0 0 3px rgba(251, 191, 36, 0.3);
           transition: transform 0.2s, box-shadow 0.2s;
           display: flex;
           align-items: center;
           justify-content: center;
+          text-transform: uppercase;
+          letter-spacing: 1px;
         }
 
         .spin-center-btn:hover:not(:disabled) {
           transform: translate(-50%, -50%) scale(1.1);
-          box-shadow: 0 6px 30px rgba(245, 158, 11, 0.7);
+          box-shadow:
+            0 6px 30px rgba(245, 158, 11, 0.7),
+            0 0 0 5px rgba(251, 191, 36, 0.4);
         }
 
-        .spin-center-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .spinning .spin-center-btn {
+          animation: btnPulse 0.6s infinite alternate;
+        }
+
+        @keyframes btnPulse {
+          0% {
+            box-shadow: 0 4px 20px rgba(245, 158, 11, 0.5), 0 0 0 3px rgba(251, 191, 36, 0.3);
+          }
+          100% {
+            box-shadow: 0 4px 30px rgba(245, 158, 11, 0.9), 0 0 0 8px rgba(251, 191, 36, 0.5);
+          }
+        }
+
+        .spin-center-btn:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
 
         /* Pointer */
         .spin-pointer {
           position: absolute;
-          top: -8px;
+          top: -10px;
           left: 50%;
           transform: translateX(-50%);
           width: 0;
           height: 0;
-          border-left: 14px solid transparent;
-          border-right: 14px solid transparent;
-          border-top: 26px solid #FFD700;
+          border-left: 16px solid transparent;
+          border-right: 16px solid transparent;
+          border-top: 30px solid #fbbf24;
           z-index: 20;
-          filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+          filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.4));
+        }
+
+        .spinning .spin-pointer {
+          animation: pointerBounce 0.3s infinite alternate;
+        }
+
+        @keyframes pointerBounce {
+          0% { transform: translateX(-50%) translateY(0); }
+          100% { transform: translateX(-50%) translateY(3px); }
+        }
+
+        /* Outer glow when spinning */
+        .spinning .spin-wheel-outer {
+          animation: outerGlow 0.5s infinite alternate;
+        }
+
+        @keyframes outerGlow {
+          0% {
+            box-shadow:
+              0 0 40px rgba(185, 28, 28, 0.6),
+              0 0 80px rgba(185, 28, 28, 0.2),
+              inset 0 0 30px rgba(0, 0, 0, 0.3);
+          }
+          100% {
+            box-shadow:
+              0 0 60px rgba(251, 191, 36, 0.6),
+              0 0 100px rgba(251, 191, 36, 0.3),
+              inset 0 0 30px rgba(0, 0, 0, 0.3);
+          }
         }
 
         /* Popup overlay */
@@ -673,7 +768,7 @@ export default function SpinPage() {
         )}
 
         {/* Wheel */}
-        <div className="spin-wheel-container">
+        <div className={`spin-wheel-container ${spinning ? "spinning" : ""}`}>
           <div className="spin-wheel-outer">
             <div className="spin-wheel-dots">
               {Array.from({ length: 24 }).map((_, i) => {
