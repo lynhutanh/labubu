@@ -100,12 +100,18 @@ export default function SpinPage() {
 
       const slotCount = config.slots.length;
       const slotAngle = 360 / slotCount;
-      const targetAngle = res.slotIndex * slotAngle + slotAngle / 2;
+      // Slot i bắt đầu ở góc (i * slotAngle) trên wheel (trước offset -90 render)
+      // Giữa slot i nằm ở góc: i * slotAngle + slotAngle/2
+      // Kim ở top = 0° (trước rotate). Wheel quay rotation°.
+      // Để giữa slot i nằm dưới kim: rotation + (i * slotAngle + slotAngle/2) ≡ 0 (mod 360)
+      // => rotation = -(i * slotAngle + slotAngle/2) = 360 - (i * slotAngle + slotAngle/2)
+      const midSlotAngle = res.slotIndex * slotAngle + slotAngle / 2;
+      const stopAngle = (360 - midSlotAngle + 360) % 360;
       const spins = 5 + Math.floor(Math.random() * 3);
       const baseRotation = hasSpun ? rotation : 0;
-      const currentAngle = baseRotation % 360;
-      const additionalRotation = (targetAngle - currentAngle + 360) % 360;
-      const finalRotation = baseRotation + spins * 360 + additionalRotation;
+      const currentStop = ((baseRotation % 360) + 360) % 360;
+      const delta = ((stopAngle - currentStop) % 360 + 360) % 360;
+      const finalRotation = baseRotation + spins * 360 + delta;
 
       if (!hasSpun) {
         setHasSpun(true);
@@ -233,7 +239,6 @@ export default function SpinPage() {
     if (url.startsWith("http")) return url;
     return `${apiUrl}${url}`;
   };
-
   return (
     <Layout>
       <Head>
@@ -244,191 +249,241 @@ export default function SpinPage() {
       <style jsx global>{`
         .spin-page {
           min-height: 100vh;
-          background: linear-gradient(135deg, #fff5f5 0%, #fff0e6 30%, #fef3c7 50%, #fff0e6 70%, #fff5f5 100%);
+          background: linear-gradient(180deg, #fce4ec 0%, #fff3e0 40%, #fce4ec 100%);
           display: flex;
           flex-direction: column;
           align-items: center;
-          font-family: 'Roboto', 'Segoe UI', sans-serif;
+          font-family: "Roboto", "Segoe UI", sans-serif;
           overflow-x: hidden;
+          padding-bottom: 40px;
         }
 
+        /* Header banner */
         .spin-header {
           width: 100%;
           max-width: 500px;
-          margin: 0 auto;
-          padding: 16px;
+          padding: 16px 16px 0;
           text-align: center;
         }
 
         .spin-title {
-          background: linear-gradient(135deg, #8B0000, #a80000);
-          color: #FFD700;
-          font-size: 28px;
+          background: linear-gradient(180deg, #5d1212 0%, #3d0808 100%);
+          color: #ffd700;
+          font-size: 22px;
           font-weight: 900;
-          padding: 14px 32px;
-          border-radius: 8px;
+          padding: 16px 24px;
+          border-radius: 12px;
           text-transform: uppercase;
-          letter-spacing: 2px;
-          border: 3px solid #FFD700;
-          box-shadow: 0 4px 20px rgba(139, 0, 0, 0.4);
-          text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+          letter-spacing: 3px;
+          border: 3px solid #c9953c;
+          box-shadow: 0 4px 20px rgba(93, 18, 18, 0.5);
+          text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6);
+          position: relative;
         }
 
+        /* Event time card */
         .spin-event-time {
           background: white;
           border-radius: 16px;
           padding: 14px 20px;
-          margin: 16px auto;
+          margin: 14px auto 0;
           max-width: 460px;
-          box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+          box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
           display: flex;
           align-items: center;
           gap: 12px;
         }
 
-        .spin-event-time .icon { font-size: 28px; }
-        .spin-event-time .time-label { font-weight: 700; color: #333; font-size: 15px; }
-        .spin-event-time .time-value { color: #666; font-size: 13px; margin-top: 2px; }
+        .spin-event-time .icon {
+          font-size: 28px;
+        }
 
-        /* Wheel */
-        .spin-wheel-container {
+        .spin-event-time .time-label {
+          font-weight: 700;
+          color: #333;
+          font-size: 15px;
+        }
+
+        .spin-event-time .time-value {
+          color: #666;
+          font-size: 13px;
+          margin-top: 2px;
+        }
+
+        /* Turns box */
+        .spin-turns-box {
+          margin: 16px auto;
+          text-align: center;
+        }
+
+        .spin-turns-oval {
+          display: inline-flex;
+          flex-direction: column;
+          align-items: center;
+          background: white;
+          border: 3px solid #c62828;
+          border-radius: 40px;
+          padding: 12px 40px;
+          box-shadow: 0 4px 16px rgba(198, 40, 40, 0.15);
+        }
+
+        .spin-turns-label {
+          font-size: 13px;
+          color: #666;
+          font-weight: 600;
+        }
+
+        .spin-turns-count {
+          font-size: 36px;
+          font-weight: 900;
+          color: #c62828;
+          line-height: 1;
+          margin-top: 2px;
+        }
+
+        .spin-no-turns-msg {
+          font-size: 12px;
+          color: #ef4444;
+          margin-top: 4px;
+          font-weight: 600;
+        }
+
+        /* Wheel container */
+        .spin-wheel-wrap {
           position: relative;
-          width: 360px;
-          height: 360px;
-          margin: 24px auto;
+          width: 340px;
+          height: 340px;
+          margin: 20px auto;
         }
 
-        .spin-wheel-outer {
+        /* Outer ring */
+        .spin-ring {
           position: absolute;
-          inset: -16px;
+          inset: -18px;
           border-radius: 50%;
-          background: linear-gradient(145deg, #b91c1c, #7f1d1d);
-          box-shadow:
-            0 0 40px rgba(185, 28, 28, 0.6),
-            0 0 80px rgba(185, 28, 28, 0.2),
-            inset 0 0 30px rgba(0, 0, 0, 0.3);
+          background: linear-gradient(145deg, #e8a0a0, #d47070);
+          box-shadow: 0 0 30px rgba(200, 80, 80, 0.4);
         }
 
-        .spin-wheel-dots {
+        .spin-ring-inner {
+          position: absolute;
+          inset: 6px;
+          border-radius: 50%;
+          background: linear-gradient(145deg, #d47070, #c45050);
+        }
+
+        /* LED dots on ring */
+        .spin-leds {
           position: absolute;
           inset: 0;
           border-radius: 50%;
         }
 
-        .spin-wheel-dot {
+        .spin-led {
           position: absolute;
-          width: 12px;
-          height: 12px;
+          width: 10px;
+          height: 10px;
           border-radius: 50%;
-          background: #fbbf24;
-          box-shadow: 0 0 8px #fbbf24, 0 0 16px rgba(251, 191, 36, 0.4);
-          transition: all 0.15s;
+          background: #ffd700;
+          box-shadow: 0 0 6px #ffd700;
         }
 
-        .spinning .spin-wheel-dot {
-          animation: ledBlink 0.3s infinite alternate;
+        .spinning-active .spin-led {
+          animation: ledFlash 0.3s infinite alternate;
         }
 
-        .spinning .spin-wheel-dot:nth-child(odd) {
+        .spinning-active .spin-led:nth-child(even) {
           animation-delay: 0.15s;
         }
 
-        @keyframes ledBlink {
+        @keyframes ledFlash {
           0% {
-            background: #fbbf24;
-            box-shadow: 0 0 8px #fbbf24, 0 0 20px rgba(251, 191, 36, 0.6);
-            transform: translate(-50%, -50%) scale(1.3);
+            background: #ffd700;
+            box-shadow: 0 0 8px #ffd700, 0 0 16px rgba(255, 215, 0, 0.5);
+            transform: translate(-50%, -50%) scale(1.2);
           }
           100% {
-            background: #92400e;
-            box-shadow: 0 0 2px #92400e;
-            transform: translate(-50%, -50%) scale(0.8);
+            background: #8b5e00;
+            box-shadow: 0 0 2px #8b5e00;
+            transform: translate(-50%, -50%) scale(0.7);
           }
         }
 
-        .spin-wheel {
+        /* Wheel face */
+        .spin-face {
           position: absolute;
           inset: 0;
           border-radius: 50%;
           overflow: hidden;
           transition: transform 5s cubic-bezier(0.17, 0.67, 0.12, 0.99);
           background: white;
-          box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+          box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.08);
         }
 
-        .spin-wheel.no-transition { transition: none; }
+        .spin-face.no-anim {
+          transition: none;
+        }
 
-        .spin-slot-clip {
+        /* Slot clip */
+        .spin-slice {
           position: absolute;
           inset: 0;
           border-radius: 50%;
         }
 
-        .spin-slot-content-abs {
+        .spin-slice-even {
+          background: #f8d7da;
+        }
+
+        .spin-slice-odd {
+          background: #fff;
+        }
+
+        /* Slot content */
+        .spin-item {
           position: absolute;
           transform: translate(-50%, -50%);
           text-align: center;
-          width: 90px;
+          width: 80px;
           pointer-events: none;
         }
 
-        .spin-slot-image {
-          width: 48px;
-          height: 48px;
+        .spin-item img {
+          width: 44px;
+          height: 44px;
           object-fit: cover;
-          margin: 0 auto 4px;
-          border-radius: 8px;
-          border: 2px solid rgba(255, 255, 255, 0.8);
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+          border-radius: 6px;
+          margin: 0 auto 3px;
+          display: block;
         }
 
-        .spin-slot-label {
-          font-size: 9px;
+        .spin-item-name {
+          font-size: 8px;
           font-weight: 700;
           color: #333;
           line-height: 1.2;
-          max-width: 80px;
+          max-width: 70px;
           margin: 0 auto;
           word-wrap: break-word;
-          text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
-        }
-
-        .spin-slot-even {
-          background: linear-gradient(180deg, #fef3c7 0%, #fde68a 100%);
-        }
-        .spin-slot-odd {
-          background: linear-gradient(180deg, #ffffff 0%, #fef9c3 100%);
-        }
-
-        /* Separator lines via pseudo */
-        .spin-wheel::after {
-          content: '';
-          position: absolute;
-          inset: 0;
-          border-radius: 50%;
-          pointer-events: none;
-          z-index: 5;
         }
 
         /* Center button */
-        .spin-center-btn {
+        .spin-go {
           position: absolute;
           top: 50%;
           left: 50%;
           transform: translate(-50%, -50%);
-          width: 76px;
-          height: 76px;
+          width: 72px;
+          height: 72px;
           border-radius: 50%;
-          background: linear-gradient(145deg, #f59e0b, #ea580c);
-          border: 4px solid #fbbf24;
+          background: linear-gradient(145deg, #ff9800, #e65100);
+          border: 4px solid #ffb74d;
           color: white;
           font-weight: 900;
-          font-size: 15px;
+          font-size: 14px;
           cursor: pointer;
           z-index: 10;
-          box-shadow:
-            0 4px 20px rgba(245, 158, 11, 0.5),
-            0 0 0 3px rgba(251, 191, 36, 0.3);
+          box-shadow: 0 4px 16px rgba(230, 81, 0, 0.4);
           transition: transform 0.2s, box-shadow 0.2s;
           display: flex;
           align-items: center;
@@ -437,80 +492,87 @@ export default function SpinPage() {
           letter-spacing: 1px;
         }
 
-        .spin-center-btn:hover:not(:disabled) {
+        .spin-go:hover:not(:disabled) {
           transform: translate(-50%, -50%) scale(1.1);
-          box-shadow:
-            0 6px 30px rgba(245, 158, 11, 0.7),
-            0 0 0 5px rgba(251, 191, 36, 0.4);
+          box-shadow: 0 6px 24px rgba(230, 81, 0, 0.6);
         }
 
-        .spinning .spin-center-btn {
-          animation: btnPulse 0.6s infinite alternate;
-        }
-
-        @keyframes btnPulse {
-          0% {
-            box-shadow: 0 4px 20px rgba(245, 158, 11, 0.5), 0 0 0 3px rgba(251, 191, 36, 0.3);
-          }
-          100% {
-            box-shadow: 0 4px 30px rgba(245, 158, 11, 0.9), 0 0 0 8px rgba(251, 191, 36, 0.5);
-          }
-        }
-
-        .spin-center-btn:disabled {
-          opacity: 0.6;
+        .spin-go:disabled {
+          opacity: 0.5;
           cursor: not-allowed;
         }
 
-        /* Pointer */
-        .spin-pointer {
+        .spinning-active .spin-go {
+          animation: goPulse 0.5s infinite alternate;
+        }
+
+        @keyframes goPulse {
+          0% { box-shadow: 0 4px 16px rgba(230, 81, 0, 0.4); }
+          100% { box-shadow: 0 4px 30px rgba(255, 152, 0, 0.8), 0 0 0 6px rgba(255, 183, 77, 0.3); }
+        }
+
+        /* Pointer (red gem) */
+        .spin-arrow {
           position: absolute;
-          top: -10px;
+          top: -14px;
+          left: 50%;
+          transform: translateX(-50%);
+          z-index: 20;
+          width: 28px;
+          height: 36px;
+        }
+
+        .spin-arrow::before {
+          content: "";
+          position: absolute;
+          top: 0;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 20px;
+          height: 20px;
+          background: #c62828;
+          border-radius: 50%;
+          box-shadow: 0 0 8px rgba(198, 40, 40, 0.5);
+        }
+
+        .spin-arrow::after {
+          content: "";
+          position: absolute;
+          top: 14px;
           left: 50%;
           transform: translateX(-50%);
           width: 0;
           height: 0;
-          border-left: 16px solid transparent;
-          border-right: 16px solid transparent;
-          border-top: 30px solid #fbbf24;
-          z-index: 20;
-          filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.4));
+          border-left: 10px solid transparent;
+          border-right: 10px solid transparent;
+          border-top: 18px solid #c62828;
+          filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.3));
         }
 
-        .spinning .spin-pointer {
-          animation: pointerBounce 0.3s infinite alternate;
+        .spinning-active .spin-arrow {
+          animation: arrowBob 0.25s infinite alternate;
         }
 
-        @keyframes pointerBounce {
+        @keyframes arrowBob {
           0% { transform: translateX(-50%) translateY(0); }
           100% { transform: translateX(-50%) translateY(3px); }
         }
 
-        /* Outer glow when spinning */
-        .spinning .spin-wheel-outer {
-          animation: outerGlow 0.5s infinite alternate;
+        /* Outer glow */
+        .spinning-active .spin-ring {
+          animation: ringGlow 0.4s infinite alternate;
         }
 
-        @keyframes outerGlow {
-          0% {
-            box-shadow:
-              0 0 40px rgba(185, 28, 28, 0.6),
-              0 0 80px rgba(185, 28, 28, 0.2),
-              inset 0 0 30px rgba(0, 0, 0, 0.3);
-          }
-          100% {
-            box-shadow:
-              0 0 60px rgba(251, 191, 36, 0.6),
-              0 0 100px rgba(251, 191, 36, 0.3),
-              inset 0 0 30px rgba(0, 0, 0, 0.3);
-          }
+        @keyframes ringGlow {
+          0% { box-shadow: 0 0 30px rgba(200, 80, 80, 0.4); }
+          100% { box-shadow: 0 0 50px rgba(255, 215, 0, 0.5), 0 0 80px rgba(255, 152, 0, 0.2); }
         }
 
         /* Popup overlay */
         .spin-overlay {
           position: fixed;
           inset: 0;
-          background: rgba(0,0,0,0.6);
+          background: rgba(0, 0, 0, 0.6);
           z-index: 100;
           display: flex;
           align-items: center;
@@ -526,17 +588,25 @@ export default function SpinPage() {
           max-width: 420px;
           width: 100%;
           text-align: center;
-          box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-          animation: popupIn 0.3s ease;
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+          animation: popIn 0.3s ease;
         }
 
-        @keyframes popupIn {
+        @keyframes popIn {
           from { opacity: 0; transform: scale(0.8); }
           to { opacity: 1; transform: scale(1); }
         }
 
-        .spin-popup-prize { border: 3px solid #FFD700; }
-        .spin-popup h2 { font-size: 24px; font-weight: 900; margin-bottom: 8px; }
+        .spin-popup-prize {
+          border: 3px solid #ffd700;
+        }
+
+        .spin-popup h2 {
+          font-size: 24px;
+          font-weight: 900;
+          margin-bottom: 8px;
+        }
+
         .spin-popup-prize h2 { color: #f59e0b; }
         .spin-popup-lose h2 { color: #666; }
 
@@ -561,15 +631,17 @@ export default function SpinPage() {
           font-size: 16px;
           font-weight: 700;
           cursor: pointer;
-          transition: transform 0.2s, box-shadow 0.2s;
+          transition: transform 0.2s;
         }
 
-        .spin-popup-btn:hover { transform: scale(1.05); }
+        .spin-popup-btn:hover {
+          transform: scale(1.05);
+        }
 
         .spin-popup-btn-primary {
-          background: linear-gradient(135deg, #f59e0b, #f97316);
+          background: linear-gradient(135deg, #ff9800, #e65100);
           color: white;
-          box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+          box-shadow: 0 4px 15px rgba(230, 81, 0, 0.4);
         }
 
         .spin-popup-btn-secondary {
@@ -579,7 +651,11 @@ export default function SpinPage() {
         }
 
         /* Info form */
-        .spin-info-form { text-align: left; margin-top: 16px; }
+        .spin-info-form {
+          text-align: left;
+          margin-top: 16px;
+        }
+
         .spin-info-form label {
           display: block;
           font-size: 13px;
@@ -588,6 +664,7 @@ export default function SpinPage() {
           margin-bottom: 4px;
           margin-top: 12px;
         }
+
         .spin-info-form input {
           width: 100%;
           padding: 12px 16px;
@@ -598,7 +675,10 @@ export default function SpinPage() {
           transition: border-color 0.2s;
           box-sizing: border-box;
         }
-        .spin-info-form input:focus { border-color: #f59e0b; }
+
+        .spin-info-form input:focus {
+          border-color: #ff9800;
+        }
 
         .spin-success-message {
           color: #16a34a;
@@ -607,7 +687,12 @@ export default function SpinPage() {
           margin: 20px 0;
         }
 
-        .spin-loading, .spin-no-event { text-align: center; padding: 60px 20px; }
+        .spin-loading,
+        .spin-no-event {
+          text-align: center;
+          padding: 60px 20px;
+        }
+
         .spin-no-event h2 { font-size: 22px; color: #999; margin-bottom: 8px; }
         .spin-no-event p { color: #bbb; }
 
@@ -615,8 +700,8 @@ export default function SpinPage() {
         .spin-history {
           width: 100%;
           max-width: 500px;
-          margin: 32px auto;
-          padding: 0 16px 40px;
+          margin: 24px auto 0;
+          padding: 0 16px;
         }
 
         .spin-history-title {
@@ -624,9 +709,6 @@ export default function SpinPage() {
           font-weight: 800;
           color: #333;
           margin-bottom: 16px;
-          display: flex;
-          align-items: center;
-          gap: 8px;
         }
 
         .spin-history-item {
@@ -634,13 +716,13 @@ export default function SpinPage() {
           border-radius: 16px;
           padding: 16px;
           margin-bottom: 12px;
-          box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+          box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
           display: flex;
           align-items: center;
           gap: 12px;
         }
 
-        .spin-history-item.prize { border-left: 4px solid #f59e0b; }
+        .spin-history-item.prize { border-left: 4px solid #ff9800; }
         .spin-history-item.lose { border-left: 4px solid #d1d5db; }
 
         .spin-history-img {
@@ -661,10 +743,7 @@ export default function SpinPage() {
           margin-bottom: 2px;
         }
 
-        .spin-history-meta {
-          font-size: 12px;
-          color: #999;
-        }
+        .spin-history-meta { font-size: 12px; color: #999; }
 
         .spin-history-badge {
           font-size: 11px;
@@ -680,7 +759,7 @@ export default function SpinPage() {
         }
 
         .spin-history-badge.not-sent {
-          background: linear-gradient(135deg, #f59e0b, #f97316);
+          background: linear-gradient(135deg, #ff9800, #e65100);
           color: white;
           cursor: pointer;
           transition: transform 0.2s;
@@ -722,7 +801,7 @@ export default function SpinPage() {
           box-sizing: border-box;
         }
 
-        .spin-history-form input:focus { border-color: #f59e0b; }
+        .spin-history-form input:focus { border-color: #ff9800; }
 
         .spin-history-form-actions {
           display: flex;
@@ -730,11 +809,21 @@ export default function SpinPage() {
           margin-top: 12px;
         }
 
-        .spin-history-empty {
-          text-align: center;
-          color: #bbb;
-          padding: 20px;
-          font-size: 14px;
+        /* Treasure image */
+        .spin-treasure {
+          width: 380px;
+          max-width: 90%;
+          margin-top: -80px;
+          pointer-events: none;
+          position: relative;
+          z-index: 0;
+        }
+
+        @media (max-width: 420px) {
+          .spin-wheel-wrap { width: 290px; height: 290px; }
+          .spin-ring { inset: -14px; }
+          .spin-title { font-size: 18px; padding: 12px 16px; letter-spacing: 2px; }
+          .spin-go { width: 60px; height: 60px; font-size: 12px; }
         }
       `}</style>
 
@@ -750,49 +839,44 @@ export default function SpinPage() {
           <div>
             <div className="time-label">Thời gian sự kiện</div>
             <div className="time-value">
-              {new Date(config.startDate).toLocaleString("vi-VN")} ~ {new Date(config.endDate).toLocaleString("vi-VN")}
+              {new Date(config.startDate).toLocaleString("vi-VN")}
+              {" ~ "}
+              {new Date(config.endDate).toLocaleString("vi-VN")}
             </div>
           </div>
         </div>
 
-        {/* Turns Info */}
-        {needsTurnsCheck && turns && (
-          <div className="spin-phone-section">
-            <div className="spin-turns-detail">
-              Lượt quay: <strong>{turns.remainingTurns}</strong> / {turns.totalTurns}
-              {turns.remainingTurns <= 0 && (
-                <div className="spin-no-turns">Bạn đã hết lượt quay</div>
-              )}
-            </div>
-          </div>
-        )}
-
         {/* Wheel */}
-        <div className={`spin-wheel-container ${spinning ? "spinning" : ""}`}>
-          <div className="spin-wheel-outer">
-            <div className="spin-wheel-dots">
+        <div className={`spin-wheel-wrap ${spinning ? "spinning-active" : ""}`}>
+          <div className="spin-ring">
+            <div className="spin-ring-inner" />
+            <div className="spin-leds">
               {Array.from({ length: 24 }).map((_, i) => {
                 const angle = (i * 360) / 24;
                 const rad = (angle * Math.PI) / 180;
-                const r = 170;
-                const cx = 170 + r * Math.cos(rad);
-                const cy = 170 + r * Math.sin(rad);
+                const r = 50;
+                const cx = 50 + r * Math.cos(rad);
+                const cy = 50 + r * Math.sin(rad);
                 return (
                   <div
                     key={i}
-                    className="spin-wheel-dot"
-                    style={{ left: cx, top: cy, transform: "translate(-50%, -50%)" }}
+                    className="spin-led"
+                    style={{
+                      left: `${cx}%`,
+                      top: `${cy}%`,
+                      transform: "translate(-50%, -50%)",
+                    }}
                   />
                 );
               })}
             </div>
           </div>
 
-          <div className="spin-pointer" />
+          <div className="spin-arrow" />
 
           <div
             ref={wheelRef}
-            className={`spin-wheel ${!hasSpun ? "no-transition" : ""}`}
+            className={`spin-face ${!hasSpun ? "no-anim" : ""}`}
             style={{ transform: `rotate(${rotation}deg)` }}
           >
             {config.slots.map((slot, i) => {
@@ -800,7 +884,6 @@ export default function SpinPage() {
               const midAngle = startAngle + slotAngle / 2;
               const toRad = (deg: number) => (deg * Math.PI) / 180;
 
-              // Build clip-path polygon points
               const points = ["50% 50%"];
               const steps = Math.max(2, Math.ceil(slotAngle / 10));
               for (let s = 0; s <= steps; s++) {
@@ -811,26 +894,28 @@ export default function SpinPage() {
               }
               const clipPath = `polygon(${points.join(", ")})`;
 
-              // Content position
               const contentAngle = toRad(midAngle);
-              const contentR = 30;
+              const contentR = 32;
               const cx = 50 + contentR * Math.cos(contentAngle);
               const cy = 50 + contentR * Math.sin(contentAngle);
 
               return (
                 <div
                   key={i}
-                  className={`spin-slot-clip ${i % 2 === 0 ? "spin-slot-even" : "spin-slot-odd"}`}
+                  className={`spin-slice ${i % 2 === 0 ? "spin-slice-even" : "spin-slice-odd"}`}
                   style={{ clipPath }}
                 >
                   <div
-                    className="spin-slot-content-abs"
+                    className="spin-item"
                     style={{ left: `${cx}%`, top: `${cy}%` }}
                   >
                     {slot.image && (
-                      <img src={getImageUrl(slot.image)} alt={slot.label} className="spin-slot-image" />
+                      <img
+                        src={getImageUrl(slot.image)}
+                        alt={slot.label}
+                      />
                     )}
-                    <div className="spin-slot-label">{slot.label}</div>
+                    <div className="spin-item-name">{slot.label}</div>
                   </div>
                 </div>
               );
@@ -838,28 +923,58 @@ export default function SpinPage() {
           </div>
 
           <button
-            className="spin-center-btn"
+            className="spin-go"
             onClick={handleSpin}
-            disabled={spinning || !isActive || (needsTurnsCheck && (!turns || turns.remainingTurns <= 0))}
+            disabled={
+              spinning ||
+              !isActive ||
+              (needsTurnsCheck && (!turns || turns.remainingTurns <= 0))
+            }
           >
-            {spinning ? "..." : "Quay"}
+            {spinning ? "..." : "Bắt đầu"}
           </button>
         </div>
 
+        {/* Treasure decoration */}
+        <img
+          src="/bannervongquay.png"
+          alt=""
+          className="spin-treasure"
+        />
+
+        {/* Turns */}
+        {needsTurnsCheck && turns && (
+          <div className="spin-turns-box">
+            <div className="spin-turns-oval">
+              <div className="spin-turns-label">Số cơ hội còn lại</div>
+              <div className="spin-turns-count">{turns.remainingTurns}</div>
+              {turns.remainingTurns <= 0 && (
+                <div className="spin-no-turns-msg">Bạn đã hết lượt quay</div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Result Popup */}
         {showResult && result && (
-          <div className="spin-overlay" onClick={e => { if (e.target === e.currentTarget) closeResult(); }}>
+          <div
+            className="spin-overlay"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) closeResult();
+            }}
+          >
             <div className={`spin-popup ${result.type === "prize" ? "spin-popup-prize" : "spin-popup-lose"}`}>
               {!showInfoForm && !submitted ? (
                 <>
                   <h2>{result.type === "prize" ? "🎉 Chúc mừng!" : "😊"}</h2>
-
                   {result.slotImage && (
-                    <img src={getImageUrl(result.slotImage)} alt="" className="spin-popup-image" />
+                    <img
+                      src={getImageUrl(result.slotImage)}
+                      alt=""
+                      className="spin-popup-image"
+                    />
                   )}
-
                   <div className="spin-popup-label">{result.slotLabel}</div>
-
                   {result.type === "prize" ? (
                     <button
                       className="spin-popup-btn spin-popup-btn-primary"
@@ -868,7 +983,10 @@ export default function SpinPage() {
                       Nhận quà →
                     </button>
                   ) : (
-                    <button className="spin-popup-btn spin-popup-btn-secondary" onClick={closeResult}>
+                    <button
+                      className="spin-popup-btn spin-popup-btn-secondary"
+                      onClick={closeResult}
+                    >
                       Đóng
                     </button>
                   )}
@@ -878,35 +996,57 @@ export default function SpinPage() {
                   <h2 style={{ color: "#16a34a" }}>✅ Đã gửi!</h2>
                   <p className="spin-success-message">
                     Thông tin nhận quà đã được gửi thành công.
-                    <br />Chúng tôi sẽ liên hệ bạn sớm nhất!
+                    <br />
+                    Chúng tôi sẽ liên hệ bạn sớm nhất!
                   </p>
-                  <button className="spin-popup-btn spin-popup-btn-primary" onClick={closeResult}>
+                  <button
+                    className="spin-popup-btn spin-popup-btn-primary"
+                    onClick={closeResult}
+                  >
                     Đóng
                   </button>
                 </>
               ) : (
                 <>
-                  <h2 style={{ color: "#f59e0b" }}>📝 Thông tin nhận quà</h2>
-
+                  <h2 style={{ color: "#ff9800" }}>📝 Thông tin nhận quà</h2>
                   {result.slotImage && (
-                    <img src={getImageUrl(result.slotImage)} alt="" className="spin-popup-image" style={{ width: 80, height: 80 }} />
+                    <img
+                      src={getImageUrl(result.slotImage)}
+                      alt=""
+                      className="spin-popup-image"
+                      style={{ width: 80, height: 80 }}
+                    />
                   )}
-                  <div className="spin-popup-label" style={{ fontSize: 14 }}>{result.slotLabel}</div>
-
+                  <div className="spin-popup-label" style={{ fontSize: 14 }}>
+                    {result.slotLabel}
+                  </div>
                   <div className="spin-info-form">
                     <label>Họ tên</label>
-                    <input value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Nguyễn Văn A" />
-
+                    <input
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      placeholder="Nguyễn Văn A"
+                    />
                     <label>Số điện thoại</label>
-                    <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="0912345678" />
-
+                    <input
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="0912345678"
+                    />
                     <label>Email</label>
-                    <input value={email} onChange={e => setEmail(e.target.value)} placeholder="email@example.com" type="email" />
-
+                    <input
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="email@example.com"
+                      type="email"
+                    />
                     <label>Địa chỉ nhận quà</label>
-                    <input value={address} onChange={e => setAddress(e.target.value)} placeholder="123 Nguyễn Huệ, Q1, TP.HCM" />
+                    <input
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                      placeholder="123 Nguyễn Huệ, Q1, TP.HCM"
+                    />
                   </div>
-
                   <div style={{ marginTop: 20, display: "flex", gap: 8, justifyContent: "center" }}>
                     <button
                       className="spin-popup-btn spin-popup-btn-primary"
@@ -915,7 +1055,10 @@ export default function SpinPage() {
                     >
                       {submitting ? "Đang gửi..." : "Gửi thông tin"}
                     </button>
-                    <button className="spin-popup-btn spin-popup-btn-secondary" onClick={() => setShowInfoForm(false)}>
+                    <button
+                      className="spin-popup-btn spin-popup-btn-secondary"
+                      onClick={() => setShowInfoForm(false)}
+                    >
                       Quay lại
                     </button>
                   </div>
@@ -938,7 +1081,11 @@ export default function SpinPage() {
                 <div key={item._id}>
                   <div className={`spin-history-item ${isPrize ? "prize" : "lose"}`}>
                     {item.slotImage && (
-                      <img src={getImageUrl(item.slotImage)} alt="" className="spin-history-img" />
+                      <img
+                        src={getImageUrl(item.slotImage)}
+                        alt=""
+                        className="spin-history-img"
+                      />
                     )}
                     <div className="spin-history-info">
                       <div className="spin-history-label">{item.slotLabel}</div>
@@ -954,7 +1101,12 @@ export default function SpinPage() {
                           className="spin-history-badge not-sent"
                           onClick={() => {
                             setEditingId(isEditing ? null : item._id);
-                            setHistoryForm({ fullName: "", phone: "", email: "", address: "" });
+                            setHistoryForm({
+                              fullName: "",
+                              phone: "",
+                              email: "",
+                              address: "",
+                            });
                           }}
                         >
                           📝 Gửi thông tin
@@ -970,26 +1122,34 @@ export default function SpinPage() {
                       <label>Họ tên</label>
                       <input
                         value={historyForm.fullName}
-                        onChange={(e) => setHistoryForm({ ...historyForm, fullName: e.target.value })}
+                        onChange={(e) =>
+                          setHistoryForm({ ...historyForm, fullName: e.target.value })
+                        }
                         placeholder="Nguyễn Văn A"
                       />
                       <label>Số điện thoại</label>
                       <input
                         value={historyForm.phone}
-                        onChange={(e) => setHistoryForm({ ...historyForm, phone: e.target.value })}
+                        onChange={(e) =>
+                          setHistoryForm({ ...historyForm, phone: e.target.value })
+                        }
                         placeholder="0912345678"
                       />
                       <label>Email</label>
                       <input
                         value={historyForm.email}
-                        onChange={(e) => setHistoryForm({ ...historyForm, email: e.target.value })}
+                        onChange={(e) =>
+                          setHistoryForm({ ...historyForm, email: e.target.value })
+                        }
                         placeholder="email@example.com"
                         type="email"
                       />
                       <label>Địa chỉ nhận quà</label>
                       <input
                         value={historyForm.address}
-                        onChange={(e) => setHistoryForm({ ...historyForm, address: e.target.value })}
+                        onChange={(e) =>
+                          setHistoryForm({ ...historyForm, address: e.target.value })
+                        }
                         placeholder="123 Nguyễn Huệ, Q1, TP.HCM"
                       />
                       <div className="spin-history-form-actions">
