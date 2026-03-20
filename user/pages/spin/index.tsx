@@ -357,6 +357,7 @@ export default function SpinPage() {
           z-index: 2;
         }
 
+
         /* Outer ring */
         .spin-ring {
           position: absolute;
@@ -812,9 +813,9 @@ export default function SpinPage() {
 
         /* Treasure image */
         .spin-treasure {
-          width: 380px;
-          max-width: 90%;
-          margin-top: -60px;
+          width: 550px;
+          max-width: 100%;
+          margin-top: -130px;
           pointer-events: none;
           position: relative;
           z-index: 1;
@@ -849,6 +850,7 @@ export default function SpinPage() {
 
         {/* Wheel */}
         <div className={`spin-wheel-wrap ${spinning ? "spinning-active" : ""}`}>
+
           <div className="spin-ring">
             <div className="spin-ring-inner" />
             <div className="spin-leds">
