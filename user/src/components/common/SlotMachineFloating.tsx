@@ -68,79 +68,11 @@ export default function SlotMachineFloating() {
           height: 90px;
         }
 
-        .slot-floating-machine {
-          width: 90px;
-          height: 90px;
-          border-radius: 16px;
-          background: linear-gradient(180deg, #c8920e 0%, #8b6914 50%, #c8920e 100%);
-          border: 3px solid #daa520;
-          box-shadow: 0 4px 25px rgba(200, 146, 14, 0.5), 0 0 15px rgba(255, 215, 0, 0.4);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex-direction: column;
-          gap: 2px;
-        }
-
-        .slot-floating-reels {
-          display: flex;
-          gap: 3px;
-          background: #1a1a2e;
-          border-radius: 6px;
-          padding: 4px 6px;
-          border: 2px solid #daa520;
-        }
-
-        .slot-floating-reel {
-          width: 18px;
-          height: 22px;
-          background: linear-gradient(180deg, #0a0a1a, #1a1a3e, #0a0a1a);
-          border-radius: 3px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 12px;
-          font-weight: 900;
-          color: #ffd700;
-          border: 1px solid #333;
-          animation: slotReelFlick 1.5s ease-in-out infinite alternate;
-        }
-
-        .slot-floating-reel:nth-child(2) {
-          animation-delay: 0.3s;
-        }
-        .slot-floating-reel:nth-child(3) {
-          animation-delay: 0.6s;
-        }
-
-        @keyframes slotReelFlick {
-          0% { opacity: 0.6; }
-          50% { opacity: 1; }
-          100% { opacity: 0.6; }
-        }
-
-        .slot-floating-lever {
-          position: absolute;
-          right: -12px;
-          top: 50%;
-          transform: translateY(-50%);
-        }
-
-        .slot-floating-lever-stick {
-          width: 6px;
-          height: 28px;
-          background: linear-gradient(90deg, #888, #ccc, #888);
-          border-radius: 2px;
-          margin: 0 auto;
-        }
-
-        .slot-floating-lever-ball {
-          width: 14px;
-          height: 14px;
-          background: radial-gradient(circle at 35% 35%, #ff4444, #cc0000);
-          border-radius: 50%;
-          margin: -2px auto 0;
-          border: 1px solid #aa0000;
+        .slot-floating-img {
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+          filter: drop-shadow(0 4px 12px rgba(255, 215, 0, 0.5));
         }
 
         .slot-floating-close {
@@ -195,15 +127,6 @@ export default function SlotMachineFloating() {
             width: 72px;
             height: 72px;
           }
-          .slot-floating-machine {
-            width: 72px;
-            height: 72px;
-          }
-          .slot-floating-reel {
-            width: 14px;
-            height: 18px;
-            font-size: 10px;
-          }
           .slot-floating-text {
             font-size: 8px;
             bottom: -18px;
@@ -216,18 +139,8 @@ export default function SlotMachineFloating() {
           <button className="slot-floating-close" onClick={handleDismiss}>
             ✕
           </button>
-          <div className="slot-floating-machine">
-            <div className="slot-floating-reels">
-              <div className="slot-floating-reel">7</div>
-              <div className="slot-floating-reel">7</div>
-              <div className="slot-floating-reel">7</div>
-            </div>
-          </div>
-          <div className="slot-floating-lever">
-            <div className="slot-floating-lever-stick" />
-            <div className="slot-floating-lever-ball" />
-          </div>
-          <div className="slot-floating-text">Quay số 777</div>
+          <img src="/iconjackpot777.png" alt="Jackpot 777" className="slot-floating-img" />
+          <div className="slot-floating-text">Jackpot 777</div>
         </div>
       </div>
     </>
