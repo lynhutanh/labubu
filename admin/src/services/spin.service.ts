@@ -4,7 +4,7 @@ export interface SpinSlot {
   label: string;
   image: string;
   rate: number;
-  type: "prize" | "lose";
+  type: "prize" | "lose" | "extra_turn";
 }
 
 export interface SpinConfigResponse {
@@ -27,7 +27,7 @@ export interface SpinResultResponse {
   slotIndex: number;
   slotLabel: string;
   slotImage: string;
-  type: "prize" | "lose";
+  type: "prize" | "lose" | "extra_turn";
   fullName: string;
   phone: string;
   email: string;
