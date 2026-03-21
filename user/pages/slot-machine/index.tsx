@@ -1,5 +1,6 @@
 import Head from "next/head";
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/router";
 import Layout from "../../src/components/layout/Layout";
 import {
@@ -239,7 +240,6 @@ export default function SlotMachinePage() {
           margin: 0 auto;
           position: relative;
           padding: 0;
-          container-type: inline-size;
         }
 
         .slot-bg-wrap img.slot-bg-img {
@@ -354,9 +354,11 @@ export default function SlotMachinePage() {
         }
 
         .slot-symbol img {
+          display: block;
           width: 56px;
           height: 56px;
           object-fit: contain;
+          margin: 0 auto;
           filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.5));
         }
 
@@ -859,8 +861,8 @@ export default function SlotMachinePage() {
 
       </div>
 
-      {/* Lose Popup - ngoài slot-page để tránh iOS fixed bug */}
-      {showLosePopup && (
+      {/* Lose Popup - portal ra document.body để fix iOS Safari fixed position */}
+      {showLosePopup && createPortal(
         <div className="slot-win-overlay" onClick={() => setShowLosePopup(false)}>
           <div className="slot-win-popup" onClick={(e) => e.stopPropagation()}>
             <div style={{ fontSize: 64, marginBottom: 12 }}>😢</div>
@@ -871,13 +873,14 @@ export default function SlotMachinePage() {
               Đóng
             </button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
-      {/* Win Popup - ngoài slot-page để tránh iOS fixed bug */}
-      {showWinPopup && result && result.type === "prize" && (
+      {/* Win Popup - portal ra document.body để fix iOS Safari fixed position */}
+      {showWinPopup && result && result.type === "prize" && createPortal(
         <div className="slot-win-overlay" onClick={() => !showInfoForm && setShowWinPopup(false)}>
-          <div className="slot-win-popup" onClick={e => e.stopPropagation()}>
+          <div className="slot-win-popup" onClick={(e) => e.stopPropagation()}>
             <h2>🎉 CHÚC MỪNG! 🎉</h2>
             <p style={{ color: "#ffd700", fontSize: 16 }}>Bạn đã trúng thưởng!</p>
 
@@ -919,7 +922,8 @@ export default function SlotMachinePage() {
               </div>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       <style jsx global>{`
