@@ -985,10 +985,10 @@ export default function SpinPage() {
               if (e.target === e.currentTarget) closeResult();
             }}
           >
-            <div className={`spin-popup ${result.type === "prize" ? "spin-popup-prize" : "spin-popup-lose"}`}>
+            <div className={`spin-popup ${result.type === "prize" ? "spin-popup-prize" : result.type === "extra_turn" ? "spin-popup-prize" : "spin-popup-lose"}`}>
               {!showInfoForm && !submitted ? (
                 <>
-                  <h2>{result.type === "prize" ? "🎉 Chúc mừng!" : "😊"}</h2>
+                  <h2>{result.type === "prize" ? "🎉 Chúc mừng!" : result.type === "extra_turn" ? "✨ Tuyệt vời!" : "😊"}</h2>
                   {result.slotImage && (
                     <img
                       src={getImageUrl(result.slotImage)}
@@ -1003,6 +1003,13 @@ export default function SpinPage() {
                       onClick={() => setShowInfoForm(true)}
                     >
                       Nhận quà →
+                    </button>
+                  ) : result.type === "extra_turn" ? (
+                    <button
+                      className="spin-popup-btn spin-popup-btn-primary"
+                      onClick={closeResult}
+                    >
+                      Tiếp tục quay →
                     </button>
                   ) : (
                     <button
@@ -1096,12 +1103,13 @@ export default function SpinPage() {
             <div className="spin-history-title">📋 Lịch sử quay</div>
             {history.map((item) => {
               const isPrize = item.type === "prize";
+              const isExtraTurn = item.type === "extra_turn";
               const hasSentInfo = isPrize && !!item.fullName;
               const isEditing = editingId === item._id;
 
               return (
                 <div key={item._id}>
-                  <div className={`spin-history-item ${isPrize ? "prize" : "lose"}`}>
+                  <div className={`spin-history-item ${isPrize ? "prize" : isExtraTurn ? "prize" : "lose"}`}>
                     {item.slotImage && (
                       <img
                         src={getImageUrl(item.slotImage)}
@@ -1134,6 +1142,8 @@ export default function SpinPage() {
                           📝 Gửi thông tin
                         </button>
                       )
+                    ) : isExtraTurn ? (
+                      <span className="spin-history-badge sent" style={{ color: "#16a34a", borderColor: "#16a34a", background: "rgba(22, 163, 74, 0.1)" }}>+1 Lượt</span>
                     ) : (
                       <span className="spin-history-badge lose-badge">Chưa trúng</span>
                     )}

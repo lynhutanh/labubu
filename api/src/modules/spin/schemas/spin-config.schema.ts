@@ -8,7 +8,7 @@ export const spinConfigSchema = new Schema(
         label: { type: String, required: true },
         image: { type: String, default: '' },
         rate: { type: Number, required: true, min: 0, max: 100 },
-        type: { type: String, enum: ['prize', 'lose'], required: true },
+        type: { type: String, enum: ['prize', 'lose', 'extra_turn'], required: true },
       },
     ],
     startDate: { type: Date, required: true },

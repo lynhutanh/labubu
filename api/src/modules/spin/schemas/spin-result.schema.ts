@@ -8,7 +8,7 @@ export const spinResultSchema = new Schema(
     slotIndex: { type: Number, required: true },
     slotLabel: { type: String, required: true },
     slotImage: { type: String, default: '' },
-    type: { type: String, enum: ['prize', 'lose'], required: true },
+    type: { type: String, enum: ['prize', 'lose', 'extra_turn'], required: true },
     fullName: { type: String, default: '' },
     phone: { type: String, default: '' },
     email: { type: String, default: '' },

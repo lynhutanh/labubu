@@ -13,6 +13,7 @@ import toast from "react-hot-toast";
 const SLOT_TYPE_LABELS: Record<string, { label: string; color: string }> = {
   prize: { label: "Giải thưởng", color: "text-yellow-400" },
   lose: { label: "May mắn lần sau", color: "text-gray-400" },
+  extra_turn: { label: "+1 Lượt quay", color: "text-green-400" },
 };
 
 export default function SpinConfigPage() {
@@ -34,7 +35,7 @@ export default function SpinConfigPage() {
     label: string;
     image: string;
     rate: number;
-    type: "prize" | "lose";
+    type: "prize" | "lose" | "extra_turn";
   }>>([]);
   const [saving, setSaving] = useState(false);
 
@@ -91,11 +92,11 @@ export default function SpinConfigPage() {
     setShowForm(true);
   };
 
-  const addSlot = (type: "prize" | "lose") => {
+  const addSlot = (type: "prize" | "lose" | "extra_turn") => {
     setSlots([
       ...slots,
       {
-        label: type === "lose" ? "Chúc bạn may mắn lần sau" : "",
+        label: type === "lose" ? "Chúc bạn may mắn lần sau" : type === "extra_turn" ? "+1 Lượt quay" : "",
         image: "",
         rate: 0,
         type,
@@ -252,6 +253,9 @@ export default function SpinConfigPage() {
                     <button onClick={() => addSlot("prize")} className="flex items-center gap-1 px-3 py-1.5 bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 rounded-lg text-xs hover:bg-yellow-500/30 transition-all">
                       <Plus className="w-3 h-3" /> Giải thưởng
                     </button>
+                    <button onClick={() => addSlot("extra_turn")} className="flex items-center gap-1 px-3 py-1.5 bg-green-500/20 text-green-400 border border-green-500/30 rounded-lg text-xs hover:bg-green-500/30 transition-all">
+                      <Plus className="w-3 h-3" /> Thêm lượt
+                    </button>
                     <button onClick={() => addSlot("lose")} className="flex items-center gap-1 px-3 py-1.5 bg-gray-500/20 text-gray-400 border border-gray-500/30 rounded-lg text-xs hover:bg-gray-500/30 transition-all">
                       <Plus className="w-3 h-3" /> May mắn lần sau
                     </button>
@@ -302,7 +306,7 @@ export default function SpinConfigPage() {
                         </div>
                       </div>
 
-                      <span className={`text-xs px-2 py-1 rounded border mt-1.5 whitespace-nowrap ${slot.type === "prize" ? "bg-yellow-500/20 text-yellow-400 border-yellow-500/30" : "bg-gray-500/20 text-gray-400 border-gray-500/30"}`}>
+                      <span className={`text-xs px-2 py-1 rounded border mt-1.5 whitespace-nowrap ${slot.type === "prize" ? "bg-yellow-500/20 text-yellow-400 border-yellow-500/30" : slot.type === "extra_turn" ? "bg-green-500/20 text-green-400 border-green-500/30" : "bg-gray-500/20 text-gray-400 border-gray-500/30"}`}>
                         {SLOT_TYPE_LABELS[slot.type]?.label}
                       </span>
 

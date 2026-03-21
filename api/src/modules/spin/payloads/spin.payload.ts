@@ -14,7 +14,7 @@ export class SpinSlotPayload {
   @Max(100)
   rate: number;
 
-  @IsEnum(['prize', 'lose'])
+  @IsEnum(['prize', 'lose', 'extra_turn'])
   type: string;
 }
 

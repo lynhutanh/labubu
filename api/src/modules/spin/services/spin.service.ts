@@ -100,10 +100,17 @@ export class SpinService {
       buyerId: new ObjectId(userId),
     });
 
+    // Đếm số lượt quay thêm (những lần quay trúng ô 'extra_turn')
+    const extraTurns = await this.spinResultModel.countDocuments({
+      configId: config._id,
+      buyerId: new ObjectId(userId),
+      type: 'extra_turn',
+    });
+
     // Nếu không giới hạn tiền mua
     if (minSpent <= 0) {
       // Nếu có maxSpinsPerUser thì giới hạn, không thì unlimited
-      const totalTurns = maxSpins > 0 ? maxSpins : usedTurns + 1;
+      const totalTurns = maxSpins > 0 ? maxSpins + extraTurns : usedTurns + 1;
       return {
         totalTurns,
         usedTurns,
@@ -130,6 +137,9 @@ export class SpinService {
     if (maxSpins > 0) {
       totalTurns = Math.min(totalTurns, maxSpins);
     }
+
+    // Cộng thêm các lượt quay trúng thưởng được cộng
+    totalTurns += extraTurns;
 
     return {
       totalTurns,
