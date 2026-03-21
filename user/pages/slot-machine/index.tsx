@@ -299,6 +299,8 @@ export default function SlotMachinePage() {
         .slot-reels-frame {
           position: absolute;
           top: 45%;
+          left: 8%;
+          right: 8%;
           height: 20%;
           background: transparent;
           border-radius: 0;
@@ -681,7 +683,7 @@ export default function SlotMachinePage() {
                     </div>
 
                     {/* Reels */}
-                    <div className="slot-reels-frame" style={{ position: "relative" }}>
+                    <div className="slot-reels-frame">
                       {[0, 1, 2].map(reelIndex => (
                         <div
                           key={reelIndex}
