@@ -21,6 +21,31 @@ export default function SlotMachinePage() {
   const [result, setResult] = useState<SlotMachineResult | null>(null);
   const [showWinPopup, setShowWinPopup] = useState(false);
   const [showLosePopup, setShowLosePopup] = useState(false);
+
+  // iOS Safari fix: lock body scroll khi popup mở
+  useEffect(() => {
+    const isOpen = showWinPopup || showLosePopup;
+    if (isOpen) {
+      const scrollY = window.scrollY;
+      document.body.style.position = "fixed";
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = "100%";
+      document.body.style.overflowY = "scroll";
+    } else {
+      const top = document.body.style.top;
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.width = "";
+      document.body.style.overflowY = "";
+      if (top) window.scrollTo(0, -parseInt(top || "0"));
+    }
+    return () => {
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.width = "";
+      document.body.style.overflowY = "";
+    };
+  }, [showWinPopup, showLosePopup]);
   const [showInfoForm, setShowInfoForm] = useState(false);
   const [leverPulled, setLeverPulled] = useState(false);
   const [reelsStopped, setReelsStopped] = useState([false, false, false]);
@@ -475,13 +500,18 @@ export default function SlotMachinePage() {
         /* Win popup */
         .slot-win-overlay {
           position: fixed;
-          inset: 0;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
           background: rgba(0, 0, 0, 0.85);
           z-index: 1000;
           display: flex;
           align-items: center;
           justify-content: center;
           animation: fadeIn 0.3s;
+          -webkit-overflow-scrolling: touch;
+          overflow-y: auto;
         }
 
         @keyframes fadeIn {
@@ -515,6 +545,7 @@ export default function SlotMachinePage() {
         }
 
         .slot-win-popup .prize-image {
+          display: block;
           width: 200px;
           height: 200px;
           object-fit: contain;
