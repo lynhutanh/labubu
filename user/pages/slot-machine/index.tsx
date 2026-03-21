@@ -326,6 +326,11 @@ export default function SlotMachinePage() {
           top: 0;
           left: 0;
           right: 0;
+          will-change: transform;
+          -webkit-transform: translateZ(0);
+          transform: translateZ(0);
+          backface-visibility: hidden;
+          -webkit-backface-visibility: hidden;
         }
 
         .slot-reel.spinning .slot-reel-inner {
@@ -351,14 +356,18 @@ export default function SlotMachinePage() {
           font-weight: 900;
           color: #ffd700;
           text-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
+          line-height: 0;
         }
 
-        .slot-symbol img {
-          display: block;
+        .slot-symbol-bg {
           width: 56px;
           height: 56px;
-          object-fit: contain;
-          margin: 0 auto;
+          background-size: contain;
+          background-position: center;
+          background-repeat: no-repeat;
+          flex-shrink: 0;
+          -webkit-transform: translateZ(0);
+          transform: translateZ(0);
           filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.5));
         }
 
@@ -691,7 +700,11 @@ export default function SlotMachinePage() {
                             {config.symbols.map((symbol, sIdx) => (
                               <div key={sIdx} className="slot-symbol">
                                 {symbol.image ? (
-                                  <img src={symbol.image} alt={symbol.label} />
+                                  <div
+                                    className="slot-symbol-bg"
+                                    style={{ backgroundImage: `url(${symbol.image})` }}
+                                    aria-label={symbol.label}
+                                  />
                                 ) : (
                                   <span>{symbol.label}</span>
                                 )}
@@ -701,7 +714,11 @@ export default function SlotMachinePage() {
                             {config.symbols.map((symbol, sIdx) => (
                               <div key={`dup-${sIdx}`} className="slot-symbol">
                                 {symbol.image ? (
-                                  <img src={symbol.image} alt={symbol.label} />
+                                  <div
+                                    className="slot-symbol-bg"
+                                    style={{ backgroundImage: `url(${symbol.image})` }}
+                                    aria-label={symbol.label}
+                                  />
                                 ) : (
                                   <span>{symbol.label}</span>
                                 )}
