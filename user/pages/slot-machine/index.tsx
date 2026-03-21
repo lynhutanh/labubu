@@ -299,8 +299,8 @@ export default function SlotMachinePage() {
         .slot-reels-frame {
           position: absolute;
           top: 45%;
-          left: 8%;
-          right: 8%;
+          left: 0%;
+          right: 0%;
           height: 20%;
           background: transparent;
           border-radius: 0;
@@ -474,6 +474,15 @@ export default function SlotMachinePage() {
         .slot-play-btn:disabled {
           opacity: 0.6;
           cursor: not-allowed;
+        }
+
+        @media (max-width: 480px) {
+          .slot-play-btn {
+            padding: 6px 10px;
+            font-size: 11px;
+            border-radius: 8px;
+            letter-spacing: 1px;
+          }
         }
 
         .slot-turns {
