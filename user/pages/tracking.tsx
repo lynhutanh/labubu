@@ -34,7 +34,7 @@ export default function TrackingPage() {
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!orderNumber.trim()) {
       toast.error("Vui lòng nhập mã đơn hàng");
       return;
@@ -43,7 +43,7 @@ export default function TrackingPage() {
     try {
       setLoading(true);
       const user = storage.getUser();
-      
+
       if (!user) {
         toast.error("Vui lòng đăng nhập để theo dõi đơn hàng");
         return;
@@ -60,7 +60,7 @@ export default function TrackingPage() {
       }
 
       if (!order.ghnOrderCode) {
-        toast.error("Đơn hàng chưa có mã vận đơn GHN");
+        toast.error("Đơn hàng chưa có mã vận đơn");
         return;
       }
 

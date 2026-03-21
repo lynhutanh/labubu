@@ -607,7 +607,7 @@ export class BuyerOrderService {
 
     if (!order.ghnOrderCode || order.ghnOrderCode.trim() === "") {
       console.error("❌ [BuyerOrderService] No GHN order code");
-      throw new BadRequestException("Đơn hàng chưa có mã vận đơn GHN");
+      throw new BadRequestException("Đơn hàng chưa có mã vận đơn ");
     }
 
     const trackingInfo = await this.ghnService.trackOrder(order.ghnOrderCode);
