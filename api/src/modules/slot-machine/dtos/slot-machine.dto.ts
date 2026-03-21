@@ -19,6 +19,17 @@ export class SlotMachinePrizeDto {
   }
 }
 
+export class SlotMachineJackpotComboDto {
+  @Expose() symbolIndex: number;
+  @Expose() prizeLabel: string;
+  @Expose() prizeImage: string;
+  @Expose() rate: number;
+
+  constructor(init?: any) {
+    if (init) Object.assign(this, init);
+  }
+}
+
 export class SlotMachineConfigDto {
   @Expose()
   @Transform(({ obj }) => obj._id)
@@ -27,6 +38,7 @@ export class SlotMachineConfigDto {
   @Expose() name: string;
   @Expose() symbols: SlotMachineSymbolDto[];
   @Expose() prizes: SlotMachinePrizeDto[];
+  @Expose() jackpotCombos: SlotMachineJackpotComboDto[];
   @Expose() winRate: number;
   @Expose() startDate: Date;
   @Expose() endDate: Date;
@@ -40,6 +52,7 @@ export class SlotMachineConfigDto {
     if (init) Object.assign(this, init);
   }
 }
+
 
 export class SlotMachineResultDto {
   @Expose()

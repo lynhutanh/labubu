@@ -2,13 +2,18 @@ import Head from "next/head";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import {
-  Plus, Trash2, Edit, Save, X, Calendar, Settings, Award, Image as ImageIcon,
+  Plus, Trash2, Edit, Save, X, Calendar, Settings, Award, Image as ImageIcon, Target,
 } from "lucide-react";
-import { slotMachineService, SlotMachineConfigResponse } from "../../src/services/slot-machine.service";
+import {
+  slotMachineService, SlotMachineConfigResponse, SlotMachineJackpotCombo,
+} from "../../src/services/slot-machine.service";
 import { fileService } from "../../src/services/file.service";
 import { storage } from "../../src/utils/storage";
 import AdminLayout from "../../src/components/layout/AdminLayout";
 import toast from "react-hot-toast";
+
+type SymbolItem = { label: string; image: string };
+type PrizeItem = { label: string; image: string };
 
 export default function SlotMachineConfigPage() {
   const router = useRouter();
@@ -23,10 +28,11 @@ export default function SlotMachineConfigPage() {
   const [endDate, setEndDate] = useState("");
   const [minSpentAmount, setMinSpentAmount] = useState(0);
   const [maxSpinsPerUser, setMaxSpinsPerUser] = useState(0);
-  const [winRate, setWinRate] = useState(5);
+  const [winRate] = useState(0);
   const [status, setStatus] = useState("active");
-  const [symbols, setSymbols] = useState<Array<{ label: string; image: string }>>([]);
-  const [prizes, setPrizes] = useState<Array<{ label: string; image: string }>>([]);
+  const [symbols, setSymbols] = useState<SymbolItem[]>([]);
+  const [prizes, setPrizes] = useState<PrizeItem[]>([]);
+  const [jackpotCombos, setJackpotCombos] = useState<SlotMachineJackpotCombo[]>([]);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -50,8 +56,8 @@ export default function SlotMachineConfigPage() {
 
   const resetForm = () => {
     setName(""); setStartDate(""); setEndDate(""); setMinSpentAmount(0);
-    setMaxSpinsPerUser(0); setWinRate(5); setStatus("active");
-    setSymbols([]); setPrizes([]); setEditingId(null); setShowForm(false);
+    setMaxSpinsPerUser(0); setStatus("active");
+    setSymbols([]); setPrizes([]); setJackpotCombos([]); setEditingId(null); setShowForm(false);
   };
 
   const openCreateForm = () => { resetForm(); setShowForm(true); };
@@ -68,10 +74,10 @@ export default function SlotMachineConfigPage() {
     setEndDate(config.endDate ? toLocal(config.endDate) : "");
     setMinSpentAmount(config.minSpentAmount || 0);
     setMaxSpinsPerUser(config.maxSpinsPerUser || 0);
-    setWinRate(config.winRate);
     setStatus(config.status);
-    setSymbols(config.symbols.map(s => ({ ...s })));
-    setPrizes(config.prizes.map(p => ({ ...p })));
+    setSymbols(config.symbols.map((s) => ({ ...s })));
+    setPrizes(config.prizes.map((p) => ({ ...p })));
+    setJackpotCombos((config.jackpotCombos || []).map((c) => ({ ...c })));
     setShowForm(true);
   };
 
@@ -81,10 +87,16 @@ export default function SlotMachineConfigPage() {
     const u = [...symbols]; (u[i] as any)[field] = value; setSymbols(u);
   };
 
-  const addPrize = () => setPrizes([...prizes, { label: "", image: "" }]);
-  const removePrize = (i: number) => setPrizes(prizes.filter((_, idx) => idx !== i));
-  const updatePrize = (i: number, field: string, value: string) => {
-    const u = [...prizes]; (u[i] as any)[field] = value; setPrizes(u);
+
+  const addCombo = () => {
+    const usedIndexes = jackpotCombos.map((c) => c.symbolIndex);
+    const nextIndex = symbols.findIndex((_, si) => !usedIndexes.includes(si));
+    if (nextIndex === -1) { toast.error("Đã dùng hết symbol"); return; }
+    setJackpotCombos([...jackpotCombos, { symbolIndex: nextIndex, prizeLabel: "", prizeImage: "", rate: 0 }]);
+  };
+  const removeCombo = (i: number) => setJackpotCombos(jackpotCombos.filter((_, idx) => idx !== i));
+  const updateCombo = (i: number, field: keyof SlotMachineJackpotCombo, value: string | number) => {
+    const u = [...jackpotCombos]; (u[i] as any)[field] = value; setJackpotCombos(u);
   };
 
   const handleUploadSymbolImage = async (index: number, file: File) => {
@@ -95,25 +107,30 @@ export default function SlotMachineConfigPage() {
     } catch { toast.error("Tải ảnh thất bại"); }
   };
 
-  const handleUploadPrizeImage = async (index: number, file: File) => {
+  const handleUploadComboImage = async (index: number, file: File) => {
     try {
       const res = await fileService.uploadProductImage(file);
-      updatePrize(index, "image", res.url || res.filePath);
+      updateCombo(index, "prizeImage", res.url || res.filePath);
       toast.success("Tải ảnh thành công");
     } catch { toast.error("Tải ảnh thất bại"); }
   };
+
+  const totalComboRate = jackpotCombos.reduce((sum, c) => sum + (Number(c.rate) || 0), 0);
 
   const handleSubmit = async () => {
     if (!name.trim()) { toast.error("Nhập tên sự kiện"); return; }
     if (!startDate || !endDate) { toast.error("Chọn thời gian sự kiện"); return; }
     if (symbols.length < 3) { toast.error("Cần ít nhất 3 ký hiệu"); return; }
-    if (prizes.length < 1) { toast.error("Cần ít nhất 1 phần thưởng"); return; }
+    if (jackpotCombos.length > 0 && totalComboRate > 100) {
+      toast.error(`Tổng tỉ lệ combo không được vượt quá 100% (hiện tại: ${totalComboRate}%)`); return;
+    }
 
     const payload = {
       name, winRate,
       startDate: new Date(startDate).toISOString(),
       endDate: new Date(endDate).toISOString(),
       minSpentAmount, maxSpinsPerUser, status, symbols, prizes,
+      jackpotCombos: jackpotCombos.length > 0 ? jackpotCombos : undefined,
     };
 
     try {
@@ -144,7 +161,7 @@ export default function SlotMachineConfigPage() {
   if (!mounted) return null;
 
   const renderItemList = (
-    items: Array<{ label: string; image: string }>,
+    items: SymbolItem[],
     title: string,
     onAdd: () => void,
     onRemove: (i: number) => void,
@@ -173,14 +190,14 @@ export default function SlotMachineConfigPage() {
               ) : (
                 <label className="w-16 h-16 border-2 border-dashed border-purple-500/30 rounded-lg flex items-center justify-center cursor-pointer hover:border-purple-400 transition-colors">
                   <ImageIcon className="w-5 h-5 text-purple-400" />
-                  <input type="file" accept="image/*" className="hidden" onChange={e => {
+                  <input type="file" accept="image/*" className="hidden" onChange={(e) => {
                     if (e.target.files?.[0]) onUpload(index, e.target.files[0]);
                   }} />
                 </label>
               )}
             </div>
             <input
-              value={item.label} onChange={e => onUpdate(index, "label", e.target.value)}
+              value={item.label} onChange={(e) => onUpdate(index, "label", e.target.value)}
               placeholder="Tên" className="flex-1 px-2 py-1.5 bg-white/10 border border-purple-500/30 rounded text-sm text-white focus:outline-none focus:ring-1 focus:ring-purple-500"
             />
             <button onClick={() => onRemove(index)} className="text-red-400 hover:text-red-300 mt-1.5">
@@ -189,6 +206,105 @@ export default function SlotMachineConfigPage() {
           </div>
         ))}
       </div>
+    </div>
+  );
+
+  const renderJackpotCombos = () => (
+    <div>
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <Target className="w-4 h-4 text-yellow-400" />
+          <h3 className="text-sm font-medium text-purple-200">Jackpot Combos — tỉ lệ theo từng combo ({jackpotCombos.length})</h3>
+          {jackpotCombos.length > 0 && (
+            <span className={`text-xs px-2 py-0.5 rounded-full border ${totalComboRate === 100 ? "bg-green-500/20 text-green-400 border-green-500/30" : "bg-red-500/20 text-red-400 border-red-500/30"}`}>
+              Tổng: {totalComboRate}%
+            </span>
+          )}
+        </div>
+        <button onClick={addCombo} className="flex items-center gap-1 px-3 py-1.5 bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 rounded-lg text-xs hover:bg-yellow-500/30 transition-all">
+          <Plus className="w-3 h-3" /> Thêm combo
+        </button>
+      </div>
+      {jackpotCombos.length === 0 ? (
+        <p className="text-xs text-purple-400 bg-white/5 rounded-lg p-3 border border-purple-500/20">
+          Không có combo → khi trúng sẽ random prize từ danh sách Phần thưởng bên trên.
+        </p>
+      ) : (
+        <div className="space-y-3">
+          {jackpotCombos.map((combo, index) => (
+            <div key={index} className="p-3 bg-yellow-500/5 rounded-lg border border-yellow-500/20 space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="text-yellow-400 text-sm font-mono w-6">{index + 1}</span>
+                <span className="text-yellow-300 text-xs font-semibold">COMBO</span>
+                <button onClick={() => removeCombo(index)} className="ml-auto text-red-400 hover:text-red-300">
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="grid grid-cols-2 gap-2 pl-8">
+                <div>
+                  <label className="block text-xs text-purple-300 mb-1">Symbol (index trong danh sách)</label>
+                  <select
+                    value={combo.symbolIndex}
+                    onChange={(e) => updateCombo(index, "symbolIndex", Number(e.target.value))}
+                    className="w-full px-2 py-1.5 bg-white/10 border border-purple-500/30 rounded text-sm text-white focus:outline-none focus:ring-1 focus:ring-purple-500"
+                  >
+                    {symbols
+                      .filter((_, si) => si === combo.symbolIndex || !jackpotCombos.some((c, ci) => ci !== index && c.symbolIndex === si))
+                      .map((s, si) => {
+                        const origIdx = symbols.indexOf(s);
+                        return <option key={origIdx} value={origIdx} className="bg-gray-900">{origIdx + 1}. {s.label || `Symbol ${origIdx + 1}`}</option>;
+                      })}
+                    {symbols.length === 0 && <option value={0} className="bg-gray-900">— Thêm ký hiệu trước —</option>}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs text-purple-300 mb-1">Tỉ lệ ra combo này (%)</label>
+                  <input
+                    type="number" min={0} max={100} step={0.1}
+                    value={combo.rate}
+                    onChange={(e) => updateCombo(index, "rate", Number(e.target.value))}
+                    className="w-full px-2 py-1.5 bg-white/10 border border-purple-500/30 rounded text-sm text-white focus:outline-none focus:ring-1 focus:ring-purple-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-purple-300 mb-1">Tên phần thưởng khi ra combo</label>
+                  <input
+                    value={combo.prizeLabel}
+                    onChange={(e) => updateCombo(index, "prizeLabel", e.target.value)}
+                    placeholder="VD: Xe máy Honda"
+                    className="w-full px-2 py-1.5 bg-white/10 border border-purple-500/30 rounded text-sm text-white focus:outline-none focus:ring-1 focus:ring-purple-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-purple-300 mb-1">Ảnh phần thưởng</label>
+                  <div className="flex items-center gap-2">
+                    {combo.prizeImage ? (
+                      <div className="relative w-10 h-10 flex-shrink-0">
+                        <img src={combo.prizeImage} alt="" className="w-10 h-10 rounded object-cover" />
+                        <button onClick={() => updateCombo(index, "prizeImage", "")} className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
+                          <X className="w-2.5 h-2.5 text-white" />
+                        </button>
+                      </div>
+                    ) : (
+                      <label className="w-10 h-10 border-2 border-dashed border-purple-500/30 rounded flex items-center justify-center cursor-pointer hover:border-purple-400 transition-colors flex-shrink-0">
+                        <ImageIcon className="w-4 h-4 text-purple-400" />
+                        <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                          if (e.target.files?.[0]) handleUploadComboImage(index, e.target.files[0]);
+                        }} />
+                      </label>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className="pl-8">
+                <p className="text-xs text-yellow-300/70">
+                  3× <strong>{symbols[combo.symbolIndex]?.label || `Symbol ${combo.symbolIndex + 1}`}</strong> → <strong>{combo.prizeLabel || "(chưa đặt tên)"}</strong> ({combo.rate}%)
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 
@@ -223,41 +339,53 @@ export default function SlotMachineConfigPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm text-purple-300 mb-1">Tên sự kiện</label>
-                  <input value={name} onChange={e => setName(e.target.value)} className="w-full px-3 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500" />
+                  <input value={name} onChange={(e) => setName(e.target.value)} className="w-full px-3 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500" />
                 </div>
                 <div>
                   <label className="block text-sm text-purple-300 mb-1">Trạng thái</label>
-                  <select value={status} onChange={e => setStatus(e.target.value)} className="w-full px-3 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
+                  <select value={status} onChange={(e) => setStatus(e.target.value)} className="w-full px-3 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
                     <option value="active" className="bg-gray-900">Hoạt động</option>
                     <option value="inactive" className="bg-gray-900">Tắt</option>
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm text-purple-300 mb-1">Bắt đầu</label>
-                  <input type="datetime-local" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-full px-3 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500" />
+                  <input type="datetime-local" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full px-3 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500" />
                 </div>
                 <div>
                   <label className="block text-sm text-purple-300 mb-1">Kết thúc</label>
-                  <input type="datetime-local" value={endDate} onChange={e => setEndDate(e.target.value)} className="w-full px-3 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500" />
+                  <input type="datetime-local" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full px-3 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500" />
                 </div>
                 <div>
-                  <label className="block text-sm text-purple-300 mb-1">Tỉ lệ trúng thưởng (%)</label>
-                  <input type="number" value={winRate} onChange={e => setWinRate(Number(e.target.value))} min={0} max={100} className="w-full px-3 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500" />
-                  <p className="text-xs text-purple-400 mt-1">VD: 5 = 5% cơ hội ra 3 ký hiệu giống nhau</p>
+                  <label className="block text-sm text-purple-300 mb-1">Tỉ lệ trúng thưởng</label>
+                  <div className="px-3 py-2 bg-white/5 border border-purple-500/20 rounded-lg text-sm space-y-1">
+                    <div className="flex justify-between">
+                      <span className="text-green-400">🏆 Trúng (tổng combo)</span>
+                      <span className="text-green-400 font-bold">{totalComboRate}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">😔 Chúc bạn may mắn</span>
+                      <span className="text-gray-400 font-bold">{Math.max(0, 100 - totalComboRate)}%</span>
+                    </div>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm text-purple-300 mb-1">Số tiền mua tối thiểu / lượt (VNĐ)</label>
-                  <input type="number" value={minSpentAmount} onChange={e => setMinSpentAmount(Number(e.target.value))} min={0} className="w-full px-3 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500" />
+                  <input type="number" value={minSpentAmount} onChange={(e) => setMinSpentAmount(Number(e.target.value))} min={0} className="w-full px-3 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500" />
                 </div>
                 <div>
                   <label className="block text-sm text-purple-300 mb-1">Số lần chơi tối đa / người</label>
-                  <input type="number" value={maxSpinsPerUser} onChange={e => setMaxSpinsPerUser(Number(e.target.value))} min={0} className="w-full px-3 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500" />
+                  <input type="number" value={maxSpinsPerUser} onChange={(e) => setMaxSpinsPerUser(Number(e.target.value))} min={0} className="w-full px-3 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500" />
                   <p className="text-xs text-purple-400 mt-1">0 = không giới hạn</p>
                 </div>
               </div>
 
               {renderItemList(symbols, "Ký hiệu trên cuộn quay", addSymbol, removeSymbol, updateSymbol, handleUploadSymbolImage)}
-              {renderItemList(prizes, "Phần thưởng khi trúng", addPrize, removePrize, updatePrize, handleUploadPrizeImage)}
+
+
+              <div className="border-t border-purple-500/20 pt-4">
+                {renderJackpotCombos()}
+              </div>
 
               <div className="flex justify-end gap-3 pt-2">
                 <button onClick={resetForm} className="px-4 py-2 bg-white/10 border border-purple-500/30 text-white rounded-lg hover:bg-white/20 transition-all">Hủy</button>
@@ -283,10 +411,11 @@ export default function SlotMachineConfigPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {configs.map(config => {
+              {configs.map((config) => {
                 const isActive = config.status === "active";
                 const now = new Date();
                 const isRunning = isActive && new Date(config.startDate) <= now && new Date(config.endDate) >= now;
+                const combos = config.jackpotCombos || [];
 
                 return (
                   <div key={config._id} className="galaxy-card rounded-xl p-5">
@@ -302,7 +431,7 @@ export default function SlotMachineConfigPage() {
                           <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {formatDate(config.startDate)} ~ {formatDate(config.endDate)}</span>
                           <span>Tỉ lệ trúng: <span className="text-yellow-400">{config.winRate}%</span></span>
                           <span>Ký hiệu: {config.symbols.length}</span>
-                          <span>Phần thưởng: {config.prizes.length}</span>
+                          <span>Combos: <span className="text-yellow-400">{combos.length}</span></span>
                         </div>
                       </div>
                       <div className="flex gap-2">
@@ -327,17 +456,21 @@ export default function SlotMachineConfigPage() {
                           ))}
                         </div>
                       </div>
-                      <div>
-                        <h4 className="text-sm text-purple-400 mb-2">Phần thưởng</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {config.prizes.map((p, i) => (
-                            <div key={i} className="flex items-center gap-2 bg-yellow-500/10 rounded-lg px-2 py-1 border border-yellow-500/20">
-                              {p.image && <img src={p.image} alt="" className="w-8 h-8 rounded object-cover" />}
-                              <span className="text-yellow-400 text-sm">{p.label}</span>
-                            </div>
-                          ))}
+                      {combos.length > 0 && (
+                        <div>
+                          <h4 className="text-sm text-purple-400 mb-2">Jackpot Combos</h4>
+                          <div className="space-y-1">
+                            {combos.map((c, i) => (
+                              <div key={i} className="flex items-center gap-2 bg-yellow-500/10 rounded-lg px-2 py-1 border border-yellow-500/20">
+                                {c.prizeImage && <img src={c.prizeImage} alt="" className="w-6 h-6 rounded object-cover" />}
+                                <span className="text-yellow-400 text-xs">
+                                  3× {config.symbols[c.symbolIndex]?.label || `#${c.symbolIndex}`} → {c.prizeLabel} ({c.rate}%)
+                                </span>
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </div>
                   </div>
                 );

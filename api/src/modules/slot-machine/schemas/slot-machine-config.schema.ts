@@ -15,6 +15,14 @@ export const slotMachineConfigSchema = new Schema(
         image: { type: String, default: '' },
       },
     ],
+    jackpotCombos: [
+      {
+        symbolIndex: { type: Number, required: true },
+        prizeLabel: { type: String, required: true },
+        prizeImage: { type: String, default: '' },
+        rate: { type: Number, required: true, min: 0, max: 100 },
+      },
+    ],
     winRate: { type: Number, required: true, min: 0, max: 100, default: 5 },
     startDate: { type: Date, required: true },
     endDate: { type: Date, required: true },

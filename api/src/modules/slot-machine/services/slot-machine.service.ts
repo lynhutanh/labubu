@@ -51,7 +51,9 @@ export class SlotMachineService {
       throw new BadRequestException('Cần ít nhất 3 ký hiệu');
     }
     if (!payload.prizes || payload.prizes.length < 1) {
-      throw new BadRequestException('Cần ít nhất 1 phần thưởng');
+      if (!payload.jackpotCombos || payload.jackpotCombos.length === 0) {
+        throw new BadRequestException('Cần ít nhất 1 phần thưởng hoặc 1 jackpot combo');
+      }
     }
     const config = await this.configModel.create(payload);
     return new SlotMachineConfigDto(config);
@@ -148,34 +150,63 @@ export class SlotMachineService {
     }
 
     const symbolCount = config.symbols.length;
-    const isWin = Math.random() * 100 < config.winRate;
+    const combos: any[] = config.jackpotCombos || [];
 
     let reels: number[];
     let type: 'prize' | 'lose';
     let prizeLabel = '';
     let prizeImage = '';
 
-    if (isWin && config.prizes.length > 0) {
-      // Trúng: 3 cuộn cùng 1 ký hiệu
-      const winSymbol = Math.floor(Math.random() * symbolCount);
-      reels = [winSymbol, winSymbol, winSymbol];
-      type = 'prize';
+    if (combos.length > 0) {
+      // 1 lần roll: combo1_rate + combo2_rate + ... + (100 - sum) = thua
+      const rand = Math.random() * 100;
+      let cumulative = 0;
+      let selectedCombo: any = null;
+      for (const combo of combos) {
+        cumulative += combo.rate;
+        if (rand < cumulative) {
+          selectedCombo = combo;
+          break;
+        }
+      }
 
-      // Random 1 prize
-      const prizeIndex = Math.floor(Math.random() * config.prizes.length);
-      prizeLabel = config.prizes[prizeIndex].label;
-      prizeImage = config.prizes[prizeIndex].image || '';
+      if (selectedCombo) {
+        const winSymbol = Math.min(selectedCombo.symbolIndex, symbolCount - 1);
+        reels = [winSymbol, winSymbol, winSymbol];
+        type = 'prize';
+        prizeLabel = selectedCombo.prizeLabel;
+        prizeImage = selectedCombo.prizeImage || '';
+      } else {
+        // Phần còn lại = thua (Chúc may mắn)
+        reels = [];
+        for (let i = 0; i < 3; i++) {
+          reels.push(Math.floor(Math.random() * symbolCount));
+        }
+        if (reels[0] === reels[1] && reels[1] === reels[2]) {
+          reels[2] = (reels[2] + 1) % symbolCount;
+        }
+        type = 'lose';
+      }
     } else {
-      // Thua: 3 cuộn khác nhau (đảm bảo không trùng cả 3)
-      reels = [];
-      for (let i = 0; i < 3; i++) {
-        reels.push(Math.floor(Math.random() * symbolCount));
+      // Fallback: dùng winRate cũ khi không có jackpotCombos
+      const isWin = Math.random() * 100 < config.winRate;
+      if (isWin && config.prizes.length > 0) {
+        const winSymbol = Math.floor(Math.random() * symbolCount);
+        reels = [winSymbol, winSymbol, winSymbol];
+        type = 'prize';
+        const prizeIndex = Math.floor(Math.random() * config.prizes.length);
+        prizeLabel = config.prizes[prizeIndex].label;
+        prizeImage = config.prizes[prizeIndex].image || '';
+      } else {
+        reels = [];
+        for (let i = 0; i < 3; i++) {
+          reels.push(Math.floor(Math.random() * symbolCount));
+        }
+        if (reels[0] === reels[1] && reels[1] === reels[2]) {
+          reels[2] = (reels[2] + 1) % symbolCount;
+        }
+        type = 'lose';
       }
-      // Nếu vô tình ra 3 giống nhau, đổi cuộn cuối
-      if (reels[0] === reels[1] && reels[1] === reels[2]) {
-        reels[2] = (reels[2] + 1) % symbolCount;
-      }
-      type = 'lose';
     }
 
     const doc = await this.resultModel.create({

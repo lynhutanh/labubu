@@ -1,5 +1,5 @@
 import { IsString, IsArray, IsDateString, IsOptional, IsEnum, ValidateNested, IsNumber, Min, Max } from 'class-validator';
-import { Type, Transform } from 'class-transformer';
+import { Type } from 'class-transformer';
 
 export class SlotMachineSymbolPayload {
   @IsString()
@@ -19,6 +19,24 @@ export class SlotMachinePrizePayload {
   image?: string;
 }
 
+export class SlotMachineJackpotComboPayload {
+  @IsNumber()
+  @Min(0)
+  symbolIndex: number;
+
+  @IsString()
+  prizeLabel: string;
+
+  @IsString()
+  @IsOptional()
+  prizeImage?: string;
+
+  @IsNumber()
+  @Min(0)
+  @Max(100)
+  rate: number;
+}
+
 export class CreateSlotMachineConfigPayload {
   @IsString()
   name: string;
@@ -32,6 +50,12 @@ export class CreateSlotMachineConfigPayload {
   @ValidateNested({ each: true })
   @Type(() => SlotMachinePrizePayload)
   prizes: SlotMachinePrizePayload[];
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => SlotMachineJackpotComboPayload)
+  @IsOptional()
+  jackpotCombos?: SlotMachineJackpotComboPayload[];
 
   @IsNumber()
   @Min(0)
@@ -74,6 +98,12 @@ export class UpdateSlotMachineConfigPayload {
   @Type(() => SlotMachinePrizePayload)
   @IsOptional()
   prizes?: SlotMachinePrizePayload[];
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => SlotMachineJackpotComboPayload)
+  @IsOptional()
+  jackpotCombos?: SlotMachineJackpotComboPayload[];
 
   @IsNumber()
   @Min(0)
@@ -118,12 +148,10 @@ export class SlotMachineResultSearchPayload {
   deliveryStatus?: string;
 
   @IsOptional()
-  @Transform(({ value }) => Number(value))
   @IsNumber()
   page?: number;
 
   @IsOptional()
-  @Transform(({ value }) => Number(value))
   @IsNumber()
   limit?: number;
 
