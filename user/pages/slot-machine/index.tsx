@@ -857,69 +857,70 @@ export default function SlotMachinePage() {
           );
         })()}
 
-        {/* Lose Popup */}
-        {showLosePopup && (
-          <div className="slot-win-overlay" onClick={() => setShowLosePopup(false)}>
-            <div className="slot-win-popup" onClick={(e) => e.stopPropagation()}>
-              <div style={{ fontSize: 64, marginBottom: 12 }}>😢</div>
-              <p style={{ color: "#aaa", fontSize: 18, fontWeight: 600, marginBottom: 20 }}>
-                Chúc bạn may mắn lần sau!
-              </p>
-              <button className="btn-close" onClick={() => setShowLosePopup(false)}>
-                Đóng
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Win Popup */}
-        {showWinPopup && result && result.type === "prize" && (
-          <div className="slot-win-overlay" onClick={() => !showInfoForm && setShowWinPopup(false)}>
-            <div className="slot-win-popup" onClick={e => e.stopPropagation()}>
-              <h2>🎉 CHÚC MỪNG! 🎉</h2>
-              <p style={{ color: "#ffd700", fontSize: 16 }}>Bạn đã trúng thưởng!</p>
-
-              {result.prizeImage && (
-                <img src={result.prizeImage} alt={result.prizeLabel} className="prize-image" />
-              )}
-              <p className="prize-name">{result.prizeLabel}</p>
-
-              {!showInfoForm ? (
-                <>
-                  <button className="btn-claim" onClick={() => setShowInfoForm(true)}>
-                    Nhận thưởng
-                  </button>
-                  <br />
-                  <button className="btn-close" onClick={() => setShowWinPopup(false)}>
-                    Đóng
-                  </button>
-                </>
-              ) : (
-                <div className="slot-info-form">
-                  <label>Họ tên *</label>
-                  <input value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Nhập họ tên" />
-
-                  <label>Số điện thoại *</label>
-                  <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="Nhập SĐT" />
-
-                  <label>Email</label>
-                  <input value={email} onChange={e => setEmail(e.target.value)} placeholder="Nhập email" />
-
-                  <label>Địa chỉ nhận quà</label>
-                  <input value={address} onChange={e => setAddress(e.target.value)} placeholder="Nhập địa chỉ" />
-
-                  <div style={{ display: "flex", gap: 12, marginTop: 20, justifyContent: "center" }}>
-                    <button className="btn-close" onClick={() => setShowInfoForm(false)}>Quay lại</button>
-                    <button className="btn-claim" onClick={handleSubmitInfo} disabled={submitting}>
-                      {submitting ? "Đang gửi..." : "Gửi thông tin"}
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* Lose Popup - ngoài slot-page để tránh iOS fixed bug */}
+      {showLosePopup && (
+        <div className="slot-win-overlay" onClick={() => setShowLosePopup(false)}>
+          <div className="slot-win-popup" onClick={(e) => e.stopPropagation()}>
+            <div style={{ fontSize: 64, marginBottom: 12 }}>😢</div>
+            <p style={{ color: "#aaa", fontSize: 18, fontWeight: 600, marginBottom: 20 }}>
+              Chúc bạn may mắn lần sau!
+            </p>
+            <button className="btn-close" onClick={() => setShowLosePopup(false)}>
+              Đóng
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Win Popup - ngoài slot-page để tránh iOS fixed bug */}
+      {showWinPopup && result && result.type === "prize" && (
+        <div className="slot-win-overlay" onClick={() => !showInfoForm && setShowWinPopup(false)}>
+          <div className="slot-win-popup" onClick={e => e.stopPropagation()}>
+            <h2>🎉 CHÚC MỪNG! 🎉</h2>
+            <p style={{ color: "#ffd700", fontSize: 16 }}>Bạn đã trúng thưởng!</p>
+
+            {result.prizeImage && (
+              <img src={result.prizeImage} alt={result.prizeLabel} className="prize-image" />
+            )}
+            <p className="prize-name">{result.prizeLabel}</p>
+
+            {!showInfoForm ? (
+              <>
+                <button className="btn-claim" onClick={() => setShowInfoForm(true)}>
+                  Nhận thưởng
+                </button>
+                <br />
+                <button className="btn-close" onClick={() => setShowWinPopup(false)}>
+                  Đóng
+                </button>
+              </>
+            ) : (
+              <div className="slot-info-form">
+                <label>Họ tên *</label>
+                <input value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Nhập họ tên" />
+
+                <label>Số điện thoại *</label>
+                <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="Nhập SĐT" />
+
+                <label>Email</label>
+                <input value={email} onChange={e => setEmail(e.target.value)} placeholder="Nhập email" />
+
+                <label>Địa chỉ nhận quà</label>
+                <input value={address} onChange={e => setAddress(e.target.value)} placeholder="Nhập địa chỉ" />
+
+                <div style={{ display: "flex", gap: 12, marginTop: 20, justifyContent: "center" }}>
+                  <button className="btn-close" onClick={() => setShowInfoForm(false)}>Quay lại</button>
+                  <button className="btn-claim" onClick={handleSubmitInfo} disabled={submitting}>
+                    {submitting ? "Đang gửi..." : "Gửi thông tin"}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       <style jsx global>{`
         @keyframes spin {
