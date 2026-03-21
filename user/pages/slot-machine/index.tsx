@@ -327,8 +327,6 @@ export default function SlotMachinePage() {
           left: 0;
           right: 0;
           will-change: transform;
-          -webkit-transform: translateZ(0);
-          transform: translateZ(0);
           backface-visibility: hidden;
           -webkit-backface-visibility: hidden;
         }
@@ -342,8 +340,8 @@ export default function SlotMachinePage() {
         }
 
         @keyframes reelSpin {
-          0% { transform: translateY(0); }
-          100% { transform: translateY(-80px); }
+          0% { transform: translate3d(0, 0, 0); }
+          100% { transform: translate3d(0, -80px, 0); }
         }
 
         .slot-symbol {
@@ -693,8 +691,8 @@ export default function SlotMachinePage() {
                             className="slot-reel-inner"
                             style={{
                               transform: reelsStopped[reelIndex]
-                                ? `translateY(-${reels[reelIndex] * 80}px)`
-                                : undefined,
+                                ? `translate3d(0, -${reels[reelIndex] * 80}px, 0)`
+                                : "translate3d(0, 0, 0)",
                             }}
                           >
                             {config.symbols.map((symbol, sIdx) => (
