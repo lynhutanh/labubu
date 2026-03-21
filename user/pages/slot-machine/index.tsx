@@ -25,7 +25,6 @@ export default function SlotMachinePage() {
   const [leverPulled, setLeverPulled] = useState(false);
   const [reelsStopped, setReelsStopped] = useState([false, false, false]);
   const [mounted, setMounted] = useState(false);
-  const [scaleFactor, setScaleFactor] = useState(1);
 
   // Info form
   const [fullName, setFullName] = useState("");
@@ -46,13 +45,6 @@ export default function SlotMachinePage() {
     setMounted(true);
     loadConfig();
     loadHistory();
-
-    const handleResize = () => {
-      setScaleFactor(window.innerWidth <= 500 ? window.innerWidth / 500 : 1);
-    };
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   const loadConfig = async () => {
@@ -309,7 +301,6 @@ export default function SlotMachinePage() {
           top: 0;
           left: 0;
           right: 0;
-          transition: transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
         }
 
         .slot-reel.spinning .slot-reel-inner {
@@ -338,7 +329,8 @@ export default function SlotMachinePage() {
         }
 
         .slot-symbol img {
-
+          width: 56px;
+          height: 56px;
           object-fit: contain;
           filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.5));
         }
@@ -621,10 +613,7 @@ export default function SlotMachinePage() {
       <div className="slot-page">
         <div className="slot-bg-wrap">
           <img src="/vongquayjackpot.jpg" alt="" className="slot-bg-img" />
-          <div
-            className="slot-bg-content"
-            style={mounted && scaleFactor < 1 ? { width: 290, transform: `translateX(-50%) scale(${scaleFactor})`, transformOrigin: "top center" } : {}}
-          >
+          <div className="slot-bg-content">
             <div className="slot-machine-container">
               {loading ? (
                 <div style={{ textAlign: "center", padding: "60px 0" }}>
