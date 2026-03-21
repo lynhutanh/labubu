@@ -376,15 +376,15 @@ export default function SpinPage() {
           position: absolute;
           inset: -18px;
           border-radius: 50%;
-          background: linear-gradient(145deg, #e8a0a0, #d47070);
-          box-shadow: 0 0 30px rgba(200, 80, 80, 0.4);
+          background: linear-gradient(145deg, #daa520, #b8860b, #daa520);
+          box-shadow: 0 0 30px rgba(218, 165, 32, 0.5);
         }
 
         .spin-ring-inner {
           position: absolute;
           inset: 6px;
           border-radius: 50%;
-          background: linear-gradient(145deg, #d47070, #c45050);
+          background: linear-gradient(145deg, #c8920e, #a67c1a);
         }
 
         /* LED dots on ring */
@@ -447,11 +447,15 @@ export default function SpinPage() {
         }
 
         .spin-slice-even {
-          background: #f8d7da;
+          background: #c62828;
+        }
+
+        .spin-slice-even .spin-item-name {
+          color: #fff;
         }
 
         .spin-slice-odd {
-          background: #fff;
+          background: #fdf0e0;
         }
 
         /* Slot content */
@@ -491,8 +495,8 @@ export default function SpinPage() {
           width: 72px;
           height: 72px;
           border-radius: 50%;
-          background: linear-gradient(145deg, #ff9800, #e65100);
-          border: 4px solid #ffb74d;
+          background: linear-gradient(145deg, #daa520, #b8860b);
+          border: 4px solid #ffd700;
           color: white;
           font-weight: 900;
           font-size: 14px;
