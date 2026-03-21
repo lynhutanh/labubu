@@ -208,26 +208,56 @@ export default function SlotMachinePage() {
           position: relative;
         }
 
-        /* Machine body */
-        .slot-machine-body {
-          background: linear-gradient(180deg, #c8920e 0%, #8b6914 15%, #a67c1a 30%, #705510 50%, #a67c1a 70%, #8b6914 85%, #c8920e 100%);
-          border-radius: 24px;
-          padding: 20px;
+        .slot-bg-wrap {
+          width: 100%;
+          max-width: 500px;
+          margin: 0 auto;
           position: relative;
-          box-shadow:
-            0 0 30px rgba(200, 146, 14, 0.4),
-            inset 0 2px 4px rgba(255, 255, 255, 0.3),
-            inset 0 -2px 4px rgba(0, 0, 0, 0.3);
-          border: 3px solid #daa520;
+          padding: 0;
         }
 
-        /* JACKPOT header */
+        .slot-bg-wrap img.slot-bg-img {
+          width: 100%;
+          height: auto;
+          display: block;
+          border-radius: 16px;
+        }
+
+        .slot-bg-content {
+          position: absolute;
+          top: 20%;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 58%;
+          z-index: 2;
+        }
+
+        /* Machine body */
+        .slot-machine-body {
+          position: relative;
+          background: url("/thanmay.jpg") center top / 100% auto no-repeat;
+          padding: 0;
+          border: none;
+          box-shadow: none;
+          aspect-ratio: 615 / 920;
+        }
+
+        /* JACKPOT header - nằm trong bảng hiệu trên cùng */
         .slot-jackpot-header {
+          position: absolute;
+          top: 18%;
+          left: 16%;
+          right: 16%;
           text-align: center;
-          padding: 12px 0 16px;
+          padding: 0;
+          z-index: 3;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          height: 10%;
         }
         .slot-jackpot-header h2 {
-          font-size: 32px;
+          font-size: 28px;
           font-weight: 900;
           color: #ffd700;
           text-shadow:
@@ -239,26 +269,30 @@ export default function SlotMachinePage() {
           margin: 0;
         }
 
-        /* Reels area */
+        /* Reels area - nằm trong 3 ô giữa */
         .slot-reels-frame {
-          background: #1a1a2e;
-          border-radius: 16px;
-          padding: 8px;
+          position: absolute;
+          top: 45%;
+          height: 20%;
+          background: transparent;
+          border-radius: 0;
+          padding: 2% 3%;
           display: flex;
-          gap: 8px;
+          gap: 3%;
           justify-content: center;
-          border: 3px solid #daa520;
-          box-shadow: inset 0 4px 12px rgba(0, 0, 0, 0.8);
+          align-items: stretch;
+          border: none;
+          box-shadow: none;
         }
 
         .slot-reel {
-          width: 100px;
-          height: 120px;
-          background: linear-gradient(180deg, #0a0a1a 0%, #1a1a3e 50%, #0a0a1a 100%);
-          border-radius: 10px;
+          flex: 1;
+          height: 100%;
+          background: transparent;
+          border-radius: 6px;
           overflow: hidden;
           position: relative;
-          border: 2px solid #333;
+          border: none;
         }
 
         .slot-reel-inner {
@@ -307,8 +341,8 @@ export default function SlotMachinePage() {
         /* Lever */
         .slot-lever-wrap {
           position: absolute;
-          right: -55px;
-          top: 45%;
+          right: -10px;
+          top: 40%;
           transform: translateY(-50%);
           z-index: 10;
         }
@@ -368,24 +402,28 @@ export default function SlotMachinePage() {
           box-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
 
-        /* Bottom panel */
+        /* Bottom panel - vùng cửa tròn */
         .slot-bottom-panel {
-          margin-top: 16px;
+          position: absolute;
+          bottom: 12%;
+          left: 20%;
+          right: 20%;
           text-align: center;
+          z-index: 3;
         }
 
         .slot-play-btn {
           width: 100%;
-          padding: 16px 32px;
+          padding: 10px 16px;
           background: linear-gradient(180deg, #ff4444 0%, #cc0000 100%);
           color: white;
-          font-size: 20px;
+          font-size: 14px;
           font-weight: 900;
           border: none;
-          border-radius: 12px;
+          border-radius: 10px;
           cursor: pointer;
           text-transform: uppercase;
-          letter-spacing: 3px;
+          letter-spacing: 2px;
           box-shadow:
             0 4px 15px rgba(204, 0, 0, 0.5),
             inset 0 2px 4px rgba(255, 255, 255, 0.2);
@@ -410,30 +448,13 @@ export default function SlotMachinePage() {
           text-shadow: 0 0 6px rgba(255, 215, 0, 0.4);
         }
 
-        /* Decorative lights */
+        /* Decorative lights - ẩn vì hình đã trang trí */
         .slot-lights {
-          display: flex;
-          justify-content: center;
-          gap: 8px;
-          margin-bottom: 12px;
+          display: none;
         }
 
-        .slot-light {
-          width: 12px;
-          height: 12px;
-          border-radius: 50%;
-          animation: lightBlink 1s infinite alternate;
-        }
-
-        .slot-light:nth-child(odd) {
-          background: #ff4444;
-          box-shadow: 0 0 8px #ff4444;
-          animation-delay: 0s;
-        }
-        .slot-light:nth-child(even) {
-          background: #ffd700;
-          box-shadow: 0 0 8px #ffd700;
-          animation-delay: 0.5s;
+        .slot-coins {
+          display: none;
         }
 
         @keyframes lightBlink {
@@ -616,215 +637,220 @@ export default function SlotMachinePage() {
       `}</style>
 
       <div className="slot-page">
-        <div className="slot-machine-container">
-          {loading ? (
-            <div style={{ textAlign: "center", padding: "60px 0" }}>
-              <div style={{ width: 48, height: 48, border: "3px solid #ffd700", borderTopColor: "transparent", borderRadius: "50%", margin: "0 auto", animation: "spin 1s linear infinite" }} />
-              <p style={{ color: "#ffd700", marginTop: 16 }}>Đang tải...</p>
-            </div>
-          ) : !config ? (
-            <div style={{ textAlign: "center", padding: "60px 20px" }}>
-              <p style={{ color: "#ffd700", fontSize: 18 }}>Chưa có sự kiện nào đang diễn ra</p>
-            </div>
-          ) : (
-            <>
-              {/* Machine */}
-              <div className={`slot-machine-body ${result?.type === "prize" && reelsStopped.every(Boolean) ? "slot-win-flash" : ""}`}>
-                {/* Lights */}
-                <div className="slot-lights">
-                  {Array.from({ length: 11 }).map((_, i) => (
-                    <div key={i} className="slot-light" />
-                  ))}
+        <div className="slot-bg-wrap">
+          <img src="/vongquayjackpot.jpg" alt="" className="slot-bg-img" />
+          <div className="slot-bg-content">
+            <div className="slot-machine-container">
+              {loading ? (
+                <div style={{ textAlign: "center", padding: "60px 0" }}>
+                  <div style={{ width: 48, height: 48, border: "3px solid #ffd700", borderTopColor: "transparent", borderRadius: "50%", margin: "0 auto", animation: "spin 1s linear infinite" }} />
+                  <p style={{ color: "#ffd700", marginTop: 16 }}>Đang tải...</p>
                 </div>
-
-                {/* JACKPOT Header */}
-                <div className="slot-jackpot-header">
-                  <h2>JACKPOT</h2>
+              ) : !config ? (
+                <div style={{ textAlign: "center", padding: "60px 20px" }}>
+                  <p style={{ color: "#ffd700", fontSize: 18 }}>Chưa có sự kiện nào đang diễn ra</p>
                 </div>
+              ) : (
+                <>
+                  {/* Machine */}
+                  <div className={`slot-machine-body ${result?.type === "prize" && reelsStopped.every(Boolean) ? "slot-win-flash" : ""}`}>
+                    {/* Lights */}
+                    <div className="slot-lights">
+                      {Array.from({ length: 11 }).map((_, i) => (
+                        <div key={i} className="slot-light" />
+                      ))}
+                    </div>
 
-                {/* Reels */}
-                <div className="slot-reels-frame" style={{ position: "relative" }}>
-                  {[0, 1, 2].map(reelIndex => (
-                    <div
-                      key={reelIndex}
-                      className={`slot-reel ${spinning && !reelsStopped[reelIndex] ? "spinning" : "stopped"}`}
-                    >
+                    {/* JACKPOT Header */}
+                    <div className="slot-jackpot-header">
+                      <h2>JACKPOT</h2>
+                    </div>
+
+                    {/* Reels */}
+                    <div className="slot-reels-frame" style={{ position: "relative" }}>
+                      {[0, 1, 2].map(reelIndex => (
+                        <div
+                          key={reelIndex}
+                          className={`slot-reel ${spinning && !reelsStopped[reelIndex] ? "spinning" : "stopped"}`}
+                        >
+                          <div
+                            className="slot-reel-inner"
+                            style={{
+                              transform: reelsStopped[reelIndex]
+                                ? `translateY(-${reels[reelIndex] * 120}px)`
+                                : undefined,
+                            }}
+                          >
+                            {config.symbols.map((symbol, sIdx) => (
+                              <div key={sIdx} className="slot-symbol">
+                                {symbol.image ? (
+                                  <img src={symbol.image} alt={symbol.label} />
+                                ) : (
+                                  <span>{symbol.label}</span>
+                                )}
+                              </div>
+                            ))}
+                            {/* Duplicate for seamless loop */}
+                            {config.symbols.map((symbol, sIdx) => (
+                              <div key={`dup-${sIdx}`} className="slot-symbol">
+                                {symbol.image ? (
+                                  <img src={symbol.image} alt={symbol.label} />
+                                ) : (
+                                  <span>{symbol.label}</span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Lever */}
+                    <div className="slot-lever-wrap">
+                      <div className="slot-lever-mount" />
                       <div
-                        className="slot-reel-inner"
-                        style={{
-                          transform: reelsStopped[reelIndex]
-                            ? `translateY(-${reels[reelIndex] * 120}px)`
-                            : undefined,
-                        }}
+                        className={`slot-lever ${leverPulled ? "pulled" : ""}`}
+                        onClick={handlePlay}
+                        title="Kéo cần gạt để chơi!"
                       >
-                        {config.symbols.map((symbol, sIdx) => (
-                          <div key={sIdx} className="slot-symbol">
-                            {symbol.image ? (
-                              <img src={symbol.image} alt={symbol.label} />
-                            ) : (
-                              <span>{symbol.label}</span>
-                            )}
-                          </div>
-                        ))}
-                        {/* Duplicate for seamless loop */}
-                        {config.symbols.map((symbol, sIdx) => (
-                          <div key={`dup-${sIdx}`} className="slot-symbol">
-                            {symbol.image ? (
-                              <img src={symbol.image} alt={symbol.label} />
-                            ) : (
-                              <span>{symbol.label}</span>
-                            )}
-                          </div>
-                        ))}
+                        <div className="slot-lever-ball" />
+                        <div className="slot-lever-stick" />
+                        <div className="slot-lever-base" />
                       </div>
                     </div>
-                  ))}
-                </div>
 
-                {/* Lever */}
-                <div className="slot-lever-wrap">
-                  <div className="slot-lever-mount" />
-                  <div
-                    className={`slot-lever ${leverPulled ? "pulled" : ""}`}
-                    onClick={handlePlay}
-                    title="Kéo cần gạt để chơi!"
-                  >
-                    <div className="slot-lever-ball" />
-                    <div className="slot-lever-stick" />
-                    <div className="slot-lever-base" />
-                  </div>
-                </div>
+                    {/* Bottom */}
+                    <div className="slot-bottom-panel">
+                      <button
+                        className="slot-play-btn"
+                        onClick={handlePlay}
+                        disabled={spinning || !config}
+                      >
+                        {spinning ? "Đang quay..." : "🎰 QUAY SỐ"}
+                      </button>
 
-                {/* Bottom */}
-                <div className="slot-bottom-panel">
-                  <button
-                    className="slot-play-btn"
-                    onClick={handlePlay}
-                    disabled={spinning || !config}
-                  >
-                    {spinning ? "Đang quay..." : "🎰 QUAY SỐ"}
-                  </button>
-
-                  {turns && (
-                    <p className="slot-turns">
-                      Lượt chơi: {turns.remainingTurns} / {turns.totalTurns}
-                    </p>
-                  )}
-                </div>
-
-                {/* Coins */}
-                <div className="slot-coins">
-                  {Array.from({ length: 7 }).map((_, i) => (
-                    <div key={i} className="slot-coin" />
-                  ))}
-                </div>
-              </div>
-
-              {/* Event info */}
-              <div style={{ textAlign: "center", marginTop: 50, color: "#ffd700", fontSize: 14, opacity: 0.7 }}>
-                <p>{config.name}</p>
-              </div>
-            </>
-          )}
-
-          {/* History */}
-          {history.length > 0 && (() => {
-            const totalPages = Math.ceil(history.length / HISTORY_PER_PAGE);
-            const paged = history.slice(historyPage * HISTORY_PER_PAGE, (historyPage + 1) * HISTORY_PER_PAGE);
-            return (
-              <div style={{ marginTop: 40, width: "100%", maxWidth: 420 }}>
-                <h3 style={{ color: "#ffd700", fontSize: 18, fontWeight: 700, marginBottom: 16, textAlign: "center" }}>📋 Lịch sử quay</h3>
-                {paged.map((item) => {
-                  const isPrize = item.type === "prize";
-                  const hasSentInfo = isPrize && !!item.fullName;
-                  const isEditing = editingId === item._id;
-                  return (
-                    <div key={item._id} style={{ marginBottom: 12 }}>
-                      <div style={{
-                        display: "flex", alignItems: "center", gap: 12, padding: "12px 16px",
-                        background: isPrize ? "rgba(255,215,0,0.1)" : "rgba(255,255,255,0.05)",
-                        borderRadius: 12, border: `1px solid ${isPrize ? "rgba(255,215,0,0.3)" : "rgba(255,255,255,0.1)"}`,
-                      }}>
-                        {isPrize && item.prizeImage && (
-                          <img src={item.prizeImage} alt="" style={{ width: 40, height: 40, objectFit: "contain", borderRadius: 8 }} />
-                        )}
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ color: isPrize ? "#ffd700" : "#aaa", fontSize: 14, fontWeight: 600 }}>
-                            {isPrize ? item.prizeLabel : "Chưa trúng"}
-                          </div>
-                          <div style={{ color: "#888", fontSize: 12, marginTop: 2 }}>
-                            {new Date(item.createdAt).toLocaleString("vi-VN")}
-                          </div>
-                        </div>
-                        {isPrize ? (
-                          hasSentInfo ? (
-                            <span style={{ color: "#4ade80", fontSize: 12, fontWeight: 600 }}>✅ Đã gửi</span>
-                          ) : (
-                            <button
-                              onClick={() => { setEditingId(isEditing ? null : item._id); setHistoryForm({ fullName: "", phone: "", email: "", address: "" }); }}
-                              style={{ background: "rgba(255,215,0,0.2)", border: "1px solid rgba(255,215,0,0.4)", color: "#ffd700", padding: "6px 12px", borderRadius: 8, cursor: "pointer", fontSize: 12, fontWeight: 600 }}
-                            >
-                              📝 Gửi info
-                            </button>
-                          )
-                        ) : (
-                          <span style={{ color: "#888", fontSize: 12 }}>Chưa trúng</span>
-                        )}
-                      </div>
-                      {isEditing && (
-                        <div style={{ padding: "12px 16px", background: "rgba(255,255,255,0.05)", borderRadius: "0 0 12px 12px", marginTop: -1, border: "1px solid rgba(255,215,0,0.2)", borderTop: "none" }}>
-                          <div className="slot-info-form">
-                            <label>Họ tên *</label>
-                            <input value={historyForm.fullName} onChange={(e) => setHistoryForm({ ...historyForm, fullName: e.target.value })} placeholder="Nhập họ tên" />
-                            <label>SĐT *</label>
-                            <input value={historyForm.phone} onChange={(e) => setHistoryForm({ ...historyForm, phone: e.target.value })} placeholder="Nhập SĐT" />
-                            <label>Email</label>
-                            <input value={historyForm.email} onChange={(e) => setHistoryForm({ ...historyForm, email: e.target.value })} placeholder="Nhập email" />
-                            <label>Địa chỉ</label>
-                            <input value={historyForm.address} onChange={(e) => setHistoryForm({ ...historyForm, address: e.target.value })} placeholder="Nhập địa chỉ" />
-                          </div>
-                          <div style={{ display: "flex", gap: 8, marginTop: 12, justifyContent: "center" }}>
-                            <button className="btn-claim" style={{ fontSize: 13, padding: "8px 20px" }} onClick={() => handleHistorySubmit(item._id)} disabled={historySubmitting}>
-                              {historySubmitting ? "Đang gửi..." : "Gửi"}
-                            </button>
-                            <button className="btn-close" style={{ fontSize: 13, padding: "8px 16px" }} onClick={() => setEditingId(null)}>Hủy</button>
-                          </div>
-                        </div>
+                      {turns && (
+                        <p className="slot-turns">
+                          Lượt chơi: {turns.remainingTurns} / {turns.totalTurns}
+                        </p>
                       )}
                     </div>
-                  );
-                })}
-                {totalPages > 1 && (
-                  <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 16, marginTop: 16 }}>
-                    <button
-                      onClick={() => setHistoryPage((p) => Math.max(0, p - 1))}
-                      disabled={historyPage === 0}
-                      style={{
-                        background: "rgba(255,215,0,0.15)", border: "1px solid rgba(255,215,0,0.3)",
-                        color: historyPage === 0 ? "#666" : "#ffd700", padding: "6px 16px",
-                        borderRadius: 8, cursor: historyPage === 0 ? "not-allowed" : "pointer", fontSize: 13,
-                      }}
-                    >
-                      ← Trước
-                    </button>
-                    <span style={{ color: "#aaa", fontSize: 13 }}>{historyPage + 1} / {totalPages}</span>
-                    <button
-                      onClick={() => setHistoryPage((p) => Math.min(totalPages - 1, p + 1))}
-                      disabled={historyPage >= totalPages - 1}
-                      style={{
-                        background: "rgba(255,215,0,0.15)", border: "1px solid rgba(255,215,0,0.3)",
-                        color: historyPage >= totalPages - 1 ? "#666" : "#ffd700", padding: "6px 16px",
-                        borderRadius: 8, cursor: historyPage >= totalPages - 1 ? "not-allowed" : "pointer", fontSize: 13,
-                      }}
-                    >
-                      Sau →
-                    </button>
+
+                    {/* Coins */}
+                    <div className="slot-coins">
+                      {Array.from({ length: 7 }).map((_, i) => (
+                        <div key={i} className="slot-coin" />
+                      ))}
+                    </div>
                   </div>
-                )}
-              </div>
-            );
-          })()}
+
+                  {/* Event info */}
+                  <div style={{ textAlign: "center", marginTop: 50, color: "#ffd700", fontSize: 14, opacity: 0.7 }}>
+                    <p>{config.name}</p>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
         </div>
+
+        {/* History - ngoài nền */}
+        {history.length > 0 && (() => {
+          const totalPages = Math.ceil(history.length / HISTORY_PER_PAGE);
+          const paged = history.slice(historyPage * HISTORY_PER_PAGE, (historyPage + 1) * HISTORY_PER_PAGE);
+          return (
+            <div style={{ marginTop: 40, width: "100%", maxWidth: 420 }}>
+              <h3 style={{ color: "#ffd700", fontSize: 18, fontWeight: 700, marginBottom: 16, textAlign: "center" }}>📋 Lịch sử quay</h3>
+              {paged.map((item) => {
+                const isPrize = item.type === "prize";
+                const hasSentInfo = isPrize && !!item.fullName;
+                const isEditing = editingId === item._id;
+                return (
+                  <div key={item._id} style={{ marginBottom: 12 }}>
+                    <div style={{
+                      display: "flex", alignItems: "center", gap: 12, padding: "12px 16px",
+                      background: isPrize ? "rgba(255,215,0,0.1)" : "rgba(255,255,255,0.05)",
+                      borderRadius: 12, border: `1px solid ${isPrize ? "rgba(255,215,0,0.3)" : "rgba(255,255,255,0.1)"}`,
+                    }}>
+                      {isPrize && item.prizeImage && (
+                        <img src={item.prizeImage} alt="" style={{ width: 40, height: 40, objectFit: "contain", borderRadius: 8 }} />
+                      )}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ color: isPrize ? "#ffd700" : "#aaa", fontSize: 14, fontWeight: 600 }}>
+                          {isPrize ? item.prizeLabel : "Chưa trúng"}
+                        </div>
+                        <div style={{ color: "#888", fontSize: 12, marginTop: 2 }}>
+                          {new Date(item.createdAt).toLocaleString("vi-VN")}
+                        </div>
+                      </div>
+                      {isPrize ? (
+                        hasSentInfo ? (
+                          <span style={{ color: "#4ade80", fontSize: 12, fontWeight: 600 }}>✅ Đã gửi</span>
+                        ) : (
+                          <button
+                            onClick={() => { setEditingId(isEditing ? null : item._id); setHistoryForm({ fullName: "", phone: "", email: "", address: "" }); }}
+                            style={{ background: "rgba(255,215,0,0.2)", border: "1px solid rgba(255,215,0,0.4)", color: "#ffd700", padding: "6px 12px", borderRadius: 8, cursor: "pointer", fontSize: 12, fontWeight: 600 }}
+                          >
+                            📝 Gửi info
+                          </button>
+                        )
+                      ) : (
+                        <span style={{ color: "#888", fontSize: 12 }}>Chưa trúng</span>
+                      )}
+                    </div>
+                    {isEditing && (
+                      <div style={{ padding: "12px 16px", background: "rgba(255,255,255,0.05)", borderRadius: "0 0 12px 12px", marginTop: -1, border: "1px solid rgba(255,215,0,0.2)", borderTop: "none" }}>
+                        <div className="slot-info-form">
+                          <label>Họ tên *</label>
+                          <input value={historyForm.fullName} onChange={(e) => setHistoryForm({ ...historyForm, fullName: e.target.value })} placeholder="Nhập họ tên" />
+                          <label>SĐT *</label>
+                          <input value={historyForm.phone} onChange={(e) => setHistoryForm({ ...historyForm, phone: e.target.value })} placeholder="Nhập SĐT" />
+                          <label>Email</label>
+                          <input value={historyForm.email} onChange={(e) => setHistoryForm({ ...historyForm, email: e.target.value })} placeholder="Nhập email" />
+                          <label>Địa chỉ</label>
+                          <input value={historyForm.address} onChange={(e) => setHistoryForm({ ...historyForm, address: e.target.value })} placeholder="Nhập địa chỉ" />
+                        </div>
+                        <div style={{ display: "flex", gap: 8, marginTop: 12, justifyContent: "center" }}>
+                          <button className="btn-claim" style={{ fontSize: 13, padding: "8px 20px" }} onClick={() => handleHistorySubmit(item._id)} disabled={historySubmitting}>
+                            {historySubmitting ? "Đang gửi..." : "Gửi"}
+                          </button>
+                          <button className="btn-close" style={{ fontSize: 13, padding: "8px 16px" }} onClick={() => setEditingId(null)}>Hủy</button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+              {totalPages > 1 && (
+                <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 16, marginTop: 16 }}>
+                  <button
+                    onClick={() => setHistoryPage((p) => Math.max(0, p - 1))}
+                    disabled={historyPage === 0}
+                    style={{
+                      background: "rgba(255,215,0,0.15)", border: "1px solid rgba(255,215,0,0.3)",
+                      color: historyPage === 0 ? "#666" : "#ffd700", padding: "6px 16px",
+                      borderRadius: 8, cursor: historyPage === 0 ? "not-allowed" : "pointer", fontSize: 13,
+                    }}
+                  >
+                    ← Trước
+                  </button>
+                  <span style={{ color: "#aaa", fontSize: 13 }}>{historyPage + 1} / {totalPages}</span>
+                  <button
+                    onClick={() => setHistoryPage((p) => Math.min(totalPages - 1, p + 1))}
+                    disabled={historyPage >= totalPages - 1}
+                    style={{
+                      background: "rgba(255,215,0,0.15)", border: "1px solid rgba(255,215,0,0.3)",
+                      color: historyPage >= totalPages - 1 ? "#666" : "#ffd700", padding: "6px 16px",
+                      borderRadius: 8, cursor: historyPage >= totalPages - 1 ? "not-allowed" : "pointer", fontSize: 13,
+                    }}
+                  >
+                    Sau →
+                  </button>
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
         {/* Lose Popup */}
         {showLosePopup && (
