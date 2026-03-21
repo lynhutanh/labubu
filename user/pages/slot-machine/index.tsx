@@ -214,6 +214,7 @@ export default function SlotMachinePage() {
           margin: 0 auto;
           position: relative;
           padding: 0;
+          container-type: inline-size;
         }
 
         .slot-bg-wrap img.slot-bg-img {
@@ -603,35 +604,14 @@ export default function SlotMachinePage() {
           box-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
 
-        @media (max-width: 480px) {
-          .slot-machine-container {
-            max-width: 340px;
+        @media (max-width: 500px) {
+          .slot-bg-content {
+            width: 290px;
+            transform: translateX(-50%) scale(calc(100cqi / 500));
+            transform-origin: top center;
           }
-          .slot-reel {
-            width: 80px;
-            height: 100px;
-          }
-          .slot-symbol {
-            height: 100px;
-            font-size: 36px;
-          }
-          .slot-symbol img {
-            width: 55px;
-            height: 55px;
-          }
-          .slot-jackpot-header h2 {
-            font-size: 24px;
-            letter-spacing: 4px;
-          }
-          .slot-lever {
-            right: -40px;
-          }
-          .slot-lever-stick {
-            height: 80px;
-          }
-          .slot-lever-ball {
-            width: 32px;
-            height: 32px;
+          .slot-bottom-panel {
+            transform: translateY(30px);
           }
         }
       `}</style>
