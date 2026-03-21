@@ -23,6 +23,7 @@ import { ChatModule } from "./modules/chat/chat.module";
 import { VoucherModule } from "./modules/voucher/voucher.module";
 import { MemberRankModule } from "./modules/member-rank/member-rank.module";
 import { SpinModule } from "./modules/spin/spin.module";
+import { SlotMachineModule } from "./modules/slot-machine/slot-machine.module";
 import app from "./config/app";
 import file from "./config/file";
 import email from "./config/email";
@@ -111,6 +112,7 @@ import { CoreQueueModule, MongoDBModule } from "./kernel";
     VoucherModule,
     MemberRankModule,
     SpinModule,
+    SlotMachineModule,
   ],
   controllers: [AppController],
   providers: [AppService],

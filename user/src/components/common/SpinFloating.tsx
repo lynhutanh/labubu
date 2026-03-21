@@ -49,7 +49,7 @@ export default function SpinFloating() {
       <style jsx>{`
         .spin-floating {
           position: fixed;
-          bottom: 20px;
+          bottom: 260px;
           right: 20px;
           z-index: 9999;
           cursor: pointer;
@@ -155,7 +155,7 @@ export default function SpinFloating() {
 
         @media (max-width: 768px) {
           .spin-floating {
-            bottom: 80px;
+            bottom: 280px;
             right: 12px;
           }
           .spin-floating-inner {

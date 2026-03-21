@@ -100,6 +100,15 @@ const menuItems: MenuItem[] = [
     ],
   },
   {
+    name: "Slot Machine",
+    icon: Disc3,
+    href: "/slot-machine",
+    children: [
+      { name: "Cấu hình", icon: Settings, href: "/slot-machine" },
+      { name: "Kết quả", icon: Award, href: "/slot-machine/results" },
+    ],
+  },
+  {
     name: "Thông báo",
     icon: MessageCircle,
     href: "/notification",
