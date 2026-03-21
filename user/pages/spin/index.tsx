@@ -249,13 +249,26 @@ export default function SpinPage() {
       <style jsx global>{`
         .spin-page {
           min-height: 100vh;
-          background: linear-gradient(180deg, #fce4ec 0%, #fff3e0 40%, #fce4ec 100%);
+          background: url("/bg.png") center / cover no-repeat fixed;
           display: flex;
           flex-direction: column;
           align-items: center;
           font-family: "Roboto", "Segoe UI", sans-serif;
           overflow-x: hidden;
           padding-bottom: 40px;
+        }
+
+        .spin-bg-wrap {
+          width: 100%;
+          max-width: 600px;
+          background: url("/nenvongquay.jpg") center top / cover no-repeat;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          padding: 0 0 20px;
+          position: relative;
+          border-radius: 0 0 24px 24px;
+          box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
         }
 
         /* Header banner */
@@ -351,8 +364,8 @@ export default function SpinPage() {
         /* Wheel container */
         .spin-wheel-wrap {
           position: relative;
-          width: 340px;
-          height: 340px;
+          width: 280px;
+          height: 280px;
           margin: 20px auto;
           z-index: 2;
         }
@@ -709,7 +722,7 @@ export default function SpinPage() {
         .spin-history-title {
           font-size: 20px;
           font-weight: 800;
-          color: #333;
+          color: #ffdf2cff;
           margin-bottom: 16px;
         }
 
@@ -813,16 +826,16 @@ export default function SpinPage() {
 
         /* Treasure image */
         .spin-treasure {
-          width: 550px;
+          width: 450px;
           max-width: 100%;
-          margin-top: -130px;
+          margin-top: -90px;
           pointer-events: none;
           position: relative;
           z-index: 1;
         }
 
         @media (max-width: 420px) {
-          .spin-wheel-wrap { width: 290px; height: 290px; }
+          .spin-wheel-wrap { width: 240px; height: 240px; }
           .spin-ring { inset: -14px; }
           .spin-title { font-size: 18px; padding: 12px 16px; letter-spacing: 2px; }
           .spin-go { width: 60px; height: 60px; font-size: 12px; }
@@ -830,133 +843,135 @@ export default function SpinPage() {
       `}</style>
 
       <div className="spin-page">
-        {/* Header */}
-        <div className="spin-header">
-          <div className="spin-title">🎰 Vòng Quay May Mắn</div>
-        </div>
+        <div className="spin-bg-wrap">
+          {/* Header */}
+          <div className="spin-header">
+            <div className="spin-title"> Vòng Quay May Mắn</div>
+          </div>
 
-        {/* Event Time */}
-        <div className="spin-event-time">
-          <span className="icon">⏰</span>
-          <div>
-            <div className="time-label">Thời gian sự kiện</div>
-            <div className="time-value">
-              {new Date(config.startDate).toLocaleString("vi-VN")}
-              {" ~ "}
-              {new Date(config.endDate).toLocaleString("vi-VN")}
+          {/* Event Time */}
+          <div className="spin-event-time">
+            <span className="icon">⏰</span>
+            <div>
+              <div className="time-label">Thời gian sự kiện</div>
+              <div className="time-value">
+                {new Date(config.startDate).toLocaleString("vi-VN")}
+                {" ~ "}
+                {new Date(config.endDate).toLocaleString("vi-VN")}
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Wheel */}
-        <div className={`spin-wheel-wrap ${spinning ? "spinning-active" : ""}`}>
+          {/* Wheel */}
+          <div className={`spin-wheel-wrap ${spinning ? "spinning-active" : ""}`}>
 
-          <div className="spin-ring">
-            <div className="spin-ring-inner" />
-            <div className="spin-leds">
-              {Array.from({ length: 24 }).map((_, i) => {
-                const angle = (i * 360) / 24;
-                const rad = (angle * Math.PI) / 180;
-                const r = 50;
-                const cx = 50 + r * Math.cos(rad);
-                const cy = 50 + r * Math.sin(rad);
+            <div className="spin-ring">
+              <div className="spin-ring-inner" />
+              <div className="spin-leds">
+                {Array.from({ length: 24 }).map((_, i) => {
+                  const angle = (i * 360) / 24;
+                  const rad = (angle * Math.PI) / 180;
+                  const r = 50;
+                  const cx = 50 + r * Math.cos(rad);
+                  const cy = 50 + r * Math.sin(rad);
+                  return (
+                    <div
+                      key={i}
+                      className="spin-led"
+                      style={{
+                        left: `${cx}%`,
+                        top: `${cy}%`,
+                        transform: "translate(-50%, -50%)",
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="spin-arrow" />
+
+            <div
+              ref={wheelRef}
+              className={`spin-face ${!hasSpun ? "no-anim" : ""}`}
+              style={{ transform: `rotate(${rotation}deg)` }}
+            >
+              {config.slots.map((slot, i) => {
+                const startAngle = i * slotAngle - 90;
+                const midAngle = startAngle + slotAngle / 2;
+                const toRad = (deg: number) => (deg * Math.PI) / 180;
+
+                const points = ["50% 50%"];
+                const steps = Math.max(2, Math.ceil(slotAngle / 10));
+                for (let s = 0; s <= steps; s++) {
+                  const a = toRad(startAngle + (slotAngle * s) / steps);
+                  const px = 50 + 50 * Math.cos(a);
+                  const py = 50 + 50 * Math.sin(a);
+                  points.push(`${px}% ${py}%`);
+                }
+                const clipPath = `polygon(${points.join(", ")})`;
+
+                const contentAngle = toRad(midAngle);
+                const contentR = 32;
+                const cx = 50 + contentR * Math.cos(contentAngle);
+                const cy = 50 + contentR * Math.sin(contentAngle);
+
                 return (
                   <div
                     key={i}
-                    className="spin-led"
-                    style={{
-                      left: `${cx}%`,
-                      top: `${cy}%`,
-                      transform: "translate(-50%, -50%)",
-                    }}
-                  />
+                    className={`spin-slice ${i % 2 === 0 ? "spin-slice-even" : "spin-slice-odd"}`}
+                    style={{ clipPath }}
+                  >
+                    <div
+                      className="spin-item"
+                      style={{ left: `${cx}%`, top: `${cy}%` }}
+                    >
+                      {slot.image && (
+                        <img
+                          src={getImageUrl(slot.image)}
+                          alt={slot.label}
+                        />
+                      )}
+                      <div className="spin-item-name">{slot.label}</div>
+                    </div>
+                  </div>
                 );
               })}
             </div>
-          </div>
 
-          <div className="spin-arrow" />
-
-          <div
-            ref={wheelRef}
-            className={`spin-face ${!hasSpun ? "no-anim" : ""}`}
-            style={{ transform: `rotate(${rotation}deg)` }}
-          >
-            {config.slots.map((slot, i) => {
-              const startAngle = i * slotAngle - 90;
-              const midAngle = startAngle + slotAngle / 2;
-              const toRad = (deg: number) => (deg * Math.PI) / 180;
-
-              const points = ["50% 50%"];
-              const steps = Math.max(2, Math.ceil(slotAngle / 10));
-              for (let s = 0; s <= steps; s++) {
-                const a = toRad(startAngle + (slotAngle * s) / steps);
-                const px = 50 + 50 * Math.cos(a);
-                const py = 50 + 50 * Math.sin(a);
-                points.push(`${px}% ${py}%`);
+            <button
+              className="spin-go"
+              onClick={handleSpin}
+              disabled={
+                spinning ||
+                !isActive ||
+                (needsTurnsCheck && (!turns || turns.remainingTurns <= 0))
               }
-              const clipPath = `polygon(${points.join(", ")})`;
-
-              const contentAngle = toRad(midAngle);
-              const contentR = 32;
-              const cx = 50 + contentR * Math.cos(contentAngle);
-              const cy = 50 + contentR * Math.sin(contentAngle);
-
-              return (
-                <div
-                  key={i}
-                  className={`spin-slice ${i % 2 === 0 ? "spin-slice-even" : "spin-slice-odd"}`}
-                  style={{ clipPath }}
-                >
-                  <div
-                    className="spin-item"
-                    style={{ left: `${cx}%`, top: `${cy}%` }}
-                  >
-                    {slot.image && (
-                      <img
-                        src={getImageUrl(slot.image)}
-                        alt={slot.label}
-                      />
-                    )}
-                    <div className="spin-item-name">{slot.label}</div>
-                  </div>
-                </div>
-              );
-            })}
+            >
+              {spinning ? "..." : "Bắt đầu"}
+            </button>
           </div>
 
-          <button
-            className="spin-go"
-            onClick={handleSpin}
-            disabled={
-              spinning ||
-              !isActive ||
-              (needsTurnsCheck && (!turns || turns.remainingTurns <= 0))
-            }
-          >
-            {spinning ? "..." : "Bắt đầu"}
-          </button>
-        </div>
+          {/* Treasure decoration */}
+          <img
+            src="/bannervongquay.png"
+            alt=""
+            className="spin-treasure"
+          />
 
-        {/* Treasure decoration */}
-        <img
-          src="/bannervongquay.png"
-          alt=""
-          className="spin-treasure"
-        />
-
-        {/* Turns */}
-        {needsTurnsCheck && turns && (
-          <div className="spin-turns-box">
-            <div className="spin-turns-oval">
-              <div className="spin-turns-label">Số cơ hội còn lại</div>
-              <div className="spin-turns-count">{turns.remainingTurns}</div>
-              {turns.remainingTurns <= 0 && (
-                <div className="spin-no-turns-msg">Bạn đã hết lượt quay</div>
-              )}
+          {/* Turns */}
+          {needsTurnsCheck && turns && (
+            <div className="spin-turns-box">
+              <div className="spin-turns-oval">
+                <div className="spin-turns-label">Số cơ hội còn lại</div>
+                <div className="spin-turns-count">{turns.remainingTurns}</div>
+                {turns.remainingTurns <= 0 && (
+                  <div className="spin-no-turns-msg">Bạn đã hết lượt quay</div>
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Result Popup */}
         {showResult && result && (

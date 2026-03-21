@@ -184,7 +184,7 @@ export default function SpinFloating() {
             ✕
           </button>
           <div className="spin-floating-wheel" />
-          <div className="spin-floating-center">🎰</div>
+          <div className="spin-floating-center"></div>
           <div className="spin-floating-text">Quay thưởng</div>
         </div>
       </div>
