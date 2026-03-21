@@ -25,6 +25,7 @@ export default function SlotMachinePage() {
   const [leverPulled, setLeverPulled] = useState(false);
   const [reelsStopped, setReelsStopped] = useState([false, false, false]);
   const [mounted, setMounted] = useState(false);
+  const [scaleFactor, setScaleFactor] = useState(1);
 
   // Info form
   const [fullName, setFullName] = useState("");
@@ -45,6 +46,13 @@ export default function SlotMachinePage() {
     setMounted(true);
     loadConfig();
     loadHistory();
+
+    const handleResize = () => {
+      setScaleFactor(window.innerWidth <= 500 ? window.innerWidth / 500 : 1);
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   const loadConfig = async () => {
@@ -314,24 +322,23 @@ export default function SlotMachinePage() {
 
         @keyframes reelSpin {
           0% { transform: translateY(0); }
-          100% { transform: translateY(-120px); }
+          100% { transform: translateY(-80px); }
         }
 
         .slot-symbol {
           width: 100%;
-          height: 120px;
+          height: 80px;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 48px;
+          font-size: 32px;
           font-weight: 900;
           color: #ffd700;
           text-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
         }
 
         .slot-symbol img {
-          width: 70px;
-          height: 70px;
+
           object-fit: contain;
           filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.5));
         }
@@ -605,11 +612,6 @@ export default function SlotMachinePage() {
         }
 
         @media (max-width: 500px) {
-          .slot-bg-content {
-            width: 290px;
-            transform: translateX(-50%) scale(calc(100cqi / 500));
-            transform-origin: top center;
-          }
           .slot-bottom-panel {
             transform: translateY(30px);
           }
@@ -619,7 +621,10 @@ export default function SlotMachinePage() {
       <div className="slot-page">
         <div className="slot-bg-wrap">
           <img src="/vongquayjackpot.jpg" alt="" className="slot-bg-img" />
-          <div className="slot-bg-content">
+          <div
+            className="slot-bg-content"
+            style={mounted && scaleFactor < 1 ? { width: 290, transform: `translateX(-50%) scale(${scaleFactor})`, transformOrigin: "top center" } : {}}
+          >
             <div className="slot-machine-container">
               {loading ? (
                 <div style={{ textAlign: "center", padding: "60px 0" }}>
@@ -657,7 +662,7 @@ export default function SlotMachinePage() {
                             className="slot-reel-inner"
                             style={{
                               transform: reelsStopped[reelIndex]
-                                ? `translateY(-${reels[reelIndex] * 120}px)`
+                                ? `translateY(-${reels[reelIndex] * 80}px)`
                                 : undefined,
                             }}
                           >
