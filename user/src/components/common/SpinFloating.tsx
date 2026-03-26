@@ -71,26 +71,8 @@ export default function SpinFloating() {
           width: 100px;
           height: 100px;
           border-radius: 50%;
-          background: conic-gradient(
-            #dc2626 0deg, #fff 36deg,
-            #dc2626 36deg, #fff 72deg,
-            #dc2626 72deg, #fff 108deg,
-            #dc2626 108deg, #fff 144deg,
-            #dc2626 144deg, #fff 180deg,
-            #dc2626 180deg, #fff 216deg,
-            #dc2626 216deg, #fff 252deg,
-            #dc2626 252deg, #fff 288deg,
-            #dc2626 288deg, #fff 324deg,
-            #dc2626 324deg, #fff 360deg
-          );
-          border: 4px solid #FFD700;
-          box-shadow: 0 4px 25px rgba(220, 38, 38, 0.5), 0 0 15px rgba(255, 215, 0, 0.4);
-          animation: spinWheelRotate 8s linear infinite;
-        }
-
-        @keyframes spinWheelRotate {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
+          object-fit: contain;
+          filter: drop-shadow(0 4px 12px rgba(220, 38, 38, 0.5));
         }
 
         .spin-floating-center {
@@ -183,8 +165,7 @@ export default function SpinFloating() {
           <button className="spin-floating-close" onClick={handleDismiss}>
             ✕
           </button>
-          <div className="spin-floating-wheel" />
-          <div className="spin-floating-center"></div>
+          <img src="/vongquay.png" alt="Vòng quay" className="spin-floating-wheel" />
           <div className="spin-floating-text">Quay thưởng</div>
         </div>
       </div>
