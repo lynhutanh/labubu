@@ -252,17 +252,17 @@ export default function SlotMachinePage() {
 
         .slot-bg-content {
           position: absolute;
-          top: 20%;
+          top: 15%;
           left: 50%;
           transform: translateX(-50%);
-          width: 58%;
+          width: 100%;
           z-index: 2;
         }
 
         /* Machine body */
         .slot-machine-body {
           position: relative;
-          background: url("/thanmay.jpg") center top / 100% auto no-repeat;
+background: url("/thanmay.jpg") center 50px / 100% auto no-repeat;
           padding: 0;
           border: none;
           box-shadow: none;
@@ -273,8 +273,8 @@ export default function SlotMachinePage() {
         .slot-jackpot-header {
           position: absolute;
           top: 18%;
-          left: 16%;
-          right: 16%;
+          left: 20%;
+          right: 23%;
           text-align: center;
           padding: 0;
           z-index: 3;
@@ -299,15 +299,15 @@ export default function SlotMachinePage() {
         /* Reels area - nằm trong 3 ô giữa */
         .slot-reels-frame {
           position: absolute;
-          top: 45%;
-          left: 0%;
-          right: 0%;
-          height: 20%;
+          top: 39%;
+          left: 22%;
+          right: 22%;
+          height: 16%;
           background: transparent;
           border-radius: 0;
-          padding: 2% 3%;
+          padding: 0;
           display: flex;
-          gap: 3%;
+          gap: 5%;
           justify-content: center;
           align-items: stretch;
           border: none;
@@ -377,6 +377,7 @@ export default function SlotMachinePage() {
 
         /* Lever */
         .slot-lever-wrap {
+          display: none;
           position: absolute;
           right: -10px;
           top: 40%;
@@ -442,7 +443,7 @@ export default function SlotMachinePage() {
         /* Bottom panel - vùng cửa tròn */
         .slot-bottom-panel {
           position: absolute;
-          bottom: 12%;
+          bottom: 16%; /* Dời lên trên cao hơn */
           left: 20%;
           right: 20%;
           text-align: center;
@@ -450,26 +451,24 @@ export default function SlotMachinePage() {
         }
 
         .slot-play-btn {
-          width: 100%;
-          padding: 10px 16px;
-          background: linear-gradient(180deg, #ff4444 0%, #cc0000 100%);
+          width: 85%;
+          padding: 16px 16px;
+          background: url("/bgnutquayso.png") center / 100% 100% no-repeat transparent;
           color: white;
-          font-size: 14px;
+          font-size: 16px;
           font-weight: 900;
           border: none;
           border-radius: 10px;
           cursor: pointer;
           text-transform: uppercase;
           letter-spacing: 2px;
-          box-shadow:
-            0 4px 15px rgba(204, 0, 0, 0.5),
-            inset 0 2px 4px rgba(255, 255, 255, 0.2);
+          box-shadow: none;
           transition: all 0.2s;
         }
 
         .slot-play-btn:hover:not(:disabled) {
-          transform: translateY(-2px);
-          box-shadow: 0 6px 20px rgba(204, 0, 0, 0.7);
+          transform: scale(1.05);
+          filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
         }
 
         .slot-play-btn:disabled {
@@ -486,12 +485,27 @@ export default function SlotMachinePage() {
           }
         }
 
-        .slot-turns {
-          margin-top: 12px;
-          color: #ffd700;
+        .slot-turns-bg {
+          margin-top: 16px;
+          width: 300px;
+          height: 75px;
+          background: url("/bghienthiluotchoi.png") center / 100% 100% no-repeat;
+          display: inline-block;
+          position: relative;
+          left: -25px; /* Kéo khung qua trái 10px */
+          top: -15px;
+        }
+
+        .slot-turns-text {
+          position: absolute;
+          top: 55%; /* Chỉnh lên xuống bằng % hoặc px */
+          left: 50%; /* Chỉnh trái phải */
+          transform: translate(-50%, -50%);
+          white-space: nowrap;
+          color: #fff;
           font-size: 14px;
-          font-weight: 600;
-          text-shadow: 0 0 6px rgba(255, 215, 0, 0.4);
+          font-weight: 900;
+          text-shadow: 0 0 4px rgba(0, 0, 0, 0.6);
         }
 
         /* Decorative lights - ẩn vì hình đã trang trí */
@@ -662,34 +676,47 @@ export default function SlotMachinePage() {
         }
 
         /* Jackpot Info Button */
-        .slot-info-btn {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 4px;
-          margin: 12px auto 0;
-          padding: 8px 16px;
-          background: linear-gradient(180deg, #ffd700, #daa520);
-          border: 1.5px solid #b8860b;
-          border-radius: 20px;
-          color: #1a0a2e;
-          font-size: 12px;
-          font-weight: 700;
+        .slot-info-btn-bg {
+          position: absolute;
+          bottom: -10px; /* Điều chỉnh độ cao từ đáy lên */
+          right: 20px; /* Điều chỉnh khoảng cách từ lề phải qua */
+          z-index: 10;
+          width: 170px; /* Kích thước ngang khung nền */
+          height: 150px; /* Kích thước dọc khung nền */
+          background: url("/thongtin.png") center / 100% 100% no-repeat transparent;
+          border: none;
           cursor: pointer;
           transition: all 0.3s ease;
-          text-shadow: none;
           animation: infoPulse 2s ease-in-out infinite;
+        }
+
+        .slot-info-btn-text {
+          position: absolute;
+          top: 70%; /* Dời dọc chữ */
+          left: 50%; /* Dời ngang chữ */
+          transform: translate(-50%, -50%);
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          color: #fff;
+          font-size: 12px;
+          font-weight: 700;
           white-space: nowrap;
+          pointer-events: none;
+          text-shadow: 0 0 2px rgba(0,0,0,0.8);
         }
         .slot-info-btn:hover {
           background: linear-gradient(180deg, #ffe44d, #ffd700);
           transform: scale(1.05);
           box-shadow: 0 0 16px rgba(255, 215, 0, 0.6);
         }
-        @keyframes infoPulse {
-          0%, 100% { box-shadow: 0 0 4px rgba(255, 215, 0, 0.3); }
-          50% { box-shadow: 0 0 14px rgba(255, 215, 0, 0.6); }
+        .slot-info-btn-bg:hover {
+          transform: scale(1.12);
         }
+        .slot-info-btn-bg:hover .slot-info-btn-text {
+          font-size: 14px;
+        }
+
 
         /* Jackpot Info Modal */
         .jackpot-info-overlay {
@@ -825,13 +852,33 @@ export default function SlotMachinePage() {
           border-color: rgba(255, 215, 0, 0.4);
         }
 
+        /* Tên sự kiện - desktop */
+        .slot-event-name {
+          margin-top: 60px;
+        }
+
         @media (max-width: 480px) {
+          /* Nút thông tin giải thưởng - cũ */
           .slot-info-btn {
             padding: 6px 12px;
             font-size: 10px;
             border-radius: 16px;
             margin: 8px auto 0;
           }
+
+          /* Nút thông tin - đưa lên đầu, giữa màn hình */
+          .slot-info-btn-bg {
+            bottom: auto;
+            right: auto;
+            top: -70px;
+            left: 50%;
+            transform: translateX(-50%);
+          }
+          .slot-info-btn-bg:hover {
+            transform: translateX(-50%) scale(1.12);
+          }
+
+          /* Modal jackpot info */
           .jackpot-info-popup {
             padding: 20px 16px;
           }
@@ -845,6 +892,36 @@ export default function SlotMachinePage() {
           .jackpot-info-symbol-text {
             font-size: 16px;
             line-height: 22px;
+          }
+
+          /* Nút QUAY SỐ - phóng to trên mobile */
+          .slot-play-btn {
+            width: 55%;
+            padding: 10px 16px;
+            font-size: 18px;
+            letter-spacing: 3px;
+          }
+
+          /* Panel chứa nút */
+          .slot-bottom-panel {
+            left: 10%;
+            right: 10%;
+            bottom: calc(14% + 30px);
+          }
+
+          /* Khung lượt chơi */
+          .slot-turns-bg {
+            width: 280px;
+            height: 70px;
+            left: -5px;
+          }
+          .slot-turns-text {
+            font-size: 13px;
+          }
+
+          /* Tên sự kiện - kéo lên gần nút quay số hơn */
+          .slot-event-name {
+            margin-top: -50px;
           }
         }
       `}</style>
@@ -882,10 +959,12 @@ export default function SlotMachinePage() {
                     {/* Info Button */}
                     {config.jackpotCombos && config.jackpotCombos.length > 0 && (
                       <button
-                        className="slot-info-btn"
+                        className="slot-info-btn-bg"
                         onClick={() => setShowJackpotInfo(true)}
                       >
-                        🏆 Thông tin giải thưởng
+                        <span className="slot-info-btn-text">
+                          GIẢI THƯỞNG
+                        </span>
                       </button>
                     )}
 
@@ -957,26 +1036,23 @@ export default function SlotMachinePage() {
                         onClick={handlePlay}
                         disabled={spinning || !config}
                       >
-                        {spinning ? "Đang quay..." : "🎰 QUAY SỐ"}
+                        {spinning ? "Đang quay..." : "QUAY SỐ"}
                       </button>
 
                       {turns && (
-                        <p className="slot-turns">
-                          Lượt chơi: {turns.remainingTurns} / {turns.totalTurns}
-                        </p>
+                        <div className="slot-turns-bg">
+                          <span className="slot-turns-text">
+                            Lượt chơi: {turns.remainingTurns} / {turns.totalTurns}
+                          </span>
+                        </div>
                       )}
                     </div>
 
-                    {/* Coins */}
-                    <div className="slot-coins">
-                      {Array.from({ length: 7 }).map((_, i) => (
-                        <div key={i} className="slot-coin" />
-                      ))}
-                    </div>
+
                   </div>
 
                   {/* Event info */}
-                  <div style={{ textAlign: "center", marginTop: 50, color: "#ffd700", fontSize: 14, opacity: 0.7 }}>
+                  <div className="slot-event-name" style={{ textAlign: "center", color: "#ffd700", fontSize: 14, opacity: 0.7 }}>
                     <p>{config.name}</p>
                   </div>
                 </>
