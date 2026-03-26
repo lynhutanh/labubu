@@ -10,11 +10,19 @@ export interface SlotMachinePrize {
   image: string;
 }
 
+export interface SlotMachineJackpotCombo {
+  symbolIndex: number;
+  prizeLabel: string;
+  prizeImage: string;
+  rate: number;
+}
+
 export interface SlotMachineConfig {
   _id: string;
   name: string;
   symbols: SlotMachineSymbol[];
   prizes: SlotMachinePrize[];
+  jackpotCombos: SlotMachineJackpotCombo[];
   winRate: number;
   startDate: string;
   endDate: string;

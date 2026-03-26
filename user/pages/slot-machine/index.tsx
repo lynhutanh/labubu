@@ -22,10 +22,11 @@ export default function SlotMachinePage() {
   const [result, setResult] = useState<SlotMachineResult | null>(null);
   const [showWinPopup, setShowWinPopup] = useState(false);
   const [showLosePopup, setShowLosePopup] = useState(false);
+  const [showJackpotInfo, setShowJackpotInfo] = useState(false);
 
   // iOS Safari fix: lock body scroll khi popup mở
   useEffect(() => {
-    const isOpen = showWinPopup || showLosePopup;
+    const isOpen = showWinPopup || showLosePopup || showJackpotInfo;
     if (isOpen) {
       const scrollY = window.scrollY;
       document.body.style.position = "fixed";
@@ -46,7 +47,7 @@ export default function SlotMachinePage() {
       document.body.style.width = "";
       document.body.style.overflowY = "";
     };
-  }, [showWinPopup, showLosePopup]);
+  }, [showWinPopup, showLosePopup, showJackpotInfo]);
   const [showInfoForm, setShowInfoForm] = useState(false);
   const [leverPulled, setLeverPulled] = useState(false);
   const [reelsStopped, setReelsStopped] = useState([false, false, false]);
@@ -659,6 +660,193 @@ export default function SlotMachinePage() {
             transform: translateY(30px);
           }
         }
+
+        /* Jackpot Info Button */
+        .slot-info-btn {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 4px;
+          margin: 12px auto 0;
+          padding: 8px 16px;
+          background: linear-gradient(180deg, #ffd700, #daa520);
+          border: 1.5px solid #b8860b;
+          border-radius: 20px;
+          color: #1a0a2e;
+          font-size: 12px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          text-shadow: none;
+          animation: infoPulse 2s ease-in-out infinite;
+          white-space: nowrap;
+        }
+        .slot-info-btn:hover {
+          background: linear-gradient(180deg, #ffe44d, #ffd700);
+          transform: scale(1.05);
+          box-shadow: 0 0 16px rgba(255, 215, 0, 0.6);
+        }
+        @keyframes infoPulse {
+          0%, 100% { box-shadow: 0 0 4px rgba(255, 215, 0, 0.3); }
+          50% { box-shadow: 0 0 14px rgba(255, 215, 0, 0.6); }
+        }
+
+        /* Jackpot Info Modal */
+        .jackpot-info-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.88);
+          z-index: 1000;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          animation: fadeIn 0.3s;
+          -webkit-overflow-scrolling: touch;
+          overflow-y: auto;
+          padding: 20px;
+        }
+
+        .jackpot-info-popup {
+          background: linear-gradient(135deg, #1a0a2e 0%, #2d1b4e 50%, #1a0a2e 100%);
+          border: 2px solid #ffd700;
+          border-radius: 20px;
+          padding: 28px 24px;
+          max-width: 400px;
+          width: 100%;
+          text-align: center;
+          box-shadow: 0 0 50px rgba(255, 215, 0, 0.3);
+          animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+          max-height: 85vh;
+          overflow-y: auto;
+        }
+
+        .jackpot-info-popup h2 {
+          font-size: 22px;
+          font-weight: 900;
+          color: #ffd700;
+          text-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+          margin: 0 0 8px;
+          letter-spacing: 2px;
+        }
+
+        .jackpot-info-popup .info-subtitle {
+          color: #aaa;
+          font-size: 13px;
+          margin-bottom: 20px;
+        }
+
+        .jackpot-info-list {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .jackpot-info-item {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          padding: 14px 16px;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 215, 0, 0.15);
+          border-radius: 14px;
+          transition: all 0.2s ease;
+          text-align: left;
+        }
+        .jackpot-info-item:hover {
+          background: rgba(255, 215, 0, 0.08);
+          border-color: rgba(255, 215, 0, 0.3);
+        }
+
+        .jackpot-info-symbol {
+          flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          gap: 2px;
+          background: rgba(0, 0, 0, 0.3);
+          padding: 6px 8px;
+          border-radius: 10px;
+          border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        .jackpot-info-symbol-img {
+          width: 28px;
+          height: 28px;
+          background-size: contain;
+          background-position: center;
+          background-repeat: no-repeat;
+          filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.4));
+        }
+
+        .jackpot-info-symbol-text {
+          font-size: 20px;
+          font-weight: 900;
+          color: #ffd700;
+          text-shadow: 0 0 6px rgba(255, 215, 0, 0.5);
+          line-height: 28px;
+        }
+
+        .jackpot-info-detail {
+          flex: 1;
+          min-width: 0;
+        }
+
+        .jackpot-info-prize-name {
+          font-size: 15px;
+          font-weight: 700;
+          color: #fff;
+          margin-bottom: 2px;
+        }
+
+        .jackpot-info-prize-img {
+          width: 40px;
+          height: 40px;
+          object-fit: contain;
+          border-radius: 8px;
+          flex-shrink: 0;
+          filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.3));
+        }
+
+        .jackpot-info-close {
+          margin-top: 20px;
+          padding: 10px 32px;
+          background: transparent;
+          color: #aaa;
+          border: 1px solid #555;
+          border-radius: 10px;
+          cursor: pointer;
+          font-size: 14px;
+          transition: all 0.2s;
+        }
+        .jackpot-info-close:hover {
+          color: #ffd700;
+          border-color: rgba(255, 215, 0, 0.4);
+        }
+
+        @media (max-width: 480px) {
+          .slot-info-btn {
+            padding: 6px 12px;
+            font-size: 10px;
+            border-radius: 16px;
+            margin: 8px auto 0;
+          }
+          .jackpot-info-popup {
+            padding: 20px 16px;
+          }
+          .jackpot-info-popup h2 {
+            font-size: 18px;
+          }
+          .jackpot-info-symbol-img {
+            width: 22px;
+            height: 22px;
+          }
+          .jackpot-info-symbol-text {
+            font-size: 16px;
+            line-height: 22px;
+          }
+        }
       `}</style>
 
       <div className="slot-page">
@@ -690,6 +878,16 @@ export default function SlotMachinePage() {
                     <div className="slot-jackpot-header">
                       <h2>JACKPOT</h2>
                     </div>
+
+                    {/* Info Button */}
+                    {config.jackpotCombos && config.jackpotCombos.length > 0 && (
+                      <button
+                        className="slot-info-btn"
+                        onClick={() => setShowJackpotInfo(true)}
+                      >
+                        🏆 Thông tin giải thưởng
+                      </button>
+                    )}
 
                     {/* Reels */}
                     <div className="slot-reels-frame">
@@ -886,6 +1084,52 @@ export default function SlotMachinePage() {
         })()}
 
       </div>
+
+      {/* Jackpot Info Modal */}
+      {showJackpotInfo && config && config.jackpotCombos && config.jackpotCombos.length > 0 && createPortal(
+        <div className="jackpot-info-overlay" onClick={() => setShowJackpotInfo(false)}>
+          <div className="jackpot-info-popup" onClick={(e) => e.stopPropagation()}>
+            <h2>🎰 THÔNG TIN JACKPOT</h2>
+            <p className="info-subtitle">Quay trúng 3 hình giống nhau để nhận giải!</p>
+
+            <div className="jackpot-info-list">
+              {config.jackpotCombos.map((combo, idx) => {
+                const symbol = config.symbols[combo.symbolIndex];
+                return (
+                  <div key={idx} className="jackpot-info-item">
+                    <div className="jackpot-info-symbol">
+                      {[0, 1, 2].map((i) => (
+                        symbol?.image ? (
+                          <div
+                            key={i}
+                            className="jackpot-info-symbol-img"
+                            style={{ backgroundImage: `url(${symbol.image})` }}
+                          />
+                        ) : (
+                          <span key={i} className="jackpot-info-symbol-text">
+                            {symbol?.label || '?'}
+                          </span>
+                        )
+                      ))}
+                    </div>
+                    <div className="jackpot-info-detail">
+                      <div className="jackpot-info-prize-name">{combo.prizeLabel}</div>
+                    </div>
+                    {combo.prizeImage && (
+                      <img src={combo.prizeImage} alt={combo.prizeLabel} className="jackpot-info-prize-img" />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            <button className="jackpot-info-close" onClick={() => setShowJackpotInfo(false)}>
+              Đóng
+            </button>
+          </div>
+        </div>,
+        document.body
+      )}
 
       {/* Lose Popup - portal ra document.body để fix iOS Safari fixed position */}
       {showLosePopup && createPortal(
