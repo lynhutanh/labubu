@@ -230,14 +230,14 @@ export default function SlotMachinePage() {
 
         .slot-machine-container {
           width: 100%;
-          max-width: 420px;
+          max-width: 550px;
           margin: 0 auto;
           position: relative;
         }
 
         .slot-bg-wrap {
           width: 100%;
-          max-width: 500px;
+          max-width: 580px;
           margin: 0 auto;
           position: relative;
           padding: 0;
@@ -301,13 +301,13 @@ background: url("/thanmay.jpg") center 50px / 100% auto no-repeat;
           position: absolute;
           top: 39%;
           left: 22%;
-          right: 22%;
-          height: 16%;
+          right: 26%;
+          height: 80px;
           background: transparent;
           border-radius: 0;
           padding: 0;
+          overflow: hidden;
           display: flex;
-          gap: 5%;
           justify-content: center;
           align-items: stretch;
           border: none;
@@ -359,6 +359,7 @@ background: url("/thanmay.jpg") center 50px / 100% auto no-repeat;
           text-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
           line-height: 0;
         }
+          
 
         .slot-symbol-bg {
           width: 56px;
@@ -372,6 +373,13 @@ background: url("/thanmay.jpg") center 50px / 100% auto no-repeat;
           filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.5));
         }
 
+@media (max-width: 400px) {
+  .slot-symbol-bg {
+    width: 45px;
+    height: 70px;
+     background-size: 100% 60%;
+  }
+}
 
 
 
@@ -443,7 +451,7 @@ background: url("/thanmay.jpg") center 50px / 100% auto no-repeat;
         /* Bottom panel - vùng cửa tròn */
         .slot-bottom-panel {
           position: absolute;
-          bottom: 16%; /* Dời lên trên cao hơn */
+          bottom: calc(16% + 30px); /* Dời lên trên cao hơn */
           left: 20%;
           right: 20%;
           text-align: center;
@@ -492,7 +500,7 @@ background: url("/thanmay.jpg") center 50px / 100% auto no-repeat;
           background: url("/bghienthiluotchoi.png") center / 100% 100% no-repeat;
           display: inline-block;
           position: relative;
-          left: -25px; /* Kéo khung qua trái 10px */
+          left: -5px; /* Kéo khung qua trái 10px */
           top: -15px;
         }
 
@@ -678,7 +686,7 @@ background: url("/thanmay.jpg") center 50px / 100% auto no-repeat;
         /* Jackpot Info Button */
         .slot-info-btn-bg {
           position: absolute;
-          bottom: -10px; /* Điều chỉnh độ cao từ đáy lên */
+          bottom: 30px; /* Điều chỉnh độ cao từ đáy lên */
           right: 20px; /* Điều chỉnh khoảng cách từ lề phải qua */
           z-index: 10;
           width: 170px; /* Kích thước ngang khung nền */
@@ -858,6 +866,12 @@ background: url("/thanmay.jpg") center 50px / 100% auto no-repeat;
         }
 
         @media (max-width: 480px) {
+          /* Chữ jackpot trên cùng */
+          .slot-jackpot-header h2 {
+            font-size: 28px; /* Thu nhỏ cỡ chữ so với 28px ở desktop */
+            letter-spacing: 3px; /* Thu nhỏ khoảng cách chữ */
+          }
+
           /* Nút thông tin giải thưởng - cũ */
           .slot-info-btn {
             padding: 6px 12px;
@@ -922,6 +936,28 @@ background: url("/thanmay.jpg") center 50px / 100% auto no-repeat;
           /* Tên sự kiện - kéo lên gần nút quay số hơn */
           .slot-event-name {
             margin-top: -50px;
+          }
+        }
+
+        /* ===== iOS SAFARI FIXES ===== */
+
+        /* Bỏ highlight xanh/xám khi tap vào button trên iOS */
+        .slot-play-btn,
+        .slot-info-btn-bg,
+        .slot-lever {
+          -webkit-tap-highlight-color: transparent;
+          -webkit-appearance: none;
+        }
+
+        /* Safe area cho iPhone có notch / home bar (iPhone X trở lên) */
+        @supports (padding-bottom: env(safe-area-inset-bottom)) {
+          @media (max-width: 480px) {
+            .slot-page {
+              padding-bottom: calc(60px + env(safe-area-inset-bottom));
+            }
+            .slot-bottom-panel {
+              bottom: calc(14% + 30px + env(safe-area-inset-bottom));
+            }
           }
         }
       `}</style>
@@ -1039,13 +1075,13 @@ background: url("/thanmay.jpg") center 50px / 100% auto no-repeat;
                         {spinning ? "Đang quay..." : "QUAY SỐ"}
                       </button>
 
-                      {turns && (
-                        <div className="slot-turns-bg">
-                          <span className="slot-turns-text">
-                            Lượt chơi: {turns.remainingTurns} / {turns.totalTurns}
-                          </span>
-                        </div>
-                      )}
+                      <div className="slot-turns-bg">
+                        <span className="slot-turns-text">
+                          {turns
+                            ? `Lượt chơi: ${turns.remainingTurns} / ${turns.totalTurns}`
+                            : "Đăng nhập để xem lượt chơi"}
+                        </span>
+                      </div>
                     </div>
 
 
