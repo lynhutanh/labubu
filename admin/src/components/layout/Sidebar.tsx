@@ -19,6 +19,7 @@ import {
   Ticket,
   Disc3,
   Award,
+  PawPrint,
 } from "lucide-react";
 import { storage } from "../../utils/storage";
 import { refundRequestService } from "../../services/refund-request.service";
@@ -107,6 +108,11 @@ const menuItems: MenuItem[] = [
       { name: "Cấu hình", icon: Settings, href: "/slot-machine" },
       { name: "Kết quả", icon: Award, href: "/slot-machine/results" },
     ],
+  },
+  {
+    name: "Nuôi Vật",
+    icon: PawPrint,
+    href: "/pet",
   },
   {
     name: "Thông báo",

@@ -10,6 +10,7 @@ export { settingsService } from './settings.service';
 export { chatService } from './chat.service';
 export { voucherService } from './voucher.service';
 export { spinService } from './spin.service';
+export { petService } from './pet.service';
 
 // Export API Request base class
 export { APIRequest, TOKEN }from './api-request';

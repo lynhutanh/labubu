@@ -15,6 +15,7 @@ export interface User {
     currency: string;
     status: string;
   };
+  petBalance?: number;
 }
 
 export interface UpdateUserPayload {

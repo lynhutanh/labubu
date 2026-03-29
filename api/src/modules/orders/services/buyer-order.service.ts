@@ -179,7 +179,67 @@ export class BuyerOrderService {
       }
     }
 
-    const total = Math.max(0, subtotal + shippingFee - discount);
+    let petDiscount = 0;
+    if (payload.usePetPoints) {
+      const freshUser = await this.userModel.findById(user._id).lean();
+      if (!freshUser || !freshUser.petBalance || freshUser.petBalance <= 0) {
+        throw new BadRequestException("Ví nuôi thú của bạn không có số dư");
+      }
+
+      const maxPetRewardPerOrder = Number(await this.settingService.get("MAX_PET_REWARD_USAGE_PER_ORDER") || 0);
+      const limitPeriod = String(await this.settingService.get("PET_REWARD_USAGE_LIMIT_PERIOD") || "none");
+      const maxTimes = Number(await this.settingService.get("PET_REWARD_MAX_USAGE_TIMES") || 1);
+
+      if (maxPetRewardPerOrder > 0) {
+        if (limitPeriod !== "none" && limitPeriod !== "per_order") {
+          let startDate = new Date();
+          let endDate = new Date();
+          
+          if (limitPeriod === "daily") {
+            startDate.setHours(0, 0, 0, 0);
+            endDate.setHours(23, 59, 59, 999);
+          } else if (limitPeriod === "weekly") {
+            const day = startDate.getDay();
+            const diff = startDate.getDate() - day + (day === 0 ? -6 : 1);
+            startDate = new Date(startDate.setDate(diff));
+            startDate.setHours(0, 0, 0, 0);
+            endDate = new Date(startDate);
+            endDate.setDate(startDate.getDate() + 6);
+            endDate.setHours(23, 59, 59, 999);
+          } else if (limitPeriod === "monthly") {
+            startDate = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+            endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0, 23, 59, 59, 999);
+          }
+
+          const usageCount = await this.orderModel.countDocuments({
+            buyerId: new ObjectId(user._id),
+            petDiscount: { $gt: 0 },
+            createdAt: { $gte: startDate, $lte: endDate },
+          });
+
+          if (usageCount >= maxTimes) {
+            throw new BadRequestException(`Bạn đã sử dụng quá giới hạn điểm nuôi thú trong khoảng thời gian quy định (${maxTimes} lần/${limitPeriod}).`);
+          }
+        }
+
+        const tempTotal = Math.max(0, subtotal + shippingFee - discount);
+        const maxAllowed = Math.min(tempTotal, Number(freshUser.petBalance), maxPetRewardPerOrder);
+        
+        if (payload.petPointsAmount !== undefined && payload.petPointsAmount !== null) {
+          if (payload.petPointsAmount < 0) {
+            throw new BadRequestException("Số điểm dùng phải lớn hơn hoặc bằng 0");
+          }
+          if (payload.petPointsAmount > maxAllowed) {
+            throw new BadRequestException(`Bạn chỉ được dùng tối đa ${maxAllowed.toLocaleString("vi-VN")} điểm`);
+          }
+          petDiscount = payload.petPointsAmount;
+        } else {
+          petDiscount = maxAllowed;
+        }
+      }
+    }
+
+    const total = Math.max(0, subtotal + shippingFee - discount - petDiscount);
 
     const walletTransactionId = null;
     let paymentStatus: string = PAYMENT_STATUS.PENDING;
@@ -235,6 +295,7 @@ export class BuyerOrderService {
       subtotal,
       shippingFee,
       discount,
+      petDiscount,
       voucherCode,
       total,
       shippingAddress,
@@ -245,6 +306,13 @@ export class BuyerOrderService {
       paidAt,
       status: ORDER_STATUS.PENDING,
     });
+
+    if (petDiscount > 0) {
+      await this.userModel.updateOne(
+        { _id: new ObjectId(user._id) },
+        { $inc: { petBalance: -petDiscount } }
+      );
+    }
 
     // Handle online payment methods (ZaloPay, PayPal)
     let paymentResult: IPaymentResult = {};

@@ -27,6 +27,9 @@ import { orderService, CreateOrderPayload } from "../../src/services/order.servi
 import { ghnService } from "../../src/services/ghn.service";
 import { addressService, Address } from "../../src/services";
 import { voucherService, Voucher } from "../../src/services/voucher.service";
+import { userService } from "../../src/services/user.service";
+import { walletService } from "../../src/services/wallet.service";
+import { settingService } from "../../src/services/setting.service";
 import { storage } from "../../src/utils/storage";
 import toast from "react-hot-toast";
 import { formatCurrency } from "../../src/lib/string";
@@ -59,6 +62,19 @@ export default function CheckoutPage() {
     const [paymentInfo, setPaymentInfo] = useState<PaymentInfo | null>(null);
     const [polling, setPolling] = useState(false);
     const [countdown, setCountdown] = useState<number | null>(null);
+
+    // Pet Points state
+    const [petBalance, setPetBalance] = useState<number>(0);
+    const [usePetPoints, setUsePetPoints] = useState<boolean>(false);
+    const [petPointsAmount, setPetPointsAmount] = useState<number>(0);
+    const [petRewardSettings, setPetRewardSettings] = useState<{
+        maxUsagePerOrder: number | null;
+        limitPeriod: string | null;
+        maxUsageTimes: number | null;
+    }>({ maxUsagePerOrder: null, limitPeriod: null, maxUsageTimes: null });
+    
+    // Wallet state
+    const [walletBalance, setWalletBalance] = useState<number>(0);
 
     // Form state
     const [formData, setFormData] = useState({
@@ -123,6 +139,38 @@ export default function CheckoutPage() {
                 if (user.name) setFormData((prev) => ({ ...prev, fullName: user.name }));
                 if (user.phone) setFormData((prev) => ({ ...prev, phone: user.phone }));
                 if (user.address) setFormData((prev) => ({ ...prev, address: user.address }));
+                try {
+                    const profileData = await userService.getProfile();
+                    if (profileData && typeof profileData.petBalance === "number") {
+                        setPetBalance(profileData.petBalance);
+                    }
+                } catch (error) {
+                    console.error("Failed to fetch fresh user profile", error);
+                }
+
+                try {
+                    const walletData = await walletService.getBalance();
+                    if (walletData && typeof walletData.balance === 'number') {
+                        setWalletBalance(walletData.balance);
+                    }
+                } catch (error) {
+                    console.error("Failed to fetch wallet balance", error);
+                }
+
+                try {
+                    const settingsData = await settingService.getPublicSettings();
+                    const maxPerOrder = settingsData.find(s => s.key === "MAX_PET_REWARD_USAGE_PER_ORDER")?.value;
+                    const limitPeriod = settingsData.find(s => s.key === "PET_REWARD_USAGE_LIMIT_PERIOD")?.value;
+                    const maxTimes = settingsData.find(s => s.key === "PET_REWARD_MAX_USAGE_TIMES")?.value;
+                    setPetRewardSettings({
+                        maxUsagePerOrder: maxPerOrder ? Number(maxPerOrder) : null,
+                        limitPeriod: limitPeriod || null,
+                        maxUsageTimes: maxTimes ? Number(maxTimes) : null,
+                    });
+                } catch (error) {
+                    console.error("Failed to fetch settings", error);
+                }
+
             } catch (error: any) {
                 console.error("Failed to load cart:", error);
                 toast.error(t.checkout.loadError);
@@ -143,7 +191,13 @@ export default function CheckoutPage() {
         }, 0);
     }, [cart]);
 
-    const total = useMemo(() => Math.max(0, subtotal - voucherDiscount), [subtotal, voucherDiscount]);
+    const petDiscountUI = useMemo(() => {
+        if (!usePetPoints || petBalance <= 0) return 0;
+        const currentTotal = Math.max(0, subtotal - voucherDiscount);
+        return Math.min(petPointsAmount, petBalance, currentTotal);
+    }, [usePetPoints, petPointsAmount, petBalance, subtotal, voucherDiscount]);
+
+    const total = useMemo(() => Math.max(0, subtotal - voucherDiscount - petDiscountUI), [subtotal, voucherDiscount, petDiscountUI]);
 
     useEffect(() => {
         const loadProvinces = async () => {
@@ -474,6 +528,8 @@ export default function CheckoutPage() {
                 },
                 paymentMethod: selectedPayment,
                 voucherCode: selectedVoucher?.code,
+                usePetPoints,
+                petPointsAmount: usePetPoints ? petPointsAmount : undefined,
             };
 
             const order = await orderService.createOrder(payload);
@@ -552,7 +608,7 @@ export default function CheckoutPage() {
             id: "wallet" as PaymentMethod,
             name: t.checkout.wallet,
             icon: Wallet,
-            description: t.checkout.walletDesc,
+            description: `${t.checkout.walletDesc} (Khả dụng: ${formatCurrency(walletBalance)}₫)`,
             disabled: false,
         },
         {
@@ -993,8 +1049,85 @@ export default function CheckoutPage() {
                                         )}
                                     </div>
 
-                                    <div className="border-t border-purple-500/30 pt-3">
-                                        <div className="flex justify-between text-lg font-bold text-white">
+                                    {/* Pet Points Section */}
+                                    <div className="py-3 border-t border-purple-500/30">
+                                        <label className={`flex items-center gap-3 ${petBalance > 0 ? "cursor-pointer" : "cursor-not-allowed opacity-50"}`}>
+                                            <input
+                                                type="checkbox"
+                                                className="w-5 h-5 rounded border border-purple-500/30 bg-white/5 text-pink-500 focus:ring-transparent focus:ring-offset-0 cursor-pointer disabled:cursor-not-allowed"
+                                                checked={usePetPoints}
+                                                disabled={petBalance <= 0}
+                                                onChange={(e) => {
+                                                    const isChecked = e.target.checked;
+                                                    setUsePetPoints(isChecked);
+                                                    if (isChecked) {
+                                                        let currentTotal = Math.max(0, subtotal - voucherDiscount);
+                                                        if (petRewardSettings.maxUsagePerOrder) {
+                                                            currentTotal = Math.min(currentTotal, petRewardSettings.maxUsagePerOrder);
+                                                        }
+                                                        setPetPointsAmount(Math.min(petBalance, currentTotal));
+                                                    } else {
+                                                        setPetPointsAmount(0);
+                                                    }
+                                                }}
+                                            />
+                                            <div className="flex-1">
+                                                <span className="text-purple-200">Sử dụng điểm nuôi thú</span>
+                                                <span className="block text-sm text-pink-300">Khả dụng: {formatCurrency(petBalance)}₫</span>
+                                                {petRewardSettings.maxUsagePerOrder ? (
+                                                    <span className="block text-xs text-purple-300/80 mt-1 italic">
+                                                        * Tối đa giảm {formatCurrency(petRewardSettings.maxUsagePerOrder)}₫/đơn
+                                                        {petRewardSettings.limitPeriod && petRewardSettings.maxUsageTimes ? ` (giới hạn ${petRewardSettings.maxUsageTimes} lần/${petRewardSettings.limitPeriod === "daily" ? "ngày" : petRewardSettings.limitPeriod === "weekly" ? "tuần" : "tháng"})` : ""}
+                                                    </span>
+                                                ) : null}
+                                            </div>
+                                        </label>
+                                        
+                                        {usePetPoints && petBalance > 0 && (
+                                            <div className="mt-3 ml-8 flex items-center gap-2">
+                                                <span className="text-sm text-purple-300">Số điểm muốn dùng:</span>
+                                                <input 
+                                                    type="number"
+                                                    min={0}
+                                                    max={Math.min(petBalance, Math.max(0, subtotal - voucherDiscount), (petRewardSettings.maxUsagePerOrder || Infinity))}
+                                                    value={petPointsAmount.toString()}
+                                                    onChange={e => {
+                                                        const val = Number(e.target.value);
+                                                        setPetPointsAmount(Math.max(0, val));
+                                                    }}
+                                                    className="w-24 px-2 py-1 text-sm bg-black/20 border border-purple-500/30 rounded text-pink-500 focus:outline-none focus:border-pink-500"
+                                                />
+                                                <span className="text-sm text-pink-500 font-medium">₫</span>
+                                            </div>
+                                        )}
+                                        {usePetPoints && petPointsAmount > 0 && (() => {
+                                            let maxAllowed = Math.min(petBalance, Math.max(0, subtotal - voucherDiscount));
+                                            if (petRewardSettings.maxUsagePerOrder) {
+                                                maxAllowed = Math.min(maxAllowed, petRewardSettings.maxUsagePerOrder);
+                                            }
+                                            if (petPointsAmount > maxAllowed) {
+                                                return (
+                                                    <p className="ml-8 mt-1 text-xs text-red-400 font-medium">
+                                                        ⚠ Số điểm nhập vượt quá giới hạn cho phép ({formatCurrency(maxAllowed)}₫). Vui lòng nhập lại.
+                                                    </p>
+                                                );
+                                            }
+                                            return null;
+                                        })()}
+                                    </div>
+
+                                    <div className="border-t border-purple-500/30 pt-3 space-y-2">
+                                        <div className="flex justify-between text-purple-200 text-sm">
+                                            <span>Mã giảm giá</span>
+                                            <span className="text-white">- {formatCurrency(voucherDiscount)}₫</span>
+                                        </div>
+                                        {usePetPoints && petDiscountUI > 0 && (
+                                            <div className="flex justify-between text-purple-200 text-sm">
+                                                <span>Điểm nuôi thú (Tạm tính)</span>
+                                                <span className="text-white">- {formatCurrency(petDiscountUI)}₫</span>
+                                            </div>
+                                        )}
+                                        <div className="flex justify-between text-lg font-bold text-white pt-2 border-t border-purple-500/30">
                                             <span>{t.checkout.total}</span>
                                             <span className="text-2xl text-pink-400">
                                                 {formatCurrency(total)}₫

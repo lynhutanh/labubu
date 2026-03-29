@@ -69,6 +69,10 @@ export const UserSchema = new Schema(
       type: [String],
       default: [],
     },
+    petBalance: {
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true },
 );

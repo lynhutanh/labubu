@@ -9,6 +9,7 @@ import {
   Min,
   MaxLength,
   IsEnum,
+  IsBoolean,
 } from "class-validator";
 import { Type } from "class-transformer";
 import { PAYMENT_METHOD } from "../constants";
@@ -115,4 +116,15 @@ export class CreateOrderPayload {
   @IsOptional()
   @IsString()
   voucherCode?: string;
+
+  @ApiPropertyOptional({ description: "Use Pet Points" })
+  @IsOptional()
+  @IsBoolean()
+  usePetPoints?: boolean;
+
+  @ApiPropertyOptional({ description: "Specific amount of pet points to use" })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  petPointsAmount?: number;
 }

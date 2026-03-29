@@ -61,6 +61,13 @@ const getTabConfig = (): TabConfig[] => [
     color: "from-red-500 to-orange-500",
     description: "Thay đổi mật khẩu tài khoản admin.",
   },
+  {
+    key: "pet",
+    title: "Nuôi thú",
+    icon: Globe,
+    color: "from-pink-500 to-rose-500",
+    description: "Cấu hình ưu đãi/giới hạn dùng điểm nuôi thú.",
+  },
 ];
 
 export default function SettingsPage() {

@@ -1,0 +1,873 @@
+import { useState, useEffect, useCallback } from "react";
+import Head from "next/head";
+import Layout from "../../src/components/layout/Layout";
+import {
+  petService,
+  PetFarm,
+  PetFarmItem,
+} from "../../src/services/pet.service";
+
+const STAGE_NAMES = ["Trứng", "Trứng vỡ", "Đã nở"];
+const STAGE_EMOJIS = ["🥚", "🐣", "🐲"];
+
+export default function PetFarmPage() {
+  const [farm, setFarm] = useState<PetFarm | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [claiming, setClaiming] = useState<string | null>(null);
+  const [rewardPopup, setRewardPopup] = useState<{
+    points: number;
+    vnd: number;
+  } | null>(null);
+
+  const apiUrl =
+    process.env.NEXT_PUBLIC_API_ENDPOINT || "http://localhost:5001";
+
+  const getImageUrl = (url: string) => {
+    if (!url) return "";
+    if (url.startsWith("http")) return url;
+    return `${apiUrl}${url}`;
+  };
+
+  const loadData = useCallback(async () => {
+    try {
+      const farmData = await petService.getFarm();
+      setFarm(farmData);
+    } catch {
+      // not logged in or error
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  const handleClaim = async (userPetId: string) => {
+    try {
+      setClaiming(userPetId);
+      const result = await petService.claimReward(userPetId);
+      setRewardPopup({ points: result.rewardPoints, vnd: result.rewardVnd });
+      await loadData();
+    } catch (err: any) {
+      alert(err?.message || "Không thể nhận thưởng");
+    } finally {
+      setClaiming(null);
+    }
+  };
+
+  const getStageImage = (item: PetFarmItem, stage: number) => {
+    if (stage === 0) return item.pet.eggImage;
+    if (stage === 1) return item.pet.crackImage;
+    return item.pet.hatchImage;
+  };
+
+  const isVideo = (url: string) => {
+    if (!url) return false;
+    const ext = url.split("?")[0].split(".").pop()?.toLowerCase() || "";
+    return ["mp4", "webm", "mov", "avi"].includes(ext);
+  };
+
+  const renderMedia = (url: string, alt: string, className: string) => {
+    if (!url) return null;
+    const fullUrl = getImageUrl(url);
+    if (isVideo(url)) {
+      return (
+        <video
+          src={fullUrl}
+          className={className}
+          autoPlay
+          loop
+          muted
+          playsInline
+        />
+      );
+    }
+    return <img src={fullUrl} alt={alt} className={className} />;
+  };
+
+  const getProgress = (item: PetFarmItem) => {
+    if (!item.userPet || !farm) return 0;
+    const totalPoints = farm.totalPointsEarned;
+    const { minPoints, maxPoints } = item.pet;
+    if (totalPoints >= maxPoints) return 100;
+    if (totalPoints <= minPoints) return 0;
+    return Math.floor(
+      ((totalPoints - minPoints) / (maxPoints - minPoints)) * 100,
+    );
+  };
+
+  // Lấy danh sách pet đã qua giai đoạn trứng để hiển thị trong vườn
+  const gardenPets =
+    farm?.items.filter((i) => i.userPet && i.userPet.currentStage >= 1) || [];
+  // Lấy danh sách pet đang nuôi hoặc chưa mở khóa
+  const progressPets = farm?.items || [];
+
+  return (
+    <Layout>
+      <Head>
+        <title>Đảo rồng</title>
+        <meta
+          name="description"
+          content="Tích điểm mua hàng để nở ra con vật yêu thích!"
+        />
+      </Head>
+
+      <style jsx global>{`
+        .pet-farm-page {
+          min-height: 100vh;
+          background: #0a1628;
+          font-family: "Roboto", "Segoe UI", sans-serif;
+          overflow-x: hidden;
+          padding-bottom: 60px;
+        }
+
+        .pet-farm-header {
+          text-align: center;
+          padding: 28px 16px 16px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+
+        .pet-farm-title {
+          font-size: 28px;
+          font-weight: 900;
+          background: linear-gradient(135deg, #fbbf24, #f59e0b, #34d399);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          text-transform: uppercase;
+          letter-spacing: 2px;
+        }
+
+        .pet-points-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          background: rgba(255, 255, 255, 0.08);
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          border-radius: 20px;
+          padding: 8px 20px;
+          margin-top: 12px;
+        }
+
+        .pet-points-badge span {
+          font-size: 13px;
+          color: #94a3b8;
+        }
+
+        .pet-points-badge strong {
+          font-size: 22px;
+          font-weight: 900;
+          color: #fbbf24;
+        }
+
+        /* ===== GARDEN AREA ===== */
+        .pet-garden {
+          position: relative;
+          width: 95vw;
+          max-width: 100%;
+          margin: 20px auto;
+          height: 85vh;
+          border-radius: 24px;
+          overflow: hidden;
+          border: 2px solid rgba(52, 211, 153, 0.25);
+          box-shadow:
+            0 8px 32px rgba(0, 0, 0, 0.3),
+            inset 0 0 60px rgba(52, 211, 153, 0.05);
+        }
+
+        .pet-garden-bg {
+          position: absolute;
+          inset: 0;
+          background-image: url("/backgrounddaorong.jpg");
+          background-size: 100% 100%;
+          background-position: center center;
+          background-repeat: no-repeat;
+          filter: brightness(0.85);
+        }
+
+        .pet-garden-overlay {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(
+            180deg,
+            rgba(10, 22, 40, 0.15) 0%,
+            rgba(10, 22, 40, 0) 30%,
+            rgba(10, 22, 40, 0) 70%,
+            rgba(10, 22, 40, 0.3) 100%
+          );
+          pointer-events: none;
+        }
+
+        .pet-garden-empty {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          color: rgba(255, 255, 255, 0.6);
+          font-size: 15px;
+          text-align: center;
+          text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+        }
+
+        /* ===== ROAMING PETS ===== */
+        .pet-roaming {
+          position: absolute;
+          bottom: 30px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          z-index: 2;
+        }
+
+        .pet-roaming img, .pet-roaming video {
+          width: 380px;
+          height: 380px;
+          object-fit: contain;
+          filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.4));
+          transition: transform 0.3s;
+        }
+
+        .pet-roaming:hover img, .pet-roaming:hover video {
+          transform: scale(1.2);
+        }
+
+        .pet-roaming-name {
+          font-size: 13px;
+          font-weight: 500;
+          color: white;
+          background: rgba(0, 0, 0, 0.5);
+          padding: 3px 10px;
+          border-radius: 8px;
+          margin-top: 6px;
+          white-space: nowrap;
+          text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+        }
+
+        /* Bounce animation for walking feel */
+        @keyframes petBounce {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-5px); }
+        }
+
+        .pet-roaming img, .pet-roaming video {
+          animation: petBounce 0.5s ease-in-out infinite;
+        }
+
+        /* Roaming keyframes - vòng lên vòng xuống tự nhiên */
+        @keyframes roam0 {
+          0% { left: 5%; bottom: 5%; }
+          15% { left: 35%; bottom: 40%; }
+          30% { left: 62%; bottom: 15%; }
+          50% { left: 75%; bottom: 45%; }
+          65% { left: 55%; bottom: 25%; }
+          80% { left: 25%; bottom: 35%; }
+          100% { left: 5%; bottom: 5%; }
+        }
+        @keyframes roam1 {
+          0% { left: 75%; bottom: 35%; }
+          20% { left: 45%; bottom: 10%; }
+          35% { left: 15%; bottom: 45%; }
+          55% { left: 5%; bottom: 20%; }
+          70% { left: 40%; bottom: 50%; }
+          85% { left: 65%; bottom: 15%; }
+          100% { left: 75%; bottom: 35%; }
+        }
+        @keyframes roam2 {
+          0% { left: 45%; bottom: 25%; }
+          12% { left: 15%; bottom: 10%; }
+          28% { left: 5%; bottom: 40%; }
+          45% { left: 30%; bottom: 50%; }
+          60% { left: 65%; bottom: 20%; }
+          78% { left: 80%; bottom: 45%; }
+          100% { left: 45%; bottom: 25%; }
+        }
+        @keyframes roam3 {
+          0% { left: 25%; bottom: 50%; }
+          18% { left: 60%; bottom: 15%; }
+          32% { left: 75%; bottom: 40%; }
+          50% { left: 65%; bottom: 5%; }
+          68% { left: 35%; bottom: 30%; }
+          82% { left: 15%; bottom: 20%; }
+          100% { left: 25%; bottom: 50%; }
+        }
+        @keyframes roam4 {
+          0% { left: 60%; bottom: 15%; }
+          16% { left: 75%; bottom: 40%; }
+          33% { left: 65%; bottom: 50%; }
+          50% { left: 35%; bottom: 25%; }
+          66% { left: 15%; bottom: 45%; }
+          83% { left: 5%; bottom: 30%; }
+          100% { left: 60%; bottom: 15%; }
+        }
+
+        @keyframes flip0 {
+          0%, 49.9% { transform: scaleX(1); }
+          50%, 99.9% { transform: scaleX(-1); }
+          100% { transform: scaleX(1); }
+        }
+        @keyframes flip1 {
+          0%, 54.9% { transform: scaleX(-1); }
+          55%, 99.9% { transform: scaleX(1); }
+          100% { transform: scaleX(-1); }
+        }
+        @keyframes flip2 {
+          0%, 27.9% { transform: scaleX(-1); }
+          28%, 77.9% { transform: scaleX(1); }
+          78%, 100% { transform: scaleX(-1); }
+        }
+        @keyframes flip3 {
+          0%, 31.9% { transform: scaleX(1); }
+          32%, 81.9% { transform: scaleX(-1); }
+          82%, 100% { transform: scaleX(1); }
+        }
+        @keyframes flip4 {
+          0%, 15.9% { transform: scaleX(1); }
+          16%, 82.9% { transform: scaleX(-1); }
+          83%, 100% { transform: scaleX(1); }
+        }
+
+        .pet-roam-0 { animation: roam0 40s ease-in-out infinite; }
+        .pet-roam-1 { animation: roam1 48s ease-in-out infinite; }
+        .pet-roam-2 { animation: roam2 44s ease-in-out infinite; }
+        .pet-roam-3 { animation: roam3 52s ease-in-out infinite; }
+        .pet-roam-4 { animation: roam4 42s ease-in-out infinite; }
+
+        .pet-flip-0 { animation: flip0 40s linear infinite; transform-origin: center; }
+        .pet-flip-1 { animation: flip1 48s linear infinite; transform-origin: center; }
+        .pet-flip-2 { animation: flip2 44s linear infinite; transform-origin: center; }
+        .pet-flip-3 { animation: flip3 52s linear infinite; transform-origin: center; }
+        .pet-flip-4 { animation: flip4 42s linear infinite; transform-origin: center; }
+
+        /* ===== PET LIST ===== */
+        .pet-list {
+          max-width: 800px;
+          margin: 0 auto;
+          padding: 0 16px;
+        }
+
+        .pet-list-title {
+          font-size: 18px;
+          font-weight: 800;
+          color: #e2e8f0;
+          margin-bottom: 16px;
+          padding-left: 4px;
+        }
+
+        .pet-card {
+          background: rgba(255, 255, 255, 0.06);
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 20px;
+          padding: 20px;
+          margin-bottom: 16px;
+          transition: all 0.3s;
+        }
+
+        .pet-card.locked {
+          opacity: 0.4;
+          filter: grayscale(0.6);
+        }
+
+        .pet-card.completed {
+          border-color: rgba(251, 191, 36, 0.3);
+        }
+
+        .pet-card-header {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          margin-bottom: 16px;
+        }
+
+        .pet-card-img {
+          width: 64px;
+          height: 64px;
+          object-fit: contain;
+          border-radius: 14px;
+          background: rgba(255, 255, 255, 0.05);
+          padding: 4px;
+          border: 2px solid rgba(52, 211, 153, 0.3);
+        }
+
+        .pet-card.locked .pet-card-img {
+          border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .pet-card.completed .pet-card-img {
+          border-color: rgba(251, 191, 36, 0.4);
+        }
+
+        .pet-card-name {
+          font-size: 18px;
+          font-weight: 800;
+          color: white;
+        }
+
+        .pet-card-stage {
+          font-size: 13px;
+          color: #94a3b8;
+          margin-top: 2px;
+        }
+
+        .pet-card-range {
+          font-size: 11px;
+          color: #64748b;
+          margin-top: 2px;
+        }
+
+        /* Stage flow */
+        .pet-stages-flow {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          margin-bottom: 16px;
+        }
+
+        .pet-stage-item {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 4px;
+        }
+
+        .pet-stage-dot {
+          width: 50px;
+          height: 50px;
+          border-radius: 12px;
+          background: rgba(255, 255, 255, 0.05);
+          border: 2px solid rgba(255, 255, 255, 0.1);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.3s;
+        }
+
+        .pet-stage-dot.active {
+          border-color: #34d399;
+          background: rgba(52, 211, 153, 0.1);
+          box-shadow: 0 0 14px rgba(52, 211, 153, 0.3);
+        }
+
+        .pet-stage-dot.done {
+          border-color: #fbbf24;
+          background: rgba(251, 191, 36, 0.1);
+        }
+
+        .pet-stage-dot img, .pet-stage-dot video {
+          width: 32px;
+          height: 32px;
+          object-fit: contain;
+        }
+
+        .pet-stage-label {
+          font-size: 10px;
+          color: #94a3b8;
+        }
+
+        .pet-stage-arrow {
+          color: rgba(255, 255, 255, 0.15);
+          font-size: 16px;
+          margin-bottom: 16px;
+        }
+
+        /* Progress */
+        .pet-progress-wrap { margin-bottom: 16px; }
+
+        .pet-progress-labels {
+          display: flex;
+          justify-content: space-between;
+          font-size: 12px;
+          color: #94a3b8;
+          margin-bottom: 6px;
+        }
+
+        .pet-progress-bar {
+          height: 10px;
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 6px;
+          overflow: hidden;
+        }
+
+        .pet-progress-fill {
+          height: 100%;
+          border-radius: 6px;
+          background: linear-gradient(90deg, #34d399, #10b981);
+          transition: width 0.5s ease;
+          position: relative;
+        }
+
+        .pet-progress-fill::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.3),
+            transparent
+          );
+          animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
+
+        /* Buttons */
+        .pet-claim-btn {
+          width: 100%;
+          padding: 14px;
+          background: linear-gradient(135deg, #fbbf24, #f59e0b);
+          color: #1a1a1a;
+          border: none;
+          border-radius: 12px;
+          font-weight: 800;
+          font-size: 15px;
+          cursor: pointer;
+          transition: all 0.2s;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+        }
+
+        .pet-claim-btn:hover:not(:disabled) {
+          transform: scale(1.03);
+          box-shadow: 0 4px 20px rgba(251, 191, 36, 0.5);
+        }
+
+        .pet-claim-btn:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        .pet-claimed-badge {
+          text-align: center;
+          padding: 12px;
+          background: rgba(52, 211, 153, 0.1);
+          border: 1px solid rgba(52, 211, 153, 0.3);
+          border-radius: 12px;
+          color: #34d399;
+          font-weight: 700;
+          font-size: 14px;
+        }
+
+        .pet-locked-badge {
+          text-align: center;
+          padding: 10px;
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 12px;
+          color: #64748b;
+          font-size: 13px;
+        }
+
+        /* Reward popup */
+        .pet-reward-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.7);
+          z-index: 100;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 20px;
+          backdrop-filter: blur(6px);
+        }
+
+        .pet-reward-popup {
+          background: linear-gradient(135deg, #1a2948, #0f1f36);
+          border: 2px solid #fbbf24;
+          border-radius: 24px;
+          padding: 40px 32px;
+          max-width: 400px;
+          width: 100%;
+          text-align: center;
+          animation: popIn 0.3s ease;
+          box-shadow:
+            0 20px 60px rgba(0, 0, 0, 0.5),
+            0 0 40px rgba(251, 191, 36, 0.2);
+        }
+
+        @keyframes popIn {
+          from { opacity: 0; transform: scale(0.8); }
+          to { opacity: 1; transform: scale(1); }
+        }
+
+        .pet-farm-loading {
+          text-align: center;
+          padding: 80px 20px;
+          color: #94a3b8;
+          font-size: 16px;
+        }
+
+        @media (max-width: 640px) {
+          .pet-farm-title { font-size: 22px; }
+          .pet-garden { height: 350px; margin: 16px 12px; border-radius: 16px; }
+          .pet-roaming img, .pet-roaming video { width: 140px; height: 140px; object-fit: contain; }
+          .pet-card { margin: 0 4px 12px; padding: 16px; }
+          .pet-stage-dot { width: 42px; height: 42px; }
+          .pet-stage-dot img, .pet-stage-dot video { width: 26px; height: 26px; object-fit: cover; }
+        }
+      `}</style>
+
+      <div className="pet-farm-page">
+        <div className="pet-farm-header">
+          <img src="/lgodaorong.png" alt="Đảo Rồng" style={{ width: 160, height: 160, objectFit: "contain", marginBottom: 8 }} />
+          <h2 className="pet-farm-title">ĐẢO RỒNG</h2>
+          {farm && (
+            <div>
+              <div className="pet-points-badge">
+                <span>Điểm tích lũy:</span>
+                <strong>{farm.totalPointsEarned}</strong>
+              </div>
+            </div>
+          )}
+          <p style={{ color: "#64748b", fontSize: 13, marginTop: 8 }}>
+            Mỗi 10.000đ mua hàng thành công = 1 điểm nuôi vật
+          </p>
+        </div>
+
+        {loading ? (
+          <div className="pet-farm-loading">Đang tải trang trại...</div>
+        ) : (
+          <>
+            {/* ===== KHU VƯỜN ===== */}
+            <div className="pet-garden">
+              <div className="pet-garden-bg" />
+              <div className="pet-garden-overlay" />
+
+              {gardenPets.length === 0 ? (
+                <div className="pet-garden-empty">
+                  <p style={{ fontSize: 40, marginBottom: 8 }}>🌱</p>
+                  <p>Nuôi con vật đầu tiên để khu vườn thêm sống động!</p>
+                </div>
+              ) : (
+                gardenPets.map((item, index) => {
+                  const stageImg = getStageImage(item, item.userPet!.currentStage);
+                  return (
+                    <div
+                      key={item.pet._id}
+                      className={`pet-roaming pet-roam-${index % 5}`}
+                      title={item.pet.name}
+                    >
+                      <div className={`pet-roaming-media pet-flip-${index % 5}`}>
+                        {stageImg && renderMedia(stageImg, item.pet.name, "")}
+                      </div>
+                      <span className="pet-roaming-name">{item.pet.name}</span>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* ===== DANH SÁCH PET ===== */}
+            {progressPets.length > 0 && (
+              <div className="pet-list">
+                <h2 className="pet-list-title">📋 Tiến trình nuôi vật</h2>
+                {progressPets.map((item) => {
+                  const isLocked = !item.userPet;
+                  const currentStage = item.userPet?.currentStage ?? -1;
+                  const isCompleted = item.userPet?.isCompleted || false;
+                  const currentImage = isLocked
+                    ? item.pet.eggImage
+                    : getStageImage(item, currentStage);
+                  const progress = getProgress(item);
+
+                  return (
+                    <div
+                      key={item.pet._id}
+                      className={`pet-card ${isLocked ? "locked" : ""} ${isCompleted ? "completed" : ""}`}
+                    >
+                      <div className="pet-card-header">
+                        {currentImage && renderMedia(currentImage, item.pet.name, "pet-card-img")}
+                        <div>
+                          <div className="pet-card-name">{item.pet.name}</div>
+                          <div className="pet-card-stage">
+                            {isLocked
+                              ? "🔒 Chưa mở khóa"
+                              : isCompleted
+                                ? "✨ Đã nở hoàn thành!"
+                                : `${STAGE_EMOJIS[currentStage]} ${STAGE_NAMES[currentStage]}`}
+                          </div>
+                          <div className="pet-card-range">
+                            Khoảng: {item.pet.minPoints} → {item.pet.maxPoints} điểm
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 3 stages */}
+                      <div className="pet-stages-flow">
+                        {[0, 1, 2].map((stage) => {
+                          const stageImg = getStageImage(item, stage);
+                          const isActive = !isLocked && currentStage === stage && !isCompleted;
+                          const isDone = !isLocked && (currentStage > stage || isCompleted);
+                          return (
+                            <div
+                              key={stage}
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 6,
+                              }}
+                            >
+                              <div className="pet-stage-item">
+                                <div
+                                  className={`pet-stage-dot ${isActive ? "active" : ""} ${isDone ? "done" : ""}`}
+                                >
+                                  {stageImg ? (
+                                    renderMedia(stageImg, STAGE_NAMES[stage], "")
+                                  ) : (
+                                    <span style={{ fontSize: 18 }}>
+                                      {STAGE_EMOJIS[stage]}
+                                    </span>
+                                  )}
+                                </div>
+                                <span className="pet-stage-label">
+                                  {STAGE_NAMES[stage]}
+                                </span>
+                              </div>
+                              {stage < 2 && (
+                                <span className="pet-stage-arrow">→</span>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Progress */}
+                      {!isLocked && !isCompleted && (
+                        <div className="pet-progress-wrap">
+                          <div className="pet-progress-labels">
+                            <span>
+                              {farm!.totalPointsEarned} điểm
+                            </span>
+                            <span>
+                              {item.pet.maxPoints} điểm để hoàn thành
+                            </span>
+                          </div>
+                          <div className="pet-progress-bar">
+                            <div
+                              className="pet-progress-fill"
+                              style={{ width: `${progress}%` }}
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Actions */}
+                      {isLocked ? (
+                        <div className="pet-locked-badge">
+                          🔒 Cần {item.pet.minPoints} điểm để mở khóa
+                        </div>
+                      ) : isCompleted ? (
+                        item.userPet!.rewardClaimed ? (
+                          <div className="pet-claimed-badge">
+                            ✅ Đã nhận thưởng {item.pet.rewardPoints} điểm (
+                            {(item.pet.rewardPoints * 1000).toLocaleString(
+                              "vi-VN",
+                            )}
+                            đ)
+                          </div>
+                        ) : (
+                          <button
+                            className="pet-claim-btn"
+                            onClick={() => handleClaim(item.userPet!._id)}
+                            disabled={claiming === item.userPet!._id}
+                          >
+                            {claiming === item.userPet!._id
+                              ? "Đang nhận..."
+                              : `🎉 Nhận thưởng ${item.pet.rewardPoints} điểm (${(item.pet.rewardPoints * 1000).toLocaleString("vi-VN")}đ)`}
+                          </button>
+                        )
+                      ) : (
+                        <div
+                          style={{
+                            textAlign: "center",
+                            padding: 8,
+                            color: "#94a3b8",
+                            fontSize: 13,
+                          }}
+                        >
+                          🛒 Mua hàng thêm để con vật tiến hóa!
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Reward popup */}
+        {rewardPopup && (
+          <div
+            className="pet-reward-overlay"
+            onClick={() => setRewardPopup(null)}
+          >
+            <div
+              className="pet-reward-popup"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ fontSize: 64, marginBottom: 16 }}>🎉</div>
+              <div
+                style={{
+                  fontSize: 24,
+                  fontWeight: 900,
+                  background:
+                    "linear-gradient(135deg, #fbbf24, #f59e0b)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                  marginBottom: 8,
+                }}
+              >
+                Chúc mừng!
+              </div>
+              <div
+                style={{
+                  fontSize: 36,
+                  fontWeight: 900,
+                  color: "#34d399",
+                  margin: "12px 0",
+                }}
+              >
+                +{rewardPopup.vnd.toLocaleString("vi-VN")}đ
+              </div>
+              <div
+                style={{
+                  color: "#94a3b8",
+                  fontSize: 14,
+                  marginBottom: 24,
+                }}
+              >
+                Bạn nhận được {rewardPopup.points} điểm thưởng ={" "}
+                {rewardPopup.vnd.toLocaleString("vi-VN")}đ vào ví
+              </div>
+              <button
+                onClick={() => setRewardPopup(null)}
+                style={{
+                  padding: "12px 40px",
+                  background:
+                    "linear-gradient(135deg, #fbbf24, #f59e0b)",
+                  color: "#1a1a1a",
+                  border: "none",
+                  borderRadius: 30,
+                  fontWeight: 800,
+                  fontSize: 16,
+                  cursor: "pointer",
+                }}
+              >
+                Tuyệt vời!
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </Layout>
+  );
+}

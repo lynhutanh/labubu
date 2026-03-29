@@ -8,7 +8,7 @@ export const SettingFormItem: React.FC<SettingFormItemProps> = memo(
   ({ setting, onValueChange }) => {
     const [uploading, setUploading] = useState(false);
     const [preview, setPreview] = useState<string | null>(
-      setting.value && (setting.value.startsWith("http") || setting.value.startsWith("/")) ? setting.value : null
+      typeof setting.value === "string" && (setting.value.startsWith("http") || setting.value.startsWith("/")) ? setting.value : null
     );
     const fileInputRef = useRef<HTMLInputElement>(null);
     
@@ -21,7 +21,7 @@ export const SettingFormItem: React.FC<SettingFormItemProps> = memo(
     const isAvatarField = setting.key.includes("avatar");
     
     useEffect(() => {
-      if (setting.value && (setting.value.startsWith("http") || setting.value.startsWith("/"))) {
+      if (typeof setting.value === "string" && (setting.value.startsWith("http") || setting.value.startsWith("/"))) {
         setPreview(setting.value);
       } else {
         setPreview(null);

@@ -41,6 +41,8 @@ export class OrderModel extends Document {
 
   discount: number;
 
+  petDiscount?: number;
+
   total: number;
 
   shippingAddress: IShippingAddress;

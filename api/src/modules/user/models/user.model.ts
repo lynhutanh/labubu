@@ -32,6 +32,8 @@ export class UserModel extends Document {
 
   receivedRewards?: string[];
 
+  petBalance?: number;
+
   createdAt: Date;
 
   updatedAt: Date;

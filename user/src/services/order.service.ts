@@ -19,6 +19,8 @@ export interface CreateOrderPayload {
   };
   paymentMethod: "cod" | "wallet" | "paypal" | "zalopay" | "sepay";
   voucherCode?: string;
+  usePetPoints?: boolean;
+  petPointsAmount?: number;
 }
 
 export interface Order {

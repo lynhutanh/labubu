@@ -89,6 +89,11 @@ export const orderSchema = new Schema(
       default: 0,
       min: 0,
     },
+    petDiscount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
     voucherCode: {
       type: String,
       default: null,
