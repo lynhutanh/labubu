@@ -41,11 +41,10 @@ export class PetService {
     return pet ? new PetDto(pet) : null;
   }
 
-  private async validatePointRange(
+  private validatePointRange(
     minPoints: number,
     crackPoints: number,
     maxPoints: number,
-    excludeId?: string,
   ) {
     if (minPoints >= crackPoints) {
       throw new BadRequestException(
@@ -57,26 +56,10 @@ export class PetService {
         "Mốc Nở phải lớn hơn mốc Trứng vỡ",
       );
     }
-
-    const query: any = {
-      $or: [
-        { minPoints: { $lt: maxPoints }, maxPoints: { $gt: minPoints } },
-      ],
-    };
-    if (excludeId) {
-      query._id = { $ne: new ObjectId(excludeId) };
-    }
-
-    const overlap = await this.petModel.findOne(query).lean();
-    if (overlap) {
-      throw new BadRequestException(
-        `Khoảng điểm ${minPoints}-${maxPoints} trùng với con vật "${(overlap as any).name}" (${(overlap as any).minPoints}-${(overlap as any).maxPoints})`,
-      );
-    }
   }
 
   async createPet(payload: CreatePetPayload): Promise<PetDto> {
-    await this.validatePointRange(
+    this.validatePointRange(
       payload.minPoints,
       payload.crackPoints,
       payload.maxPoints,
@@ -94,7 +77,7 @@ export class PetService {
     const crackPoints = payload.crackPoints ?? pet.crackPoints;
     const maxPoints = payload.maxPoints ?? pet.maxPoints;
 
-    await this.validatePointRange(minPoints, crackPoints, maxPoints, id);
+    this.validatePointRange(minPoints, crackPoints, maxPoints);
 
     const updated = await this.petModel
       .findByIdAndUpdate(
@@ -213,19 +196,24 @@ export class PetService {
 
     const items: PetFarmItemDto[] = [];
 
+    let hasLockedPet = false;
+
     for (const pet of allPets) {
       const petId = (pet as any)._id.toString();
 
-      // Chỉ hiển thị pet mà user đã đạt đến minPoints
+      // Pet chưa đủ điểm mở khóa
       if (totalPoints < (pet as any).minPoints) {
-        // Vẫn hiển thị pet tiếp theo (chưa mở khóa) để user biết mục tiêu
-        items.push(
-          new PetFarmItemDto({
-            pet: new PetDto(pet),
-            userPet: null,
-          }),
-        );
-        break;
+        // Hiển thị pet chưa mở khóa tiếp theo để user biết mục tiêu
+        if (!hasLockedPet) {
+          items.push(
+            new PetFarmItemDto({
+              pet: new PetDto(pet),
+              userPet: null,
+            }),
+          );
+          hasLockedPet = true;
+        }
+        continue;
       }
 
       let userPet = userPetMap.get(petId);
