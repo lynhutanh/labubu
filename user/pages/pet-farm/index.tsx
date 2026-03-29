@@ -119,14 +119,23 @@ export default function PetFarmPage() {
           font-family: "Roboto", "Segoe UI", sans-serif;
           overflow-x: hidden;
           padding-bottom: 60px;
+          display: flex;
+          flex-direction: column;
         }
 
         .pet-farm-header {
+          order: 1;
           text-align: center;
           padding: 28px 16px 16px;
           display: flex;
           flex-direction: column;
           align-items: center;
+        }
+
+        .pet-farm-points {
+          order: 2;
+          text-align: center;
+          margin-bottom: 8px;
         }
 
         .pet-farm-title {
@@ -165,24 +174,26 @@ export default function PetFarmPage() {
 
         /* ===== GARDEN AREA ===== */
         .pet-garden {
+          order: 3;
           position: relative;
-          width: 95vw;
-          max-width: 100%;
+          width: 90vw;
+          max-width: 1200px;
           margin: 20px auto;
-          height: 85vh;
           border-radius: 24px;
+          aspect-ratio: 16 / 9;
           overflow: hidden;
           border: 2px solid rgba(52, 211, 153, 0.25);
           box-shadow:
             0 8px 32px rgba(0, 0, 0, 0.3),
             inset 0 0 60px rgba(52, 211, 153, 0.05);
+          background-color: #0a1628;
         }
 
         .pet-garden-bg {
           position: absolute;
           inset: 0;
           background-image: url("/backgrounddaorong.jpg");
-          background-size: 100% 100%;
+          background-size: 100% auto;
           background-position: center center;
           background-repeat: no-repeat;
           filter: brightness(0.85);
@@ -343,6 +354,7 @@ export default function PetFarmPage() {
 
         /* ===== PET LIST ===== */
         .pet-list {
+          order: 4;
           max-width: 800px;
           margin: 0 auto;
           padding: 0 16px;
@@ -604,9 +616,41 @@ export default function PetFarmPage() {
           font-size: 16px;
         }
 
+        .mobile-points { display: none; }
         @media (max-width: 640px) {
+          .desktop-points { display: none; }
+          .mobile-points { display: block; text-align: center; margin-bottom: 24px; }
+          .pet-farm-page {
+            position: relative;
+          }
+          .pet-farm-header {
+            order: 2;
+            position: relative;
+            z-index: 15;
+            padding: 20px 10px;
+            margin-bottom: -150px;
+            /* Phủ xíu bóng mờ để dễ đọc chữ phía dưới */
+            background: linear-gradient(180deg, rgba(10,22,40,0.4) 0%, transparent 100%);
+          }
+          .pet-farm-header img {
+            width: 110px !important;
+            height: 110px !important;
+            margin-bottom: 4px !important;
+          }
           .pet-farm-title { font-size: 22px; }
-          .pet-garden { height: 350px; margin: 16px 12px; border-radius: 16px; }
+          .pet-garden {
+            width: 100%;
+            height: 85vh;
+            min-height: 600px;
+            aspect-ratio: auto;
+            margin: 0;
+            border-radius: 0;
+          }
+          .pet-garden-bg {
+            background-image: url("/nenmobile.jpg");
+            background-size: cover;
+            background-position: center center;
+          }
           .pet-roaming img, .pet-roaming video { width: 140px; height: 140px; object-fit: contain; }
           .pet-card { margin: 0 4px 12px; padding: 16px; }
           .pet-stage-dot { width: 42px; height: 42px; }
@@ -617,18 +661,17 @@ export default function PetFarmPage() {
       <div className="pet-farm-page">
         <div className="pet-farm-header">
           <img src="/lgodaorong.png" alt="Đảo Rồng" style={{ width: 160, height: 160, objectFit: "contain", marginBottom: 8 }} />
-          <h2 className="pet-farm-title">ĐẢO RỒNG</h2>
+        </div>
+
+        <div className="pet-farm-points desktop-points">
           {farm && (
             <div>
-              <div className="pet-points-badge">
+              <div className="pet-points-badge" style={{ marginTop: 0 }}>
                 <span>Điểm tích lũy:</span>
                 <strong>{farm.totalPointsEarned}</strong>
               </div>
             </div>
           )}
-          <p style={{ color: "#64748b", fontSize: 13, marginTop: 8 }}>
-            Mỗi 10.000đ mua hàng thành công = 1 điểm nuôi vật
-          </p>
         </div>
 
         {loading ? (
@@ -668,6 +711,18 @@ export default function PetFarmPage() {
             {progressPets.length > 0 && (
               <div className="pet-list">
                 <h2 className="pet-list-title">📋 Tiến trình nuôi vật</h2>
+
+                <div className="mobile-points">
+                  {farm && (
+                    <div>
+                      <div className="pet-points-badge" style={{ marginTop: 0 }}>
+                        <span>Điểm tích lũy:</span>
+                        <strong>{farm.totalPointsEarned}</strong>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 {progressPets.map((item) => {
                   const isLocked = !item.userPet;
                   const currentStage = item.userPet?.currentStage ?? -1;
