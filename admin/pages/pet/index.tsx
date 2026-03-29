@@ -310,58 +310,129 @@ export default function PetConfigPage() {
               </div>
 
               {/* Khoảng điểm */}
-              <div>
-                <h3 className="text-sm font-medium text-purple-200 mb-3">
-                  📊 Khoảng điểm (mỗi 10.000đ mua hàng = 1 điểm)
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {(() => {
+                const otherPets = pets.filter((p) => p._id !== editingId).sort((a, b) => a.minPoints - b.minPoints);
+                const usedRanges = otherPets.map((p) => ({ name: p.name, min: p.minPoints, crack: p.crackPoints, max: p.maxPoints }));
+                const lastMax = usedRanges.length > 0 ? Math.max(...usedRanges.map((r) => r.max)) : 0;
+
+                const suggestedMin = lastMax;
+                const suggestedCrack = lastMax + Math.max(Math.round(lastMax * 0.3), 5);
+                const suggestedMax = lastMax + Math.max(Math.round(lastMax * 0.6), 10);
+
+                const isOverlap = (val: number) =>
+                  usedRanges.some((r) => val > r.min && val < r.max);
+                const isDuplicateMin = usedRanges.some((r) => r.min === minPoints);
+                const isDuplicateMax = usedRanges.some((r) => r.max === maxPoints);
+
+                return (
                   <div>
-                    <label className="block text-sm text-purple-300 mb-1">
-                      🥚 Mốc bắt đầu (Trứng)
-                    </label>
-                    <input
-                      type="number"
-                      value={minPoints}
-                      onChange={(e) => setMinPoints(Number(e.target.value))}
-                      min={0}
-                      className="w-full px-3 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    />
-                    <p className="text-xs text-purple-400 mt-1">
-                      = {(minPoints * 10000).toLocaleString("vi-VN")}đ
-                    </p>
+                    <h3 className="text-sm font-medium text-purple-200 mb-3">
+                      📊 Khoảng điểm (mỗi 10.000đ mua hàng = 1 điểm)
+                    </h3>
+
+                    {usedRanges.length > 0 && (
+                      <div className="mb-3 p-3 rounded-lg border border-purple-500/20 bg-white/5">
+                        <p className="text-xs text-purple-300 mb-2 font-medium">📋 Khoảng điểm đã dùng:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {usedRanges.map((r, i) => (
+                            <span key={i} className="text-xs px-2 py-1 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
+                              {r.name}: {r.min} → {r.crack} → {r.max}
+                            </span>
+                          ))}
+                        </div>
+                        <p className="text-xs text-emerald-400 mt-2">
+                          💡 Gợi ý tiếp theo: <strong>{suggestedMin}</strong> → <strong>{suggestedCrack}</strong> → <strong>{suggestedMax}</strong>
+                          <button
+                            type="button"
+                            onClick={() => { setMinPoints(suggestedMin); setCrackPoints(suggestedCrack); setMaxPoints(suggestedMax); }}
+                            className="ml-2 px-2 py-0.5 bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 rounded text-xs hover:bg-emerald-500/30 transition-all"
+                          >
+                            Áp dụng
+                          </button>
+                        </p>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm text-purple-300 mb-1">
+                          🥚 Mốc bắt đầu (Trứng)
+                        </label>
+                        <input
+                          type="number"
+                          value={minPoints}
+                          onChange={(e) => setMinPoints(Number(e.target.value))}
+                          min={0}
+                          placeholder={`Gợi ý: ${suggestedMin}`}
+                          className={`w-full px-3 py-2 bg-white/10 border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 ${
+                            isDuplicateMin || isOverlap(minPoints) ? "border-red-500/60" : "border-purple-500/30"
+                          }`}
+                        />
+                        <p className="text-xs text-purple-400 mt-1">
+                          = {(minPoints * 10000).toLocaleString("vi-VN")}đ
+                        </p>
+                        {isDuplicateMin && (
+                          <p className="text-xs text-red-400 mt-0.5">⚠️ Trùng mốc bắt đầu với con vật khác</p>
+                        )}
+                        {isOverlap(minPoints) && (
+                          <p className="text-xs text-red-400 mt-0.5">⚠️ Nằm trong khoảng điểm của con vật khác</p>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-sm text-purple-300 mb-1">
+                          🐣 Mốc Trứng vỡ
+                        </label>
+                        <input
+                          type="number"
+                          value={crackPoints}
+                          onChange={(e) => setCrackPoints(Number(e.target.value))}
+                          min={0}
+                          placeholder={`Gợi ý: ${suggestedCrack}`}
+                          className={`w-full px-3 py-2 bg-white/10 border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 ${
+                            isOverlap(crackPoints) ? "border-red-500/60" : "border-purple-500/30"
+                          }`}
+                        />
+                        <p className="text-xs text-purple-400 mt-1">
+                          = {(crackPoints * 10000).toLocaleString("vi-VN")}đ
+                        </p>
+                        {crackPoints <= minPoints && crackPoints > 0 && (
+                          <p className="text-xs text-red-400 mt-0.5">⚠️ Phải lớn hơn mốc bắt đầu ({minPoints})</p>
+                        )}
+                        {isOverlap(crackPoints) && (
+                          <p className="text-xs text-red-400 mt-0.5">⚠️ Nằm trong khoảng điểm của con vật khác</p>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-sm text-purple-300 mb-1">
+                          🐲 Mốc Nở (Hoàn thành)
+                        </label>
+                        <input
+                          type="number"
+                          value={maxPoints}
+                          onChange={(e) => setMaxPoints(Number(e.target.value))}
+                          min={0}
+                          placeholder={`Gợi ý: ${suggestedMax}`}
+                          className={`w-full px-3 py-2 bg-white/10 border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 ${
+                            isDuplicateMax || isOverlap(maxPoints) ? "border-red-500/60" : "border-purple-500/30"
+                          }`}
+                        />
+                        <p className="text-xs text-purple-400 mt-1">
+                          = {(maxPoints * 10000).toLocaleString("vi-VN")}đ
+                        </p>
+                        {maxPoints <= crackPoints && maxPoints > 0 && (
+                          <p className="text-xs text-red-400 mt-0.5">⚠️ Phải lớn hơn mốc Trứng vỡ ({crackPoints})</p>
+                        )}
+                        {isDuplicateMax && (
+                          <p className="text-xs text-red-400 mt-0.5">⚠️ Trùng mốc hoàn thành với con vật khác</p>
+                        )}
+                        {isOverlap(maxPoints) && (
+                          <p className="text-xs text-red-400 mt-0.5">⚠️ Nằm trong khoảng điểm của con vật khác</p>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-sm text-purple-300 mb-1">
-                      🐣 Mốc Trứng vỡ
-                    </label>
-                    <input
-                      type="number"
-                      value={crackPoints}
-                      onChange={(e) => setCrackPoints(Number(e.target.value))}
-                      min={0}
-                      className="w-full px-3 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    />
-                    <p className="text-xs text-purple-400 mt-1">
-                      = {(crackPoints * 10000).toLocaleString("vi-VN")}đ
-                    </p>
-                  </div>
-                  <div>
-                    <label className="block text-sm text-purple-300 mb-1">
-                      🐲 Mốc Nở (Hoàn thành)
-                    </label>
-                    <input
-                      type="number"
-                      value={maxPoints}
-                      onChange={(e) => setMaxPoints(Number(e.target.value))}
-                      min={0}
-                      className="w-full px-3 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    />
-                    <p className="text-xs text-purple-400 mt-1">
-                      = {(maxPoints * 10000).toLocaleString("vi-VN")}đ
-                    </p>
-                  </div>
-                </div>
-              </div>
+                );
+              })()}
 
               {/* Ảnh 3 giai đoạn */}
               <div>
