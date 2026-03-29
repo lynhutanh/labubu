@@ -34,6 +34,8 @@ export class UserModel extends Document {
 
   petBalance?: number;
 
+  bonusPetPoints?: number;
+
   createdAt: Date;
 
   updatedAt: Date;

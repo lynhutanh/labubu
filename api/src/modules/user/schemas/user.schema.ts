@@ -73,6 +73,10 @@ export const UserSchema = new Schema(
       type: Number,
       default: 0,
     },
+    bonusPetPoints: {
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true },
 );

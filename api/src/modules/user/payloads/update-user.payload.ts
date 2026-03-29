@@ -5,6 +5,7 @@ import {
   IsEmail,
   MaxLength,
   IsEnum,
+  IsNumber,
 } from "class-validator";
 import { Transform } from "class-transformer";
 import { ROLE } from "../constants";
@@ -84,4 +85,9 @@ export class UpdateUserPayload {
     message: `Status phải là ${STATUS.ACTIVE} hoặc ${STATUS.INACTIVE}`,
   })
   status?: string;
+
+  @ApiProperty({ description: "Bonus pet points", required: false })
+  @IsOptional()
+  @IsNumber({}, { message: "Điểm nuôi thú phải là số" })
+  bonusPetPoints?: number;
 }

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { UserResponse } from "../../interfaces";
 import { userService } from "../../services";
+import { petService } from "../../services/pet.service";
 import { walletService } from "../../services/wallet.service";
 import { X, Save, DollarSign } from "lucide-react";
 import toast from "react-hot-toast";
@@ -31,6 +32,11 @@ export default function UserEditModal({
         status: user.status || "active",
     });
 
+    // Pet Points state
+    const [petTotalPoints, setPetTotalPoints] = useState<number>(0);
+    const [petOrderPoints, setPetOrderPoints] = useState<number>(0);
+    const [petPointsLoaded, setPetPointsLoaded] = useState(false);
+
     // Wallet state
     const [balance, setBalance] = useState<number>(0);
     const [initialBalance, setInitialBalance] = useState<number>(0);
@@ -38,7 +44,23 @@ export default function UserEditModal({
 
     useEffect(() => {
         loadWalletBalance();
+        loadPetPoints();
     }, [user._id]);
+
+    const loadPetPoints = async () => {
+        try {
+            const res = await petService.getUserPetPoints(user._id);
+            const data = (res as any)?.data || res;
+            if (data && typeof data.totalPoints === "number") {
+                setPetTotalPoints(data.totalPoints);
+                setPetOrderPoints(data.orderPoints);
+            }
+            setPetPointsLoaded(true);
+        } catch (error) {
+            console.error("Failed to fetch pet points", error);
+            setPetPointsLoaded(true);
+        }
+    };
 
     const loadWalletBalance = async () => {
         try {
@@ -64,8 +86,9 @@ export default function UserEditModal({
         try {
             setLoading(true);
 
-            // 1. Update user info
-            const updatePayload = { ...formData, role: user.role }; // Keep existing role
+            // 1. Update user info + pet points
+            const newBonusPetPoints = petTotalPoints - petOrderPoints;
+            const updatePayload = { ...formData, role: user.role, bonusPetPoints: newBonusPetPoints };
             await userService.update(user._id, updatePayload);
 
             // 2. Update wallet if changed
@@ -212,6 +235,29 @@ export default function UserEditModal({
                                     )}
                                 </div>
                             )}
+                        </div>
+                    </div>
+
+                    {/* Pet Points Section */}
+                    <div className="space-y-4">
+                        <h3 className="text-lg font-semibold text-pink-300 border-b border-pink-500/20 pb-2 flex items-center gap-2">
+                            🐾 Điểm nuôi thú
+                        </h3>
+
+                        <div className="p-4 bg-white/5 rounded-xl border border-white/10">
+                            <label className="block text-sm font-medium text-gray-400 mb-2">
+                                Tổng điểm nuôi thú hiện tại
+                            </label>
+                            <input
+                                type="number"
+                                value={petTotalPoints}
+                                onChange={(e) => setPetTotalPoints(Number(e.target.value))}
+                                placeholder={petPointsLoaded ? "0" : "Đang tải..."}
+                                className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-lg text-white text-xl font-bold focus:outline-none focus:border-pink-500 transition-colors"
+                            />
+                            <p className="mt-2 text-xs text-gray-500 italic">
+                                Điểm từ đơn hàng: {petOrderPoints} | Nhập giá trị mới sẽ ghi đè tổng điểm
+                            </p>
                         </div>
                     </div>
 

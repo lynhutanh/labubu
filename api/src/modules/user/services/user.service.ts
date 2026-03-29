@@ -280,6 +280,8 @@ export class UserService {
       updateData.dateOfBirth = payload.dateOfBirth;
     if (payload.role !== undefined) updateData.role = payload.role;
     if (payload.status !== undefined) updateData.status = payload.status;
+    if ((payload as any).bonusPetPoints !== undefined)
+      updateData.bonusPetPoints = Number((payload as any).bonusPetPoints);
 
     const updatedUser = await this.userModel.findByIdAndUpdate(
       id,

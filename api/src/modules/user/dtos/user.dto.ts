@@ -34,6 +34,8 @@ export class UserDto {
 
   petBalance: number;
 
+  bonusPetPoints: number;
+
   createdAt: Date;
 
   updatedAt: Date;
@@ -58,6 +60,7 @@ export class UserDto {
         "totalSpent",
         "receivedRewards",
         "petBalance",
+        "bonusPetPoints",
         "createdAt",
         "updatedAt",
       ]),
@@ -89,6 +92,7 @@ export class UserDto {
       totalSpent: this.totalSpent,
       receivedRewards: this.receivedRewards,
       petBalance: this.petBalance,
+      bonusPetPoints: this.bonusPetPoints,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
     };

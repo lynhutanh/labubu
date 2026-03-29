@@ -20,6 +20,7 @@ export interface UserResponse {
   address?: string;
   rank?: string;
   totalSpent?: number;
+  bonusPetPoints?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -44,5 +45,6 @@ export interface UpdateUserPayload {
   phone?: string;
   role?: string;
   status?: string;
+  bonusPetPoints?: number;
 }
 

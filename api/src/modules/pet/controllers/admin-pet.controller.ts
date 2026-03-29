@@ -16,6 +16,14 @@ import { CreatePetPayload, UpdatePetPayload } from '../payloads';
 export class AdminPetController {
   constructor(private readonly petService: PetService) {}
 
+  @Get('user-points/:userId')
+  @UseGuards(RoleGuard) @Role(ROLE.ADMIN)
+  @HttpCode(HttpStatus.OK)
+  async getUserPetPoints(@Param('userId') userId: string): Promise<DataResponse<any>> {
+    const result = await this.petService.getAdminPetPoints(userId);
+    return DataResponse.ok(result);
+  }
+
   @Get()
   @UseGuards(RoleGuard) @Role(ROLE.ADMIN)
   @HttpCode(HttpStatus.OK)

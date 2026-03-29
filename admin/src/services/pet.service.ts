@@ -59,6 +59,11 @@ class PetService extends APIRequest {
   public async deletePet(id: string): Promise<void> {
     await this.del(`/admin/pet/${id}`);
   }
+
+  public async getUserPetPoints(userId: string): Promise<{ totalPoints: number; orderPoints: number; bonusPetPoints: number }> {
+    const response = await this.get(`/admin/pet/user-points/${userId}`);
+    return response.data;
+  }
 }
 
 export const petService = new PetService();
