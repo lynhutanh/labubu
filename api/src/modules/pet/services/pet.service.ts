@@ -141,9 +141,39 @@ export class PetService {
 
     const totalSpent =
       aggregateResult.length > 0 ? aggregateResult[0].totalSpent : 0;
-    const totalPointsEarned = Math.floor(totalSpent / POINTS_PER_VND);
+    const orderPoints = Math.floor(totalSpent / POINTS_PER_VND);
+
+    // Cộng thêm điểm bonus do admin cộng
+    const user = await this.userModel.findById(userId).lean();
+    const bonusPetPoints = (user as any)?.bonusPetPoints || 0;
+    const totalPointsEarned = orderPoints + bonusPetPoints;
 
     return { totalPointsEarned };
+  }
+
+  async getAdminPetPoints(
+    userId: string,
+  ): Promise<{ totalPoints: number; orderPoints: number; bonusPetPoints: number }> {
+    const completedStatuses = ["completed", "delivered"];
+    const aggregateResult = await this.orderModel.aggregate([
+      {
+        $match: {
+          buyerId: new ObjectId(userId),
+          status: { $in: completedStatuses },
+        },
+      },
+      { $group: { _id: null, totalSpent: { $sum: "$total" } } },
+    ]);
+
+    const totalSpent =
+      aggregateResult.length > 0 ? aggregateResult[0].totalSpent : 0;
+    const orderPoints = Math.floor(totalSpent / POINTS_PER_VND);
+
+    const user = await this.userModel.findById(userId).lean();
+    const bonusPetPoints = (user as any)?.bonusPetPoints || 0;
+    const totalPoints = orderPoints + bonusPetPoints;
+
+    return { totalPoints, orderPoints, bonusPetPoints };
   }
 
   /**
