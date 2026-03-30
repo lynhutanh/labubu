@@ -122,6 +122,19 @@ export class AdminSettingController {
       return DataResponse.ok({ message: "Welcome popup configuration updated" });
     }
 
+    if (key === "pet_farm_guide") {
+      await this.settingService.set(key, body.value, {
+        name: "Pet Farm Guide",
+        description: "Hướng dẫn người dùng chơi Pet Farm",
+        type: "html",
+        public: true,
+        visible: true,
+        editable: true,
+        group: "pet",
+      });
+      return DataResponse.ok({ message: "Pet Farm Guide updated" });
+    }
+
     await this.settingService.set(key, body.value);
     return DataResponse.ok({ message: "Setting updated" });
   }

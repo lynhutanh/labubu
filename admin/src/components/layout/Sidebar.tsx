@@ -113,6 +113,10 @@ const menuItems: MenuItem[] = [
     name: "Nuôi Vật",
     icon: PawPrint,
     href: "/pet",
+    children: [
+      { name: "Danh sách", icon: List, href: "/pet" },
+      { name: "Hướng dẫn", icon: Settings, href: "/pet/guide" },
+    ],
   },
   {
     name: "Thông báo",

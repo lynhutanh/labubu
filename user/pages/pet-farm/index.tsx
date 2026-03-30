@@ -6,6 +6,8 @@ import {
   PetFarm,
   PetFarmItem,
 } from "../../src/services/pet.service";
+import { BookOpen, X } from "lucide-react";
+import { settingService } from "../../src/services/setting.service";
 
 const STAGE_NAMES = ["Trứng", "Trứng vỡ", "Đã nở"];
 const STAGE_EMOJIS = ["🥚", "🐣", "🐲"];
@@ -18,6 +20,8 @@ export default function PetFarmPage() {
     points: number;
     vnd: number;
   } | null>(null);
+  const [guideContent, setGuideContent] = useState<string>("");
+  const [showGuide, setShowGuide] = useState(false);
 
   const apiUrl =
     process.env.NEXT_PUBLIC_API_ENDPOINT || "http://localhost:5001";
@@ -30,10 +34,25 @@ export default function PetFarmPage() {
 
   const loadData = useCallback(async () => {
     try {
-      const farmData = await petService.getFarm();
+      const [farmData, settings] = await Promise.all([
+        petService.getFarm(),
+        settingService.getPublicSettings()
+      ]);
       setFarm(farmData);
+
+      const guideObj = settings.find(s => s.key === "pet_farm_guide");
+      if (guideObj && guideObj.value) {
+        setGuideContent(guideObj.value);
+      }
     } catch {
       // not logged in or error
+      try {
+        const settings = await settingService.getPublicSettings();
+        const guideObj = settings.find(s => s.key === "pet_farm_guide");
+        if (guideObj && guideObj.value) {
+          setGuideContent(guideObj.value);
+        }
+      } catch (e) { }
     }
     setLoading(false);
   }, []);
@@ -644,6 +663,178 @@ export default function PetFarmPage() {
           to { opacity: 1; transform: scale(1); }
         }
 
+        /* Guide button & popup */
+        .pet-guide-btn {
+          position: absolute;
+          bottom: 24px;
+          left: 24px;
+          z-index: 50;
+          width: 76px;
+          height: 76px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          background: transparent !important;
+          border: none !important;
+          outline: none !important;
+          box-shadow: none !important;
+          padding: 0;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          animation: float 3s ease-in-out infinite;
+        }
+
+        .pet-guide-btn img {
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+          filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
+        }
+
+        .pet-guide-btn:hover {
+          transform: scale(1.1);
+        }
+
+        .pet-guide-popup-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.85);
+          z-index: 1000;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 20px;
+          backdrop-filter: blur(8px);
+        }
+
+        .pet-guide-popup {
+          background: linear-gradient(180deg, rgba(30, 27, 75, 0.95) 0%, rgba(10, 22, 40, 0.98) 100%);
+          backdrop-filter: blur(20px);
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          border-radius: 20px;
+          width: 100%;
+          max-width: 600px;
+          max-height: 80vh;
+          display: flex;
+          flex-direction: column;
+          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+          animation: popIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+          overflow: hidden;
+          color: white;
+        }
+
+        .pet-guide-header {
+          padding: 20px 24px;
+          background: rgba(255, 255, 255, 0.05);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
+
+        .pet-guide-title {
+          font-size: 20px;
+          font-weight: 700;
+          color: #f8fafc;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .pet-guide-close {
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.05);
+          color: #cbd5e1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .pet-guide-close:hover {
+          background: rgba(255, 255, 255, 0.2);
+          color: white;
+          transform: scale(1.05);
+        }
+
+        .pet-guide-body {
+          padding: 24px;
+          overflow-y: auto;
+          color: #cbd5e1;
+          font-size: 16px;
+          line-height: 1.7;
+        }
+
+        .pet-guide-body::-webkit-scrollbar {
+          width: 6px;
+        }
+        .pet-guide-body::-webkit-scrollbar-track {
+          background: rgba(0, 0, 0, 0.2);
+        }
+        .pet-guide-body::-webkit-scrollbar-thumb {
+          background: rgba(255, 255, 255, 0.2);
+          border-radius: 4px;
+        }
+        .pet-guide-body::-webkit-scrollbar-thumb:hover {
+          background: rgba(255, 255, 255, 0.4);
+        }
+
+        .pet-guide-body h1, .pet-guide-body h2, .pet-guide-body h3 {
+          color: #f8fafc;
+          margin-top: 0;
+          margin-bottom: 16px;
+          font-weight: 700;
+        }
+
+        .pet-guide-body p {
+          margin-bottom: 16px;
+        }
+        
+        .pet-guide-body ul, .pet-guide-body ol {
+          margin-bottom: 16px;
+          padding-left: 20px;
+        }
+
+        .pet-guide-body li {
+          margin-bottom: 6px;
+        }
+
+        .pet-guide-body a {
+          color: #34d399;
+          text-decoration: underline;
+        }
+
+        .pet-guide-body img {
+          max-width: 100%;
+          border-radius: 12px;
+          margin: 16px 0;
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+          border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        @keyframes float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-10px); }
+        }
+
+        @media (max-width: 640px) {
+          .pet-guide-btn {
+            bottom: 20px;
+            left: 20px;
+            width: 50px;
+            height: 50px;
+          }
+          .pet-guide-popup {
+            max-height: 90vh;
+            border-radius: 20px;
+          }
+        }
+
         .pet-farm-loading {
           text-align: center;
           padding: 80px 20px;
@@ -734,7 +925,7 @@ export default function PetFarmPage() {
                       style={{ animationDelay: delay }}
                       title={item.pet.name}
                     >
-                      <div 
+                      <div
                         className={`pet-roaming-media pet-flip-${index % 10}`}
                         style={{ animationDelay: delay }}
                       >
@@ -744,6 +935,17 @@ export default function PetFarmPage() {
                     </div>
                   );
                 })
+              )}
+
+              {/* Nút Hướng Dẫn Nổi (bên trong nền khu vườn) */}
+              {guideContent && (
+                <button
+                  className="pet-guide-btn"
+                  onClick={() => setShowGuide(true)}
+                  title="Hướng dẫn "
+                >
+                  <img src="/logoquyensach.png" alt="Hướng dẫn" />
+                </button>
               )}
             </div>
 
@@ -959,6 +1161,27 @@ export default function PetFarmPage() {
               >
                 Tuyệt vời!
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* Popup Hướng Dẫn */}
+        {showGuide && (
+          <div className="pet-guide-popup-overlay" onClick={() => setShowGuide(false)}>
+            <div className="pet-guide-popup" onClick={e => e.stopPropagation()}>
+              <div className="pet-guide-header">
+                <div className="pet-guide-title">
+                  <img src="/logoquyensach.png" alt="Book Icon" style={{ width: 28, height: 28, objectFit: "contain", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.3))" }} />
+                  <span>Hướng dẫn</span>
+                </div>
+                <button className="pet-guide-close" onClick={() => setShowGuide(false)}>
+                  <X size={20} />
+                </button>
+              </div>
+              <div
+                className="pet-guide-body"
+                dangerouslySetInnerHTML={{ __html: guideContent }}
+              />
             </div>
           </div>
         )}
