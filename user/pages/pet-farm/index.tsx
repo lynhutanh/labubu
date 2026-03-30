@@ -313,44 +313,79 @@ export default function PetFarmPage() {
           83% { left: 5%; bottom: 30%; }
           100% { left: 60%; bottom: 15%; }
         }
+        @keyframes roam5 {
+          0% { left: 10%; bottom: 40%; }
+          20% { left: 30%; bottom: 10%; }
+          40% { left: 70%; bottom: 30%; }
+          60% { left: 85%; bottom: 60%; }
+          80% { left: 40%; bottom: 55%; }
+          100% { left: 10%; bottom: 40%; }
+        }
+        @keyframes roam6 {
+          0% { left: 80%; bottom: 10%; }
+          15% { left: 50%; bottom: 40%; }
+          35% { left: 20%; bottom: 20%; }
+          55% { left: 10%; bottom: 60%; }
+          75% { left: 45%; bottom: 15%; }
+          100% { left: 80%; bottom: 10%; }
+        }
+        @keyframes roam7 {
+          0% { left: 35%; bottom: 5%; }
+          25% { left: 15%; bottom: 35%; }
+          45% { left: 55%; bottom: 55%; }
+          65% { left: 85%; bottom: 25%; }
+          85% { left: 60%; bottom: 10%; }
+          100% { left: 35%; bottom: 5%; }
+        }
+        @keyframes roam8 {
+          0% { left: 90%; bottom: 45%; }
+          20% { left: 65%; bottom: 15%; }
+          40% { left: 25%; bottom: 10%; }
+          60% { left: 5%; bottom: 35%; }
+          80% { left: 45%; bottom: 65%; }
+          100% { left: 90%; bottom: 45%; }
+        }
+        @keyframes roam9 {
+          0% { left: 50%; bottom: 60%; }
+          18% { left: 85%; bottom: 50%; }
+          38% { left: 75%; bottom: 15%; }
+          58% { left: 35%; bottom: 5%; }
+          78% { left: 10%; bottom: 25%; }
+          100% { left: 50%; bottom: 60%; }
+        }
 
-        @keyframes flip0 {
-          0%, 49.9% { transform: scaleX(1); }
-          50%, 99.9% { transform: scaleX(-1); }
-          100% { transform: scaleX(1); }
-        }
-        @keyframes flip1 {
-          0%, 54.9% { transform: scaleX(-1); }
-          55%, 99.9% { transform: scaleX(1); }
-          100% { transform: scaleX(-1); }
-        }
-        @keyframes flip2 {
-          0%, 27.9% { transform: scaleX(-1); }
-          28%, 77.9% { transform: scaleX(1); }
-          78%, 100% { transform: scaleX(-1); }
-        }
-        @keyframes flip3 {
-          0%, 31.9% { transform: scaleX(1); }
-          32%, 81.9% { transform: scaleX(-1); }
-          82%, 100% { transform: scaleX(1); }
-        }
-        @keyframes flip4 {
-          0%, 15.9% { transform: scaleX(1); }
-          16%, 82.9% { transform: scaleX(-1); }
-          83%, 100% { transform: scaleX(1); }
-        }
+        @keyframes flip0 { 0%, 49.9% { transform: scaleX(1); } 50%, 99.9% { transform: scaleX(-1); } 100% { transform: scaleX(1); } }
+        @keyframes flip1 { 0%, 54.9% { transform: scaleX(-1); } 55%, 99.9% { transform: scaleX(1); } 100% { transform: scaleX(-1); } }
+        @keyframes flip2 { 0%, 27.9% { transform: scaleX(-1); } 28%, 77.9% { transform: scaleX(1); } 78%, 100% { transform: scaleX(-1); } }
+        @keyframes flip3 { 0%, 31.9% { transform: scaleX(1); } 32%, 81.9% { transform: scaleX(-1); } 82%, 100% { transform: scaleX(1); } }
+        @keyframes flip4 { 0%, 15.9% { transform: scaleX(1); } 16%, 82.9% { transform: scaleX(-1); } 83%, 100% { transform: scaleX(1); } }
+        @keyframes flip5 { 0%, 39.9% { transform: scaleX(1); } 40%, 79.9% { transform: scaleX(-1); } 80%, 100% { transform: scaleX(1); } }
+        @keyframes flip6 { 0%, 24.9% { transform: scaleX(-1); } 25%, 64.9% { transform: scaleX(1); } 65%, 100% { transform: scaleX(-1); } }
+        @keyframes flip7 { 0%, 44.9% { transform: scaleX(-1); } 45%, 84.9% { transform: scaleX(1); } 85%, 100% { transform: scaleX(-1); } }
+        @keyframes flip8 { 0%, 34.9% { transform: scaleX(-1); } 35%, 74.9% { transform: scaleX(1); } 75%, 100% { transform: scaleX(-1); } }
+        @keyframes flip9 { 0%, 29.9% { transform: scaleX(1); } 30%, 69.9% { transform: scaleX(-1); } 70%, 100% { transform: scaleX(1); } }
 
-        .pet-roam-0 { animation: roam0 40s ease-in-out infinite; }
-        .pet-roam-1 { animation: roam1 48s ease-in-out infinite; }
-        .pet-roam-2 { animation: roam2 44s ease-in-out infinite; }
-        .pet-roam-3 { animation: roam3 52s ease-in-out infinite; }
-        .pet-roam-4 { animation: roam4 42s ease-in-out infinite; }
+        .pet-roam-0 { animation: roam0 38s ease-in-out infinite; }
+        .pet-roam-1 { animation: roam1 43s ease-in-out infinite; }
+        .pet-roam-2 { animation: roam2 47s ease-in-out infinite; }
+        .pet-roam-3 { animation: roam3 53s ease-in-out infinite; }
+        .pet-roam-4 { animation: roam4 59s ease-in-out infinite; }
+        .pet-roam-5 { animation: roam5 41s ease-in-out infinite; }
+        .pet-roam-6 { animation: roam6 61s ease-in-out infinite; }
+        .pet-roam-7 { animation: roam7 37s ease-in-out infinite; }
+        .pet-roam-8 { animation: roam8 49s ease-in-out infinite; }
+        .pet-roam-9 { animation: roam9 55s ease-in-out infinite; }
 
-        .pet-flip-0 { animation: flip0 40s linear infinite; transform-origin: center; }
-        .pet-flip-1 { animation: flip1 48s linear infinite; transform-origin: center; }
-        .pet-flip-2 { animation: flip2 44s linear infinite; transform-origin: center; }
-        .pet-flip-3 { animation: flip3 52s linear infinite; transform-origin: center; }
-        .pet-flip-4 { animation: flip4 42s linear infinite; transform-origin: center; }
+        .pet-flip-0 { animation: flip0 38s linear infinite; transform-origin: center; }
+        .pet-flip-1 { animation: flip1 43s linear infinite; transform-origin: center; }
+        .pet-flip-2 { animation: flip2 47s linear infinite; transform-origin: center; }
+        .pet-flip-3 { animation: flip3 53s linear infinite; transform-origin: center; }
+        .pet-flip-4 { animation: flip4 59s linear infinite; transform-origin: center; }
+        .pet-flip-5 { animation: flip5 41s linear infinite; transform-origin: center; }
+        .pet-flip-6 { animation: flip6 61s linear infinite; transform-origin: center; }
+        .pet-flip-7 { animation: flip7 37s linear infinite; transform-origin: center; }
+        .pet-flip-8 { animation: flip8 49s linear infinite; transform-origin: center; }
+        .pet-flip-9 { animation: flip9 55s linear infinite; transform-origin: center; }
 
         /* ===== PET LIST ===== */
         .pet-list {
@@ -691,13 +726,18 @@ export default function PetFarmPage() {
               ) : (
                 gardenPets.map((item, index) => {
                   const stageImg = getStageImage(item, item.userPet!.currentStage);
+                  const delay = `-${(index * 13) % 100}s`;
                   return (
                     <div
                       key={item.pet._id}
-                      className={`pet-roaming pet-roam-${index % 5}`}
+                      className={`pet-roaming pet-roam-${index % 10}`}
+                      style={{ animationDelay: delay }}
                       title={item.pet.name}
                     >
-                      <div className={`pet-roaming-media pet-flip-${index % 5}`}>
+                      <div 
+                        className={`pet-roaming-media pet-flip-${index % 10}`}
+                        style={{ animationDelay: delay }}
+                      >
                         {stageImg && renderMedia(stageImg, item.pet.name, "")}
                       </div>
                       <span className="pet-roaming-name">{item.pet.name}</span>
