@@ -549,12 +549,11 @@ export default function PetLeaderboardPage() {
 
           .lb-arena-inner {
             min-height: auto;
-            padding: 12px 8px 0;
           }
 
           .lb-arena-logo-img {
-            max-width: 220px;
-            max-height: 100px;
+            max-width: 200px;
+            max-height: 90px;
           }
 
           .lb-podium-row {
@@ -562,93 +561,119 @@ export default function PetLeaderboardPage() {
           }
 
           .lb-rank-img {
-            height: 70px;
+            height: 55px;
           }
 
           .lb-rank-img-lg {
-            height: 90px;
-          }
-
-          .lb-pet-img {
-            min-height: 100px !important;
-          }
-
-          .lb-pet-img-lg {
-            min-height: 140px !important;
-          }
-
-          .lb-pet-placeholder {
-            font-size: 28px;
-            width: 70px;
             height: 70px;
           }
 
+          .lb-pet-img {
+            min-height: 80px !important;
+            max-height: 100px;
+          }
+
+          .lb-pet-img-lg {
+            min-height: 100px !important;
+            max-height: 130px;
+          }
+
+          .lb-pet-placeholder {
+            font-size: 24px;
+            width: 60px;
+            height: 60px;
+          }
+
           .lb-user-name {
-            font-size: 10px;
-            max-width: 90px;
+            font-size: 9px;
+            max-width: 80px;
           }
 
           .lb-user-points {
-            font-size: 11px;
+            font-size: 10px;
+            margin-bottom: 4px;
           }
 
           .lb-podium-block {
             height: auto !important;
-          }
-
-          .lb-pillar-img {
+            overflow: hidden;
             position: relative;
           }
 
-          .lb-podium-col:nth-child(1) .lb-podium-block {
-            max-height: 160px;
+          .lb-pillar-img {
+            position: static;
+            width: 100%;
+            height: auto;
+            max-height: 180px;
+            object-fit: contain;
           }
 
-          .lb-podium-col:nth-child(2) .lb-podium-block {
-            max-height: 220px;
+          .lb-podium-col:nth-child(2) .lb-pillar-img {
+            max-height: 230px;
           }
 
-          .lb-podium-col:nth-child(3) .lb-podium-block {
-            max-height: 130px;
+          .lb-podium-col:nth-child(3) .lb-pillar-img {
+            max-height: 140px;
           }
 
           .lb-podium-rank {
-            font-size: 36px !important;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 32px !important;
           }
 
           .lb-table-wrapper {
-            padding: 16px 12px 20px;
-            margin-top: 12px;
-            border-radius: 14px;
+            padding: 14px 10px 18px;
+            margin-top: 10px;
+            border-radius: 12px;
+            max-width: 100%;
           }
 
           .lb-table-header-icon {
-            width: 26px;
-            height: 26px;
-            font-size: 16px;
+            width: 24px;
+            height: 24px;
+            font-size: 14px;
           }
 
           .lb-table-title {
-            font-size: 12px;
-            letter-spacing: 1.5px;
+            font-size: 11px;
+            letter-spacing: 1px;
+          }
+
+          .lb-table {
+            border-spacing: 0 4px;
           }
 
           .lb-table td {
-            padding: 10px 10px;
-            font-size: 13px;
+            padding: 8px 8px;
+            font-size: 12px;
           }
 
           .lb-table-rank {
-            font-size: 15px;
-            width: 45px;
+            font-size: 14px;
+            width: 40px;
           }
 
           .lb-table-name {
-            font-size: 13px;
+            font-size: 12px;
           }
 
           .lb-table-points {
-            font-size: 13px;
+            font-size: 12px;
+          }
+
+          .lb-table-row {
+            border-radius: 10px;
+          }
+
+          .lb-table td:first-child {
+            border-radius: 10px 0 0 10px;
+          }
+
+          .lb-table td:last-child {
+            border-radius: 0 10px 10px 0;
           }
         }
       `}</style>
@@ -730,27 +755,32 @@ export default function PetLeaderboardPage() {
             )}
 
             {/* ===== BẢNG top 4–10 ===== */}
-            {rest.length > 0 && (
-              <div className="lb-table-wrapper">
-                <div className="lb-table-header">
-                  <div className="lb-table-header-icon">🏅</div>
-                  <p className="lb-table-title">Bảng xếp hạng</p>
-                </div>
-                <table className="lb-table">
-                  <tbody>
-                    {rest.map((entry, idx) => (
-                      <tr key={entry.userId} className="lb-table-row">
+            <div className="lb-table-wrapper">
+              <div className="lb-table-header">
+                <div className="lb-table-header-icon">🏅</div>
+                <p className="lb-table-title">Bảng xếp hạng</p>
+              </div>
+              <table className="lb-table">
+                <tbody>
+                  {Array.from({ length: 7 }).map((_, idx) => {
+                    const entry = rest[idx];
+                    return (
+                      <tr key={idx} className="lb-table-row">
                         <td className="lb-table-rank">#{idx + 4}</td>
-                        <td className="lb-table-name">{maskName(entry.name)}</td>
+                        <td className="lb-table-name">
+                          {entry ? maskName(entry.name) : "—"}
+                        </td>
                         <td className="lb-table-points">
-                          {entry.totalPoints.toLocaleString()} điểm
+                          {entry
+                            ? `${entry.totalPoints.toLocaleString()} điểm`
+                            : "— điểm"}
                         </td>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
