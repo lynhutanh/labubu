@@ -37,6 +37,18 @@ export interface PetFarm {
   totalPointsEarned: number;
 }
 
+export interface LeaderboardEntry {
+  userId: string;
+  name: string;
+  avatarUrl: string | null;
+  totalPoints: number;
+  pet: {
+    _id: string;
+    name: string;
+    hatchImage: string;
+  } | null;
+}
+
 export class PetService extends APIRequest {
   public async getFarm(): Promise<PetFarm> {
     const response = await this.get("/pet/farm");
@@ -50,6 +62,11 @@ export class PetService extends APIRequest {
 
   public async claimReward(userPetId: string): Promise<{ rewardPoints: number; rewardVnd: number }> {
     const response = await this.post(`/pet/claim/${userPetId}`, {});
+    return response.data;
+  }
+
+  public async getLeaderboard(): Promise<LeaderboardEntry[]> {
+    const response = await this.get("/pet/leaderboard");
     return response.data;
   }
 }

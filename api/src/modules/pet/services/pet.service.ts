@@ -1,5 +1,5 @@
 import {
-  Injectable, BadRequestException, NotFoundException, Inject,
+  Injectable, BadRequestException, NotFoundException, Inject, Query,
 } from "@nestjs/common";
 import { Model } from "mongoose";
 import { ObjectId } from "mongodb";
@@ -309,5 +309,75 @@ export class PetService {
     await userPet.save();
 
     return { rewardPoints, rewardVnd };
+  }
+
+  async getLeaderboard(limit = 8): Promise<any[]> {
+    const completedStatuses = ["completed", "delivered"];
+
+    // Tính tổng điểm từ đơn hàng cho tất cả user
+    const orderPoints = await this.orderModel.aggregate([
+      { $match: { status: { $in: completedStatuses } } },
+      { $group: { _id: "$buyerId", totalSpent: { $sum: "$total" } } },
+    ]);
+
+    if (!orderPoints.length) return [];
+
+    // Map userId -> orderPoints
+    const orderPointsMap = new Map<string, number>();
+    for (const row of orderPoints) {
+      orderPointsMap.set(row._id.toString(), Math.floor(row.totalSpent / POINTS_PER_VND));
+    }
+
+    const userIds = orderPoints.map((r) => r._id);
+
+    // Lấy bonusPetPoints và thông tin user
+    const users = await this.userModel
+      .find({ _id: { $in: userIds } })
+      .select("_id name email avatarUrl bonusPetPoints")
+      .lean();
+
+    // Tính tổng điểm = orderPoints + bonus
+    const ranked = users.map((u: any) => {
+      const uid = u._id.toString();
+      const pts = (orderPointsMap.get(uid) || 0) + (u.bonusPetPoints || 0);
+      return { userId: uid, name: u.name || u.email, avatarUrl: u.avatarUrl || null, totalPoints: pts };
+    });
+
+    ranked.sort((a, b) => b.totalPoints - a.totalPoints);
+    const top = ranked.slice(0, limit);
+
+    // Lấy pet hatchImage của pet có maxPoints cao nhất mà user đã hoàn thành
+    const allPets = await this.petModel.find({ status: "active" }).sort({ maxPoints: -1 }).lean();
+
+    const result: any[] = [];
+    for (const user of top) {
+      const userPets = await this.userPetModel
+        .find({ userId: user.userId, isCompleted: true })
+        .lean();
+
+      let bestPet: any = null;
+      if (userPets.length) {
+        // Tìm pet có maxPoints cao nhất trong số đã hoàn thành
+        let bestMaxPoints = -1;
+        for (const up of userPets) {
+          const pet = allPets.find((p: any) => p._id.toString() === up.petId.toString());
+          if (pet && (pet as any).maxPoints > bestMaxPoints) {
+            bestMaxPoints = (pet as any).maxPoints;
+            bestPet = pet;
+          }
+        }
+      }
+
+      result.push({
+        ...user,
+        pet: bestPet ? {
+          _id: bestPet._id,
+          name: bestPet.name,
+          hatchImage: bestPet.hatchImage,
+        } : null,
+      });
+    }
+
+    return result;
   }
 }

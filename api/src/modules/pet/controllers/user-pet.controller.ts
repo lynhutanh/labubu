@@ -14,6 +14,12 @@ import { PetFarmDto } from "../dtos";
 export class UserPetController {
   constructor(private readonly petService: PetService) {}
 
+  @Get("leaderboard")
+  @HttpCode(HttpStatus.OK)
+  async getLeaderboard(): Promise<DataResponse<any>> {
+    return DataResponse.ok(await this.petService.getLeaderboard(8));
+  }
+
   @Get("farm")
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -38,3 +44,4 @@ export class UserPetController {
     return DataResponse.ok(await this.petService.claimReward(user._id, userPetId));
   }
 }
+
