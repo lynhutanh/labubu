@@ -169,27 +169,50 @@ export default function PetFarmPage() {
           letter-spacing: 2px;
         }
 
-        .pet-points-badge {
-          display: inline-flex;
+        .pet-points-container {
+          position: relative;
+          display: inline-block;
+          width: 340px;
+          height: 70px;
+        }
+
+        .pet-points-bg {
+          position: absolute;
+          inset: 0;
+          background-image: url('/images/123-removebg-preview.png');
+          background-size: 100% 100%;
+          background-repeat: no-repeat;
+          background-position: center;
+          pointer-events: none;
+        }
+
+        .pet-points-content {
+          position: relative;
+          z-index: 2;
+          display: flex;
           align-items: center;
+          justify-content: center;
           gap: 8px;
-          background: rgba(255, 255, 255, 0.08);
-          backdrop-filter: blur(10px);
-          border: 1px solid rgba(255, 255, 255, 0.15);
-          border-radius: 20px;
-          padding: 8px 20px;
-          margin-top: 12px;
+          width: 100%;
+          height: 100%;
+          padding-right: 20px;
+          padding-top: 20px;
         }
 
-        .pet-points-badge span {
-          font-size: 13px;
-          color: #94a3b8;
+        .pet-points-content span {
+          font-size: 14px;
+          color: #fff;
+          font-weight: 600;
+          text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
         }
 
-        .pet-points-badge strong {
-          font-size: 22px;
+        .pet-points-content strong {
+          font-size: 24px;
           font-weight: 900;
           color: #fbbf24;
+          text-shadow:
+            0 1px 2px rgba(0, 0, 0, 0.8),
+            0 0 10px rgba(251, 191, 36, 0.4);
         }
 
         /* ===== GARDEN AREA ===== */
@@ -922,8 +945,9 @@ export default function PetFarmPage() {
 
         <div className="pet-farm-points desktop-points">
           {farm && (
-            <div>
-              <div className="pet-points-badge" style={{ marginTop: 0 }}>
+            <div className="pet-points-container">
+              <div className="pet-points-bg" />
+              <div className="pet-points-content">
                 <span>Điểm tích lũy:</span>
                 <strong>{farm.totalPointsEarned}</strong>
               </div>
@@ -987,8 +1011,9 @@ export default function PetFarmPage() {
 
                 <div className="mobile-points">
                   {farm && (
-                    <div>
-                      <div className="pet-points-badge" style={{ marginTop: 0 }}>
+                    <div className="pet-points-container">
+                      <div className="pet-points-bg" />
+                      <div className="pet-points-content">
                         <span>Điểm tích lũy:</span>
                         <strong>{farm.totalPointsEarned}</strong>
                       </div>
