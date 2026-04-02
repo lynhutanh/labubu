@@ -7,7 +7,7 @@ import {
   PetFarm,
   PetFarmItem,
 } from "../../src/services/pet.service";
-import { Trophy, X } from "lucide-react";
+import { X } from "lucide-react";
 import { settingService } from "../../src/services/setting.service";
 
 const STAGE_NAMES = ["Trứng", "Trứng vỡ", "Đã nở"];
@@ -847,35 +847,48 @@ export default function PetFarmPage() {
         }
 
         .pet-lb-btn {
-          display: inline-flex;
+          position: absolute;
+          bottom: 24px;
+          left: 108px;
+          z-index: 50;
+          width: 76px;
+          height: 76px;
+          display: flex;
           align-items: center;
-          gap: 8px;
-          margin-top: 12px;
-          padding: 9px 20px;
-          background: rgba(251, 191, 36, 0.12);
-          border: 1px solid rgba(251, 191, 36, 0.35);
-          border-radius: 24px;
-          color: #fbbf24;
-          font-size: 13px;
-          font-weight: 700;
-          text-decoration: none;
-          letter-spacing: 0.5px;
-          transition: all 0.25s;
+          justify-content: center;
+          background: transparent;
+          border: none;
+          outline: none;
+          box-shadow: none;
+          padding: 0;
           cursor: pointer;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          animation: float 3s ease-in-out infinite;
+          animation-delay: 0.5s;
+          text-decoration: none;
+        }
+
+        .pet-lb-btn img {
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+          filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
         }
 
         .pet-lb-btn:hover {
-          background: rgba(251, 191, 36, 0.22);
-          border-color: rgba(251, 191, 36, 0.6);
-          transform: translateY(-2px);
-          box-shadow: 0 4px 20px rgba(251, 191, 36, 0.25);
-          color: #fbbf24;
+          transform: scale(1.1);
         }
 
         @media (max-width: 640px) {
           .pet-guide-btn {
             bottom: 20px;
             left: 20px;
+            width: 50px;
+            height: 50px;
+          }
+          .pet-lb-btn {
+            bottom: 20px;
+            left: 78px;
             width: 50px;
             height: 50px;
           }
@@ -937,10 +950,7 @@ export default function PetFarmPage() {
       <div className="pet-farm-page">
         <div className="pet-farm-header">
           <img src="/lgodaorong.png" alt="Đảo Rồng" style={{ width: 160, height: 160, objectFit: "contain", marginBottom: 8 }} />
-          <Link href="/pet-leaderboard" className="pet-lb-btn" title="Bảng xếp hạng">
-            <Trophy size={20} />
-            <span>Bảng xếp hạng</span>
-          </Link>
+
         </div>
 
         <div className="pet-farm-points desktop-points">
@@ -1002,6 +1012,11 @@ export default function PetFarmPage() {
                   <img src="/logoquyensach.png" alt="Hướng dẫn" />
                 </button>
               )}
+
+              {/* Nút Bảng Xếp Hạng (ngay bên cạnh nút hướng dẫn) */}
+              <Link href="/pet-leaderboard" className="pet-lb-btn" title="Bảng xếp hạng">
+                <img src="/images/logobxh-removebg-preview.png" alt="Bảng xếp hạng" />
+              </Link>
             </div>
 
             {/* ===== DANH SÁCH PET ===== */}
