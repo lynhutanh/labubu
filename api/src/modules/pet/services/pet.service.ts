@@ -315,24 +315,35 @@ export class PetService {
     const completedStatuses = ["completed", "delivered"];
 
     // Tính tổng điểm từ đơn hàng cho tất cả user
-    const orderPoints = await this.orderModel.aggregate([
+    const orderAgg = await this.orderModel.aggregate([
       { $match: { status: { $in: completedStatuses } } },
       { $group: { _id: "$buyerId", totalSpent: { $sum: "$total" } } },
     ]);
 
-    if (!orderPoints.length) return [];
-
     // Map userId -> orderPoints
     const orderPointsMap = new Map<string, number>();
-    for (const row of orderPoints) {
+    for (const row of orderAgg) {
       orderPointsMap.set(row._id.toString(), Math.floor(row.totalSpent / POINTS_PER_VND));
     }
 
-    const userIds = orderPoints.map((r) => r._id);
+    // Lấy tất cả user có bonusPetPoints > 0 HOẶC có đơn hàng
+    const orderUserIds = orderAgg.map((r) => r._id);
+    const bonusUsers = await this.userModel
+      .find({ bonusPetPoints: { $gt: 0 } })
+      .select("_id")
+      .lean();
+    const bonusUserIds = bonusUsers.map((u: any) => u._id);
 
-    // Lấy bonusPetPoints và thông tin user
+    // Hợp nhất 2 tập user
+    const allUserIdSet = new Set<string>([
+      ...orderUserIds.map((id: any) => id.toString()),
+      ...bonusUserIds.map((id: any) => id.toString()),
+    ]);
+
+    if (!allUserIdSet.size) return [];
+
     const users = await this.userModel
-      .find({ _id: { $in: userIds } })
+      .find({ _id: { $in: [...allUserIdSet] } })
       .select("_id name email avatarUrl bonusPetPoints")
       .lean();
 
