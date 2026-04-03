@@ -36,6 +36,21 @@ export class UserModel extends Document {
 
   bonusPetPoints?: number;
 
+  petChestPointsSpent?: number;
+
+  petChestHistory?: {
+    prizeId: string;
+    prizeName: string;
+    prizeImage: string;
+    rewardPoints: number;
+    rewardVnd: number;
+    openCostPoints: number;
+    deliveryStatus?: "pending" | "shipped" | "delivered";
+    note?: string;
+    openedAt: Date;
+    updatedAt?: Date;
+  }[];
+
   createdAt: Date;
 
   updatedAt: Date;

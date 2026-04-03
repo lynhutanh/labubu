@@ -35,6 +35,7 @@ export default function UserEditModal({
     // Pet Points state
     const [petTotalPoints, setPetTotalPoints] = useState<number>(0);
     const [petOrderPoints, setPetOrderPoints] = useState<number>(0);
+    const [petSpentPoints, setPetSpentPoints] = useState<number>(0);
     const [petPointsLoaded, setPetPointsLoaded] = useState(false);
 
     // Wallet state
@@ -51,9 +52,13 @@ export default function UserEditModal({
         try {
             const res = await petService.getUserPetPoints(user._id);
             const data = (res as any)?.data || res;
-            if (data && typeof data.totalPoints === "number") {
-                setPetTotalPoints(data.totalPoints);
-                setPetOrderPoints(data.orderPoints);
+            if (data) {
+                const availablePoints = typeof data.availablePoints === "number"
+                    ? data.availablePoints
+                    : data.totalPoints;
+                setPetTotalPoints(Number(availablePoints) || 0);
+                setPetOrderPoints(Number(data.orderPoints) || 0);
+                setPetSpentPoints(Number(data.spentPoints) || 0);
             }
             setPetPointsLoaded(true);
         } catch (error) {
@@ -87,7 +92,12 @@ export default function UserEditModal({
             setLoading(true);
 
             // 1. Update user info + pet points
-            const newBonusPetPoints = petTotalPoints - petOrderPoints;
+            const normalizedAvailablePoints = Math.max(
+                0,
+                Math.floor(Number(petTotalPoints) || 0),
+            );
+            const newBonusPetPoints =
+                normalizedAvailablePoints + petSpentPoints - petOrderPoints;
             const updatePayload = { ...formData, role: user.role, bonusPetPoints: newBonusPetPoints };
             await userService.update(user._id, updatePayload);
 
@@ -246,7 +256,7 @@ export default function UserEditModal({
 
                         <div className="p-4 bg-white/5 rounded-xl border border-white/10">
                             <label className="block text-sm font-medium text-gray-400 mb-2">
-                                Tổng điểm nuôi thú hiện tại
+                                Điểm nuôi thú khả dụng hiện tại
                             </label>
                             <input
                                 type="number"
@@ -256,7 +266,7 @@ export default function UserEditModal({
                                 className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-lg text-white text-xl font-bold focus:outline-none focus:border-pink-500 transition-colors"
                             />
                             <p className="mt-2 text-xs text-gray-500 italic">
-                                Điểm từ đơn hàng: {petOrderPoints} | Nhập giá trị mới sẽ ghi đè tổng điểm
+                                Điểm từ đơn hàng: {petOrderPoints} | Đã dùng: {petSpentPoints} | Nhập giá trị mới sẽ ghi đè điểm khả dụng
                             </p>
                         </div>
                     </div>

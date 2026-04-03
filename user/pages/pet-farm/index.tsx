@@ -4,10 +4,11 @@ import Link from "next/link";
 import Layout from "../../src/components/layout/Layout";
 import {
   petService,
+  PetChestConfig,
   PetFarm,
   PetFarmItem,
 } from "../../src/services/pet.service";
-import { X } from "lucide-react";
+import { Gift, X } from "lucide-react";
 import { settingService } from "../../src/services/setting.service";
 
 const STAGE_NAMES = ["Trứng", "Trứng vỡ", "Đã nở"];
@@ -23,6 +24,16 @@ export default function PetFarmPage() {
   } | null>(null);
   const [guideContent, setGuideContent] = useState<string>("");
   const [showGuide, setShowGuide] = useState(false);
+  const [chestConfig, setChestConfig] = useState<PetChestConfig | null>(null);
+  const [showChestPopup, setShowChestPopup] = useState(false);
+  const [openingChest, setOpeningChest] = useState(false);
+  const [chestResult, setChestResult] = useState<{
+    name: string;
+    image?: string;
+    rewardPoints: number;
+    rewardVnd: number;
+    remainingChestPoints: number;
+  } | null>(null);
 
   const apiUrl =
     process.env.NEXT_PUBLIC_API_ENDPOINT || "http://localhost:5001";
@@ -34,27 +45,29 @@ export default function PetFarmPage() {
   };
 
   const loadData = useCallback(async () => {
-    try {
-      const [farmData, settings] = await Promise.all([
-        petService.getFarm(),
-        settingService.getPublicSettings()
-      ]);
-      setFarm(farmData);
+    const [farmRes, settingsRes, chestRes] = await Promise.allSettled([
+      petService.getFarm(),
+      settingService.getPublicSettings(),
+      petService.getChestConfig(),
+    ]);
 
-      const guideObj = settings.find(s => s.key === "pet_farm_guide");
+    if (farmRes.status === "fulfilled") {
+      setFarm(farmRes.value);
+    }
+
+    if (chestRes.status === "fulfilled") {
+      setChestConfig(chestRes.value);
+    } else {
+      setChestConfig(null);
+    }
+
+    if (settingsRes.status === "fulfilled") {
+      const guideObj = settingsRes.value.find((s) => s.key === "pet_farm_guide");
       if (guideObj && guideObj.value) {
         setGuideContent(guideObj.value);
       }
-    } catch {
-      // not logged in or error
-      try {
-        const settings = await settingService.getPublicSettings();
-        const guideObj = settings.find(s => s.key === "pet_farm_guide");
-        if (guideObj && guideObj.value) {
-          setGuideContent(guideObj.value);
-        }
-      } catch (e) { }
     }
+
     setLoading(false);
   }, []);
 
@@ -72,6 +85,37 @@ export default function PetFarmPage() {
       alert(err?.message || "Không thể nhận thưởng");
     } finally {
       setClaiming(null);
+    }
+  };
+
+  const handleOpenChest = async () => {
+    if (!chestConfig || !chestConfig.enabled) {
+      alert("Rương may mắn hiện đang tạm khóa");
+      return;
+    }
+
+    if ((chestConfig.availableChestPoints || 0) < chestConfig.openCostPoints) {
+      alert(
+        `Bạn cần ${chestConfig.openCostPoints} điểm để mở rương, hiện có ${chestConfig.availableChestPoints || 0}`,
+      );
+      return;
+    }
+
+    try {
+      setOpeningChest(true);
+      const result = await petService.openChest();
+      setChestResult({
+        name: result.prize.name,
+        image: result.prize.image,
+        rewardPoints: result.prize.rewardPoints,
+        rewardVnd: result.prize.rewardVnd,
+        remainingChestPoints: result.remainingChestPoints,
+      });
+      await loadData();
+    } catch (err: any) {
+      alert(err?.message || "Không thể mở rương lúc này");
+    } finally {
+      setOpeningChest(false);
     }
   };
 
@@ -116,6 +160,10 @@ export default function PetFarmPage() {
     );
   };
 
+  const displayPoints =
+    typeof farm?.availableChestPoints === "number"
+      ? farm.availableChestPoints
+      : (farm?.totalPointsEarned || 0);
   // Lấy danh sách pet đã qua giai đoạn trứng để hiển thị trong vườn
   const gardenPets =
     farm?.items.filter((i) => i.userPet && i.userPet.currentStage >= 1) || [];
@@ -879,6 +927,63 @@ export default function PetFarmPage() {
           transform: scale(1.1);
         }
 
+        .pet-chest-btn {
+          position: absolute;
+          bottom: 24px;
+          left: 188px;
+          z-index: 50;
+          width: 96px;
+          height: 96px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: transparent;
+          border: none;
+          outline: none;
+          box-shadow: none;
+          padding: 0;
+          cursor: pointer;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          animation: float 3s ease-in-out infinite;
+          animation-delay: 1s;
+          text-decoration: none;
+        }
+
+        .pet-chest-btn img {
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+          filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
+        }
+
+        .pet-chest-btn:hover {
+          transform: scale(1.1);
+        }
+
+        .pet-chest-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.78);
+          z-index: 1000;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 20px;
+          backdrop-filter: blur(8px);
+        }
+
+        .pet-chest-popup {
+          width: 100%;
+          max-width: 640px;
+          max-height: 85vh;
+          overflow: auto;
+          border-radius: 24px;
+          border: 1px solid rgba(251, 191, 36, 0.35);
+          background: linear-gradient(180deg, rgba(31, 41, 55, 0.98), rgba(17, 24, 39, 0.98));
+          color: #f8fafc;
+          box-shadow: 0 25px 50px rgba(0, 0, 0, 0.45);
+        }
+
         @media (max-width: 640px) {
           .pet-guide-btn {
             bottom: 20px;
@@ -891,6 +996,12 @@ export default function PetFarmPage() {
             left: 78px;
             width: 50px;
             height: 50px;
+          }
+          .pet-chest-btn {
+            bottom: 20px;
+            left: 132px;
+            width: 64px;
+            height: 64px;
           }
           .pet-guide-popup {
             max-height: 90vh;
@@ -958,8 +1069,8 @@ export default function PetFarmPage() {
             <div className="pet-points-container">
               <div className="pet-points-bg" />
               <div className="pet-points-content">
-                <span>Điểm tích lũy:</span>
-                <strong>{farm.totalPointsEarned}</strong>
+                <span>Diem kha dung:</span>
+                <strong>{displayPoints}</strong>
               </div>
             </div>
           )}
@@ -1001,21 +1112,29 @@ export default function PetFarmPage() {
                   );
                 })
               )}
-
-              {/* Nút Hướng Dẫn Nổi (bên trong nền khu vườn) */}
+              {/* N�t hu?ng d?n */}
               {guideContent && (
                 <button
                   className="pet-guide-btn"
                   onClick={() => setShowGuide(true)}
-                  title="Hướng dẫn "
+                  title="Hu?ng d?n"
                 >
-                  <img src="/logoquyensach.png" alt="Hướng dẫn" />
+                  <img src="/logoquyensach.png" alt="Hu?ng d?n" />
                 </button>
               )}
 
-              {/* Nút Bảng Xếp Hạng (ngay bên cạnh nút hướng dẫn) */}
-              <Link href="/pet-leaderboard" className="pet-lb-btn" title="Bảng xếp hạng">
-                <img src="/images/logobxh-removebg-preview.png" alt="Bảng xếp hạng" />
+              {/* N�t b?ng x?p h?ng */}
+              <Link href="/pet-leaderboard" className="pet-lb-btn" title="B?ng x?p h?ng">
+                <img src="/images/logobxh-removebg-preview.png" alt="B?ng x?p h?ng" />
+              </Link>
+
+              {/* N�t m? ruong may m?n */}
+              <Link
+                href="/pet-chest"
+                className="pet-chest-btn"
+                title="M? ruong may m?n"
+              >
+                <img src="/images/iconhopqua.png" alt="Icon hop qua" />
               </Link>
             </div>
 
@@ -1029,8 +1148,8 @@ export default function PetFarmPage() {
                     <div className="pet-points-container">
                       <div className="pet-points-bg" />
                       <div className="pet-points-content">
-                        <span>Điểm tích lũy:</span>
-                        <strong>{farm.totalPointsEarned}</strong>
+                        <span>Diem kha dung:</span>
+                        <strong>{displayPoints}</strong>
                       </div>
                     </div>
                   )}
@@ -1171,6 +1290,181 @@ export default function PetFarmPage() {
           </>
         )}
 
+        {/* Popup rương may mắn */}
+        {showChestPopup && chestConfig && (
+          <div className="pet-chest-overlay" onClick={() => setShowChestPopup(false)}>
+            <div className="pet-chest-popup" onClick={(e) => e.stopPropagation()}>
+              <div
+                style={{
+                  padding: "20px 24px",
+                  borderBottom: "1px solid rgba(251,191,36,0.25)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <Gift size={22} color="#fbbf24" />
+                  <strong style={{ fontSize: 20 }}>Rương may mắn</strong>
+                </div>
+                <button className="pet-guide-close" onClick={() => setShowChestPopup(false)}>
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div style={{ padding: "20px 24px 24px" }}>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fit,minmax(170px,1fr))",
+                    gap: 10,
+                    marginBottom: 16,
+                  }}
+                >
+                  <div
+                    style={{
+                      background: "rgba(30, 64, 175, 0.25)",
+                      border: "1px solid rgba(96,165,250,0.4)",
+                      borderRadius: 12,
+                      padding: "10px 12px",
+                    }}
+                  >
+                    <div style={{ fontSize: 12, color: "#bfdbfe" }}>Điểm khả dụng</div>
+                    <div style={{ fontSize: 24, fontWeight: 900, color: "#dbeafe" }}>
+                      {chestConfig.availableChestPoints}
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      background: "rgba(133, 77, 14, 0.28)",
+                      border: "1px solid rgba(251,191,36,0.45)",
+                      borderRadius: 12,
+                      padding: "10px 12px",
+                    }}
+                  >
+                    <div style={{ fontSize: 12, color: "#fde68a" }}>Giá mở 1 lần</div>
+                    <div style={{ fontSize: 24, fontWeight: 900, color: "#fef3c7" }}>
+                      {chestConfig.openCostPoints}
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    marginBottom: 14,
+                    fontSize: 13,
+                    color: "#94a3b8",
+                  }}
+                >
+                  Danh sách quà và tỉ lệ:
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 240, overflowY: "auto" }}>
+                  {(() => {
+                    const activePrizes = chestConfig.prizes.filter((p) => p.active !== false);
+                    const total = activePrizes.reduce((sum, p) => sum + p.weight, 0) || 1;
+                    return activePrizes.map((prize) => (
+                      <div
+                        key={prize.id}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          gap: 10,
+                          padding: "10px 12px",
+                          borderRadius: 10,
+                          border: "1px solid rgba(148,163,184,0.24)",
+                          background: "rgba(255,255,255,0.03)",
+                        }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                          {prize.image ? (
+                            <img
+                              src={getImageUrl(prize.image)}
+                              alt={prize.name}
+                              style={{ width: 34, height: 34, borderRadius: 8, objectFit: "cover" }}
+                            />
+                          ) : (
+                            <div
+                              style={{
+                                width: 34,
+                                height: 34,
+                                borderRadius: 8,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                background: "rgba(251,191,36,0.2)",
+                                color: "#fbbf24",
+                              }}
+                            >
+                              <Gift size={16} />
+                            </div>
+                          )}
+                          <div>
+                            <div style={{ fontSize: 14, fontWeight: 700, color: "#f8fafc" }}>
+                              {prize.name}
+                            </div>
+                            <div style={{ fontSize: 12, color: "#cbd5e1" }}>
+                              +{prize.rewardVnd.toLocaleString("vi-VN")}đ
+                            </div>
+                          </div>
+                        </div>
+                        <div style={{ fontSize: 12, color: "#fbbf24", fontWeight: 700 }}>
+                          {((prize.weight / total) * 100).toFixed(2)}%
+                        </div>
+                      </div>
+                    ));
+                  })()}
+                </div>
+
+                {chestResult && (
+                  <div
+                    style={{
+                      marginTop: 14,
+                      padding: "12px 14px",
+                      borderRadius: 12,
+                      border: "1px solid rgba(52,211,153,0.35)",
+                      background: "rgba(16,185,129,0.15)",
+                    }}
+                  >
+                    <div style={{ fontSize: 13, color: "#a7f3d0" }}>Bạn vừa nhận:</div>
+                    <div style={{ fontSize: 18, fontWeight: 900, color: "#ecfeff", marginTop: 2 }}>
+                      {chestResult.name} (+{chestResult.rewardVnd.toLocaleString("vi-VN")}đ)
+                    </div>
+                    <div style={{ fontSize: 12, color: "#bbf7d0", marginTop: 2 }}>
+                      Điểm mở rương còn lại: {chestResult.remainingChestPoints}
+                    </div>
+                  </div>
+                )}
+
+                <button
+                  onClick={handleOpenChest}
+                  disabled={openingChest || !chestConfig.enabled || chestConfig.availableChestPoints < chestConfig.openCostPoints}
+                  style={{
+                    marginTop: 16,
+                    width: "100%",
+                    padding: "12px 16px",
+                    borderRadius: 14,
+                    border: "none",
+                    fontWeight: 800,
+                    color: "#1f2937",
+                    background: "linear-gradient(135deg, #fbbf24, #f59e0b)",
+                    cursor:
+                      openingChest || !chestConfig.enabled || chestConfig.availableChestPoints < chestConfig.openCostPoints
+                        ? "not-allowed"
+                        : "pointer",
+                    opacity:
+                      openingChest || !chestConfig.enabled || chestConfig.availableChestPoints < chestConfig.openCostPoints
+                        ? 0.6
+                        : 1,
+                  }}
+                >
+                  {openingChest ? "Đang mở rương..." : `Mở rương (${chestConfig.openCostPoints} điểm)`}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Reward popup */}
         {rewardPopup && (
           <div
@@ -1260,3 +1554,5 @@ export default function PetFarmPage() {
     </Layout>
   );
 }
+
+

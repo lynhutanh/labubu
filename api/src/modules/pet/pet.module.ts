@@ -6,6 +6,7 @@ import { PetService } from './services';
 import { AuthModule } from '../auth/auth.module';
 import { OrderModule } from '../orders/order.module';
 import { PaymentModule } from '../payment/payment.module';
+import { SettingModule } from '../settings/setting.module';
 import { UserModule } from '../user/user.module';
 
 @Module({
@@ -14,6 +15,7 @@ import { UserModule } from '../user/user.module';
     forwardRef(() => AuthModule),
     forwardRef(() => OrderModule),
     forwardRef(() => PaymentModule),
+    forwardRef(() => SettingModule),
     forwardRef(() => UserModule),
   ],
   controllers: [AdminPetController, UserPetController],

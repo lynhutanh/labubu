@@ -1,468 +1,198 @@
-# Labubu Cosmetics Platform - Codebase Index
+# Labubu Codebase Index
 
-## Project Overview
-A full-stack e-commerce platform for cosmetics with three main applications:
-- **User App**: Customer-facing Next.js frontend (Port 5002)
-- **Admin App**: Admin dashboard Next.js frontend (Port 5003)
-- **API**: NestJS backend (Port 5001)
+## Overview
+Labubu is a full-stack commerce platform split into three apps:
 
----
+- `api/`: NestJS backend on port `5001`
+- `user/`: customer-facing Next.js app on port `5002`
+- `admin/`: admin Next.js app on port `5003`
 
-## Architecture
+The repo mixes `npm` and `yarn` lockfiles, but each app defines its own scripts in `package.json`.
 
-### Tech Stack
-- **Frontend**: Next.js 15.3.6, React 19, TypeScript, Tailwind CSS, Zustand
-- **Backend**: NestJS 10, MongoDB, Redis, Socket.io
-- **Package Manager**: Yarn/npm
-- **Build Tools**: TypeScript, ESLint, Prettier
+## Quick Start
 
-### Key Dependencies
-- **API**: Mongoose, BullMQ, SendGrid, Passport, Socket.io, Sharp, FFmpeg
-- **Frontend**: Axios, React Hook Form, Socket.io-client, Framer Motion, Lucide React
-- **Auth**: Google OAuth, Facebook Login, JWT
+### Root
+- `README.md`: very short startup note
+- `ecosystem.config.js`: PM2 process definitions
+- `SEPAY_INTEGRATION.md`: payment integration notes
 
----
+### App Commands
+- API: `cd api && npm run dev`
+- User app: `cd user && npm run dev`
+- Admin app: `cd admin && npm run dev`
 
-## Directory Structure
+## High-Level Architecture
 
-```
+### Backend
+- Framework: NestJS 10
+- Database: MongoDB with Mongoose
+- Caching / queue infra: Redis + BullMQ
+- Realtime: Socket.io
+- Static files: served from `api/public`
+- Payments: wallet, PayPal, SePay, ZaloPay, GHN shipping support
+
+### Frontend
+- Framework: Next.js 15.3.6 with React 19
+- Styling: Tailwind CSS
+- State / UX libs: Zustand, React Hook Form, Framer Motion
+- Transport: Axios + Socket.io client
+
+## Repository Layout
+
+```text
 labubu/
-├── api/                          # NestJS Backend
-│   ├── src/
-│   │   ├── config/              # Configuration files
-│   │   ├── kernel/              # Core infrastructure
-│   │   ├── lib/                 # Utilities & helpers
-│   │   ├── modules/             # Feature modules
-│   │   ├── app.module.ts        # Root module
-│   │   └── main.ts              # Entry point
-│   ├── migrations/              # Database migrations
-│   ├── scripts/                 # Build & seed scripts
-│   └── dist/                    # Compiled output
-│
-├── admin/                        # Admin Dashboard (Next.js)
-│   ├── pages/                   # Page routes
-│   │   ├── login.tsx
-│   │   ├── dashboard/
-│   │   ├── products/
-│   │   ├── categories/
-│   │   ├── orders/
-│   │   ├── users/
-│   │   ├── settings/
-│   │   ├── chat/
-│   │   └── refund-requests/
-│   ├── src/
-│   │   ├── components/          # Reusable components
-│   │   ├── services/            # API services
-│   │   ├── interfaces/          # TypeScript interfaces
-│   │   └── utils/
-│   └── style/
-│
-├── user/                         # User App (Next.js)
-│   ├── pages/                   # Page routes
-│   │   ├── login/
-│   │   ├── products/
-│   │   ├── cart/
-│   │   ├── checkout/
-│   │   ├── profile/
-│   │   ├── wishlist/
-│   │   ├── tracking/
-│   │   └── contact/
-│   ├── src/
-│   │   ├── components/          # Reusable components
-│   │   ├── services/            # API services
-│   │   ├── hooks/               # Custom React hooks
-│   │   ├── interfaces/          # TypeScript interfaces
-│   │   ├── lib/                 # Utilities
-│   │   └── utils/
-│   ├── public/
-│   │   └── lang/                # i18n translations (en, vi)
-│   └── style/
-│
-└── ecosystem.config.js          # PM2 configuration
+  api/                    NestJS backend
+    src/
+      app.module.ts       Root module wiring
+      main.ts             API bootstrap
+      config/             Env-backed config loaders
+      kernel/             Shared infra, queue, mongodb, helpers, exceptions
+      modules/            Feature modules
+    migrations/           Data and settings migrations
+    scripts/              Seed and maintenance scripts
+    public/               Uploaded and served assets
+
+  user/                   Customer storefront
+    pages/                Next.js pages router
+    src/components/       UI building blocks
+    src/services/         API client layer
+    src/hooks/            Custom hooks
+    public/lang/          i18n dictionaries (en, vi)
+
+  admin/                  Admin dashboard
+    pages/                Next.js pages router
+    src/components/       Admin UI components
+    src/services/         API client layer
+    src/interfaces/       Shared admin types
 ```
 
----
-
-## API Modules (`api/src/modules/`)
-
-### 1. **Auth Module** (`auth/`)
-- **Purpose**: Authentication & authorization
-- **Key Files**:
-  - `controllers/`: Login, Google OAuth, Facebook OAuth, Forgot Password
-  - `services/auth.service.ts`: Core auth logic
-  - `guards/`: JWT authentication guards
-  - `decorators/`: Custom decorators (@Auth, @CurrentUser)
-  - `schemas/`: User schema definition
-- **Features**: JWT tokens, OAuth integration, password reset
-
-### 2. **User Module** (`user/`)
-- **Purpose**: User management & profiles
-- **Key Files**:
-  - `controllers/`: User CRUD, Address management
-  - `services/user.service.ts`, `address.service.ts`
-  - `schemas/`: User & Address schemas
-  - `validators/username.validator.ts`
-- **Features**: Profile management, address book, user validation
-
-### 3. **Products Module** (`products/`)
-- **Purpose**: Product catalog management
-- **Key Files**:
-  - Controllers for product CRUD operations
-  - Product schema & models
-  - Image processing with Sharp
-- **Features**: Product listings, filtering, image optimization
-
-### 4. **Category Module** (`category/`)
-- **Purpose**: Product categories
-- **Features**: Category CRUD, hierarchical organization
-
-### 5. **Brand Module** (`brand/`)
-- **Purpose**: Brand management
-- **Key Files**:
-  - Controllers, services, schemas
-  - Event listeners for brand updates
-- **Features**: Brand CRUD, brand-product relationships
-
-### 6. **Orders Module** (`orders/`)
-- **Purpose**: Order management & fulfillment
-- **Key Files**:
-  - `services/`:
-    - `admin-order.service.ts`: Admin order operations
-    - `buyer-order.service.ts`: Customer order operations
-    - `refund-request.service.ts`: Refund handling
-    - `ghn-order-sync.service.ts`: GHN shipping integration
-  - `controllers/`: Admin & buyer order endpoints
-  - `schemas/`: Order & Refund Request schemas
-- **Features**: Order creation, tracking, refunds, GHN shipping sync
-
-### 7. **Payment Module** (`payment/`)
-- **Purpose**: Payment processing & wallet management
-- **Key Files**:
-  - `services/`:
-    - `paypal.service.ts`: PayPal integration
-    - `sepay.service.ts`: SePay integration
-    - `wallet.service.ts`: Wallet management
-    - `wallet-deposit.service.ts`: Deposit handling
-    - `ghn.service.ts`: GHN shipping costs
-  - `controllers/`: Payment endpoints, webhooks
-  - `helpers/paypal.helper.ts`
-- **Features**: Multiple payment gateways, wallet system, shipping cost calculation
-
-### 8. **Chat Module** (`chat/`)
-- **Purpose**: Real-time messaging
-- **Key Files**:
-  - `gateways/chat.gateway.ts`: WebSocket gateway
-  - `services/message.service.ts`
-  - `schemas/message.schema.ts`
-- **Features**: Real-time chat, message persistence
-
-### 9. **Email Module** (`email/`)
-- **Purpose**: Email notifications
-- **Key Files**:
-  - `services/email.service.ts`
-  - `services/sendgrid.service.ts`: SendGrid integration
-- **Features**: Transactional emails, SendGrid integration
-
-### 10. **Settings Module** (`settings/`)
-- **Purpose**: Application configuration
-- **Features**: Admin settings management
-
-### 11. **File Module** (`file/`)
-- **Purpose**: File upload & management
-- **Features**: Multer integration, file storage
-
-### 12. **Cart Module** (`cart/`)
-- **Purpose**: Shopping cart management
-- **Features**: Cart operations (add, remove, update)
-
-### 13. **Wishlist Module** (`wishlist/`)
-- **Purpose**: User wishlists
-- **Features**: Wishlist CRUD operations
-
-### 14. **WebSocket Module** (`websocket/`)
-- **Purpose**: Real-time communication
-- **Key Files**:
-  - `socket.module.ts`: Socket.io setup
-  - `redis-io.adapter.ts`: Redis adapter for scaling
-- **Features**: Real-time notifications, chat
-
-### 15. **SendGrid Module** (`sendgrid/`)
-- **Purpose**: Email service provider
-- **Features**: Email sending via SendGrid
-
-### 16. **Voucher Module** (`voucher/`)
-- **Purpose**: Discount vouchers & promotions
-- **Key Files**:
-  - `controllers/`: Voucher CRUD, validation
-  - `services/voucher.service.ts`: Core voucher logic
-  - `schemas/`: Voucher schema definition
-- **Features**: Create/update vouchers, apply discount codes, validity checks
-
----
-
-## Kernel Infrastructure (`api/src/kernel/`)
-
-### Common
-- `pageable-data.ts`: Pagination utilities
-- `search-request.ts`: Search request handling
-
-### Events
-- `event.ts`: Base event class
-- `queue-event.ts`: Queue event handling
-
-### Exceptions
-- Custom exception classes (EntityNotFound, Forbidden, MissingServerConfig, RuntimeException)
-
-### Helpers
-- `multer.helper.ts`: File upload configuration
-- `string.helper.ts`: String utilities
-- `view.helper.ts`: View rendering
-
-### Infrastructure
-- `mongodb/`: MongoDB connection setup
-- `queue/`: BullMQ queue configuration
-
-### Logger
-- Request/response logging
-- HTTP exception logging
-
-### Models
-- `data-response.model.ts`: Standard API response format
-
----
-
-## Frontend Applications
-
-### Admin App (`admin/`)
-
-**Pages**:
-- `login.tsx`: Admin authentication
-- `dashboard/`: Dashboard overview
-- `products/create.tsx`: Product creation
-- `categories/update/[id].tsx`: Category management
-- `orders/[id].tsx`: Order details
-- `users/`: User management
-- `settings/`: Application settings
-- `chat/`: Admin chat interface
-- `refund-requests/`: Refund management
-
-**Components**:
-- `layout/`: AdminLayout, Sidebar
-- `common/`: DataTable, shared components
-- `settings/`: GhnSenderAddress, SettingFormItem
-- `users/`: UserEditModal
-
-**Services**:
-- `auth.service.ts`: Authentication
-- `api-request.ts`: HTTP client
-- `user.service.ts`: User operations
-- `order.service.ts`: Order operations
-- `product.service.ts`: Product operations
-- `wallet.service.ts`: Wallet operations
-- `ghn.service.ts`: GHN shipping
-- `chat.service.ts`: Chat operations
-- `refund-request.service.ts`: Refund handling
-
-### User App (`user/`)
-
-**Pages**:
-- `login/`: User authentication
-- `products/`: Product listing & detail
-- `cart/`: Shopping cart
-- `checkout/`: Checkout process
-- `profile/`: User profile, orders, wallet, addresses, coupons
-- `wishlist/`: Saved items
-- `tracking/`: Order tracking
-- `contact/`: Contact form
-
-**Components**:
-- `layout/`: Header, Footer, Layout, ProfileLayout
-- `products/`: ProductCard, ProductFilters (Brand, Category, PriceRange)
-- `chat/`: ChatBubble
-- `order/`: TrackingModal
-- `common/`: LanguageSwitcher
-
-**Services**:
-- `auth.service.ts`: Authentication
-- `api-request.ts`: HTTP client
-- `user.service.ts`: User profile
-- `product.service.ts`: Product data
-- `cart.service.ts`: Cart operations
-- `order.service.ts`: Order management
-- `wishlist.service.ts`: Wishlist operations
-- `wallet.service.ts`: Wallet operations
-- `wallet-deposit.service.ts`: Deposit handling
-- `address.service.ts`: Address management
-- `category.service.ts`: Category data
-- `brand.service.ts`: Brand data
-- `chat.service.ts`: Chat operations
-- `ghn.service.ts`: Shipping operations
-- `setting.service.ts`: Settings
-
-**Hooks**:
-- `useAddToCart.ts`: Add to cart logic
-- `useWishlist.ts`: Wishlist operations
-- `useTrans.ts`: Translation/i18n
-
-**Internationalization** (`public/lang/`):
-- English (`en/`): checkout, contact, footer, home, login, order, productDetail, products, profile, wishlist, cart
-- Vietnamese (`vi/`): Same structure
-
----
-
-## Configuration Files
-
-### API Config (`api/src/config/`)
-- `app.ts`: Application settings
-- `email.ts`: Email configuration
-- `file.ts`: File upload settings
-- `ghn.ts`: GHN shipping API config
-- `image.ts`: Image processing settings
-- `queue.ts`: BullMQ queue config
-- `redis.ts`: Redis connection config
-- `sepay.ts`: SePay payment config
-
-### Build & Scripts
-- `api/migrate.js`: Database migration runner
-- `api/scripts/`:
-  - `check-migrate.js`: Migration status check
-  - `copy-public.js`: Copy public assets
-  - `seed-contact-settings.js`: Seed initial settings
-
-### Database Migrations (`api/migrations/`)
-- `1735800000000-site-settings.js`: Initial settings
-- `1767111863549-create-categories.js`: Category schema
-- `1768097821936-create-sample-products.js`: Sample data
-- `1769001000000-delete-contact-ghn-address.js`
-- `1769002000000-add-ghn-sender-settings.js`
-- `1769003000000-fix-ghn-sender-settings-and-delete-contact-district.js`
-- `1769004000000-delete-all-categories.js`
-- `1770000000000-add-admin-change-password-settings.js`
-- `1780000000010-add-sepay-second-account-settings.js`
-- `1780000000030-update-order-payment-status.js`
-
----
-
-## Key Features
-
-### E-Commerce
-- Product catalog with filtering (category, brand, price)
-- Shopping cart & checkout
-- Multiple payment methods (PayPal, SePay)
-- Order management & tracking
-- Refund requests
-
-### User Management
-- User registration & authentication (Email, Google, Facebook)
-- Profile management
-- Address book
-- Wishlist
-- Wallet system with deposits
-
-### Admin Features
-- Dashboard
-- Product management
-- Category management
-- Order management & fulfillment
-- User management
-- Refund request handling
-- Settings configuration
-- Chat with users
-
-### Shipping Integration
-- GHN (Giao Hàng Nhanh) integration
-- Real-time shipping cost calculation
-- Order sync with GHN
-
-### Payment Integration
-- PayPal
-- SePay
-- Wallet system
-
-### Communication
-- Real-time chat (WebSocket)
-- Email notifications (SendGrid)
-
-### Localization
-- English & Vietnamese support
-- i18n implementation
-
----
-
-## Development Commands
-
-### API
-```bash
-yarn dev              # Start dev server (port 5001)
-yarn build            # Build for production
-yarn start:prod       # Run production build
-yarn migrate          # Run database migrations
-yarn seed:contact     # Seed contact settings
-yarn lint             # Fix linting issues
-yarn format           # Format code
-```
-
-### Admin App
-```bash
-yarn dev              # Start dev server (port 5003)
-yarn build            # Build for production
-yarn start            # Start production server
-yarn lint             # Fix linting issues
-yarn format           # Format code
-yarn type-check       # Check TypeScript types
-```
-
-### User App
-```bash
-yarn dev              # Start dev server (port 5002)
-yarn build            # Build for production
-yarn start            # Start production server
-yarn lint             # Fix linting issues
-yarn format           # Format code
-yarn type-check       # Check TypeScript types
-```
-
----
-
-## Database Schema Overview
-
-### Core Collections
-- **Users**: User profiles, authentication
-- **Products**: Product catalog
-- **Categories**: Product categories
-- **Brands**: Product brands
-- **Orders**: Customer orders
-- **Refund Requests**: Refund management
-- **Messages**: Chat messages
-- **Addresses**: User addresses
-- **Wallet Transactions**: Payment wallet history
-- **Settings**: Application configuration
-
----
-
-## Integration Points
-
-### External Services
-1. **PayPal**: Payment processing
-2. **SePay**: Vietnamese payment gateway
-3. **GHN**: Vietnamese shipping provider
-4. **SendGrid**: Email service
-5. **Google OAuth**: Social authentication
-6. **Facebook OAuth**: Social authentication
-
-### Internal Services
-- Redis: Caching, session management, queue
-- MongoDB: Primary database
-- Socket.io: Real-time communication
-- BullMQ: Job queue processing
-
----
-
-## Notes
-- Platform supports Vietnamese & English languages
-- Real-time features via WebSocket (chat, notifications)
-- Scalable architecture with Redis adapter for Socket.io
-- Image optimization with Sharp
-- Video processing with FFmpeg
-- PM2 ecosystem configuration for deployment
-
+## Backend Entry Points
+
+### Core Files
+- `api/src/main.ts`: Nest bootstrap
+- `api/src/app.module.ts`: imports all feature modules and infra
+- `api/src/config/*.ts`: app, file, email, image, queue, redis, sepay, ghn config
+- `api/src/kernel/`: shared platform code
+
+### Kernel Areas
+- `api/src/kernel/infras/mongodb/`: Mongo wiring
+- `api/src/kernel/infras/queue/`: queue registration and workers
+- `api/src/kernel/logger/`: request and exception logging
+- `api/src/kernel/common/`: pagination and search request helpers
+- `api/src/kernel/exceptions/`: custom exception types
+
+## Backend Modules
+
+### Commerce Core
+- `auth/`: login, registration, password reset, social auth, guards, decorators
+- `user/`: user profiles, addresses, admin user management
+- `products/`: product CRUD, public catalog, product search/filtering
+- `category/`: category CRUD and related listeners/helpers
+- `brand/`: brand CRUD and cleanup listeners
+- `cart/`: cart retrieval and cart item mutations
+- `orders/`: buyer/admin order flows, refund requests, GHN sync
+- `voucher/`: voucher CRUD and customer voucher usage
+
+### Payments and Wallet
+- `payment/`: wallet, wallet deposits, transactions, PayPal, SePay, ZaloPay, GHN helper endpoints
+
+### Engagement / Live Features
+- `wishlist/`: wishlist APIs
+- `chat/`: message persistence and websocket chat
+- `websocket/`: socket module and Redis socket adapter
+- `email/`: email orchestration
+- `sendgrid/`: SendGrid integration service
+
+### Game / Loyalty Features
+- `member-rank/`: membership ranks and rank APIs
+- `spin/`: spin-wheel configs and results
+- `slot-machine/`: slot machine configs and results
+- `pet/`: pet system, user pet progress, leaderboard-related APIs
+
+### Platform Support
+- `settings/`: admin-managed application settings
+- `file/`: uploads, file DTOs, interceptors, thumbnail support
+
+## Frontend: User App
+
+### Main Route Areas
+- `user/pages/index.tsx`: storefront home
+- `user/pages/products/`: product listing and product detail
+- `user/pages/cart/`: cart flow
+- `user/pages/checkout/`: checkout flow
+- `user/pages/orders/`: order list and order detail
+- `user/pages/profile/`: profile, address, wallet, coupons, order history
+- `user/pages/login/`: login, forgot password, reset password
+- `user/pages/wishlist/`: wishlist page
+- `user/pages/contact/`: contact page
+- `user/pages/tracking.tsx`: order tracking
+- `user/pages/spin/`: spin-wheel experience
+- `user/pages/slot-machine/`: slot machine experience
+- `user/pages/pet-farm/`: pet feature
+- `user/pages/pet-leaderboard/`: pet ranking page
+
+### Important Source Areas
+- `user/src/components/layout/`: shared shell components
+- `user/src/components/products/`: cards and filters
+- `user/src/components/common/`: floating widgets, breadcrumb, popup, language switcher
+- `user/src/services/`: one service file per backend domain
+- `user/src/hooks/`: cart, wishlist, translation helpers
+- `user/public/lang/`: English and Vietnamese copy dictionaries
+
+## Frontend: Admin App
+
+### Main Route Areas
+- `admin/pages/index.tsx`: admin landing page
+- `admin/pages/login.tsx`: admin auth
+- `admin/pages/dashboard/`: dashboard
+- `admin/pages/products/`: product create, update, list
+- `admin/pages/categories/`: category management
+- `admin/pages/orders/`: order management and detail
+- `admin/pages/users/`: user management
+- `admin/pages/vouchers/`: voucher management
+- `admin/pages/settings/`: settings UI
+- `admin/pages/chat/`: admin chat
+- `admin/pages/refund-requests/`: refund workflow
+- `admin/pages/memberships/`: membership rank management
+- `admin/pages/spin/`: spin config and results
+- `admin/pages/slot-machine/`: slot machine config and results
+- `admin/pages/pet/`: pet settings and guide
+- `admin/pages/notification/`: notification page
+
+### Important Source Areas
+- `admin/src/components/layout/`: admin shell and sidebar
+- `admin/src/components/common/DataTable.tsx`: reusable table UI
+- `admin/src/components/settings/`: settings form sections
+- `admin/src/components/users/UserEditModal.tsx`: user editing modal
+- `admin/src/services/`: backend domain service wrappers
+
+## Migrations and Scripts
+
+### Migrations
+`api/migrations/` contains timestamped scripts for:
+- seeded admin and site settings
+- category and sample product data
+- GHN sender/contact adjustments
+- member rank seeding
+- payment-related setting updates
+- order payment status updates
+
+### Scripts
+`api/scripts/` includes operational helpers such as:
+- seeding ranks and contact settings
+- syncing user total spent
+- updating user rank
+- voucher/app-module fixes
+- migration checks
+
+## Practical Navigation Tips
+
+- Start backend feature work in `api/src/modules/<feature>/`.
+- For frontend screens, begin in `pages/` and then trace into `src/components/` and `src/services/`.
+- API client files in both frontends are organized by backend domain name, which makes cross-referencing straightforward.
+- Shared business rules often appear in backend `services/`, while request validation lives in `payloads/` or `dtos/`.
+
+## Current Notes
+
+- `admin/yarn.lock` and `user/yarn.lock` already have local modifications in the working tree.
+- The previous index file was stale and did not reflect newer modules such as `member-rank`, `spin`, `slot-machine`, and `pet`.

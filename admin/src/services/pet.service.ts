@@ -35,6 +35,64 @@ export interface CreatePetPayload {
 
 export interface UpdatePetPayload extends Partial<CreatePetPayload> {}
 
+export interface PetChestPrize {
+  id?: string;
+  name: string;
+  rewardPoints: number;
+  rewardVnd?: number;
+  weight: number;
+  image?: string;
+  active?: boolean;
+}
+
+export interface PetChestConfig {
+  enabled: boolean;
+  openCostPoints: number;
+  prizes: PetChestPrize[];
+}
+
+export interface UpdatePetChestConfigPayload {
+  enabled?: boolean;
+  openCostPoints: number;
+  prizes: PetChestPrize[];
+}
+
+export type PetChestDeliveryStatus = "pending" | "shipped" | "delivered";
+
+export interface AdminPetChestHistoryItem {
+  userId: string;
+  userName: string;
+  userEmail: string;
+  userPhone: string;
+  userAddress: string;
+  historyId: string;
+  prizeId: string;
+  prizeName: string;
+  prizeImage: string;
+  rewardPoints: number;
+  rewardVnd: number;
+  openCostPoints: number;
+  deliveryStatus: PetChestDeliveryStatus;
+  note: string;
+  openedAt: string;
+  updatedAt?: string;
+}
+
+export interface AdminPetChestHistorySearchParams {
+  keyword?: string;
+  deliveryStatus?: PetChestDeliveryStatus | "";
+  page?: number;
+  limit?: number;
+}
+
+export interface AdminPetChestHistorySearchResponse {
+  results: AdminPetChestHistoryItem[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 class PetService extends APIRequest {
   public async getPets(): Promise<PetResponse[]> {
     const response = await this.get("/admin/pet");
@@ -60,8 +118,49 @@ class PetService extends APIRequest {
     await this.del(`/admin/pet/${id}`);
   }
 
-  public async getUserPetPoints(userId: string): Promise<{ totalPoints: number; orderPoints: number; bonusPetPoints: number }> {
+  public async getUserPetPoints(userId: string): Promise<{
+    totalPoints: number;
+    orderPoints: number;
+    bonusPetPoints: number;
+    spentPoints: number;
+    availablePoints: number;
+  }> {
     const response = await this.get(`/admin/pet/user-points/${userId}`);
+    return response.data;
+  }
+
+  public async getChestConfig(): Promise<PetChestConfig> {
+    const response = await this.get("/admin/pet/chest-config");
+    return response.data;
+  }
+
+  public async updateChestConfig(
+    data: UpdatePetChestConfigPayload,
+  ): Promise<PetChestConfig> {
+    const response = await this.put("/admin/pet/chest-config", data);
+    return response.data;
+  }
+
+  public async searchChestHistory(
+    params?: AdminPetChestHistorySearchParams,
+  ): Promise<AdminPetChestHistorySearchResponse> {
+    const url = this.buildUrl("/admin/pet/chest-history", params);
+    const response = await this.get(url);
+    return response.data;
+  }
+
+  public async updateChestHistoryDeliveryStatus(
+    userId: string,
+    historyId: string,
+    data: {
+      deliveryStatus: PetChestDeliveryStatus;
+      note?: string;
+    },
+  ): Promise<AdminPetChestHistoryItem> {
+    const response = await this.put(
+      `/admin/pet/chest-history/${userId}/${historyId}/delivery`,
+      data,
+    );
     return response.data;
   }
 }

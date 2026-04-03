@@ -19,6 +19,7 @@ import {
   Ticket,
   Disc3,
   Award,
+  Gift,
   PawPrint,
 } from "lucide-react";
 import { storage } from "../../utils/storage";
@@ -115,6 +116,8 @@ const menuItems: MenuItem[] = [
     href: "/pet",
     children: [
       { name: "Danh sách", icon: List, href: "/pet" },
+      { name: "Rương may mắn", icon: Gift, href: "/pet/chest" },
+      { name: "Lịch sử trúng", icon: Award, href: "/pet/history" },
       { name: "Hướng dẫn", icon: Settings, href: "/pet/guide" },
     ],
   },

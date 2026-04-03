@@ -35,6 +35,8 @@ export interface PetFarmItem {
 export interface PetFarm {
   items: PetFarmItem[];
   totalPointsEarned: number;
+  availableChestPoints?: number;
+  spentChestPoints?: number;
 }
 
 export interface LeaderboardEntry {
@@ -47,6 +49,57 @@ export interface LeaderboardEntry {
     name: string;
     hatchImage: string;
   } | null;
+}
+
+export interface PetChestPrize {
+  id: string;
+  name: string;
+  rewardPoints: number;
+  rewardVnd: number;
+  weight: number;
+  image: string;
+  active: boolean;
+}
+
+export interface PetChestConfig {
+  enabled: boolean;
+  openCostPoints: number;
+  prizes: PetChestPrize[];
+  totalPointsEarned: number;
+  spentChestPoints: number;
+  availableChestPoints: number;
+}
+
+export interface OpenChestResult {
+  openCostPoints: number;
+  totalPointsEarned: number;
+  spentChestPoints: number;
+  remainingChestPoints: number;
+  prize: {
+    id: string;
+    name: string;
+    image?: string;
+    rewardPoints: number;
+    rewardVnd: number;
+  };
+}
+
+export interface PetChestHistoryItem {
+  prizeId: string;
+  prizeName: string;
+  prizeImage: string;
+  rewardPoints: number;
+  rewardVnd: number;
+  openCostPoints: number;
+  openedAt: string;
+}
+
+export interface PetChestHistoryResponse {
+  items: PetChestHistoryItem[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
 }
 
 export class PetService extends APIRequest {
@@ -67,6 +120,25 @@ export class PetService extends APIRequest {
 
   public async getLeaderboard(): Promise<LeaderboardEntry[]> {
     const response = await this.get("/pet/leaderboard");
+    return response.data;
+  }
+
+  public async getChestConfig(): Promise<PetChestConfig> {
+    const response = await this.get("/pet/chest-config");
+    return response.data;
+  }
+
+  public async openChest(): Promise<OpenChestResult> {
+    const response = await this.post("/pet/chest/open", {});
+    return response.data;
+  }
+
+  public async getChestHistory(
+    page = 1,
+    limit = 5,
+  ): Promise<PetChestHistoryResponse> {
+    const url = this.buildUrl("/pet/chest/history", { page, limit });
+    const response = await this.get(url);
     return response.data;
   }
 }

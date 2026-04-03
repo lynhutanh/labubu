@@ -1,5 +1,5 @@
 import {
-  Controller, Get, Post, Put, Delete, Body, Param,
+  Controller, Get, Post, Put, Delete, Body, Param, Query,
   HttpCode, HttpStatus, UseGuards, UsePipes, ValidationPipe,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
@@ -8,8 +8,14 @@ import { RoleGuard } from 'src/modules/auth/guards';
 import { Role } from 'src/modules/auth/decorators';
 import { ROLE } from 'src/modules/user/constants';
 import { PetService } from '../services';
-import { PetDto } from '../dtos';
-import { CreatePetPayload, UpdatePetPayload } from '../payloads';
+import { PetChestConfigDto, PetDto } from '../dtos';
+import {
+  AdminPetChestHistorySearchPayload,
+  CreatePetPayload,
+  UpdatePetChestHistoryDeliveryPayload,
+  UpdatePetChestConfigPayload,
+  UpdatePetPayload,
+} from '../payloads';
 
 @ApiTags('Admin Pet')
 @Controller('admin/pet')
@@ -31,6 +37,23 @@ export class AdminPetController {
     return DataResponse.ok(await this.petService.getPets());
   }
 
+  @Get('chest-config')
+  @UseGuards(RoleGuard) @Role(ROLE.ADMIN)
+  @HttpCode(HttpStatus.OK)
+  async getChestConfig(): Promise<DataResponse<PetChestConfigDto>> {
+    return DataResponse.ok(await this.petService.getChestConfig());
+  }
+
+  @Get('chest-history')
+  @UseGuards(RoleGuard) @Role(ROLE.ADMIN)
+  @HttpCode(HttpStatus.OK)
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+  async searchChestHistory(
+    @Query() query: AdminPetChestHistorySearchPayload,
+  ): Promise<DataResponse<any>> {
+    return DataResponse.ok(await this.petService.searchAdminChestHistory(query));
+  }
+
   @Get(':id')
   @UseGuards(RoleGuard) @Role(ROLE.ADMIN)
   @HttpCode(HttpStatus.OK)
@@ -44,6 +67,34 @@ export class AdminPetController {
   @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
   async createPet(@Body() payload: CreatePetPayload): Promise<DataResponse<PetDto>> {
     return DataResponse.ok(await this.petService.createPet(payload));
+  }
+
+  @Put('chest-config')
+  @UseGuards(RoleGuard) @Role(ROLE.ADMIN)
+  @HttpCode(HttpStatus.OK)
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+  async updateChestConfig(
+    @Body() payload: UpdatePetChestConfigPayload,
+  ): Promise<DataResponse<PetChestConfigDto>> {
+    return DataResponse.ok(await this.petService.updateChestConfig(payload));
+  }
+
+  @Put('chest-history/:userId/:historyId/delivery')
+  @UseGuards(RoleGuard) @Role(ROLE.ADMIN)
+  @HttpCode(HttpStatus.OK)
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+  async updateChestHistoryDeliveryStatus(
+    @Param('userId') userId: string,
+    @Param('historyId') historyId: string,
+    @Body() payload: UpdatePetChestHistoryDeliveryPayload,
+  ): Promise<DataResponse<any>> {
+    return DataResponse.ok(
+      await this.petService.updateAdminChestHistoryDeliveryStatus(
+        userId,
+        historyId,
+        payload,
+      ),
+    );
   }
 
   @Put(':id')

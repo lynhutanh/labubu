@@ -77,6 +77,32 @@ export const UserSchema = new Schema(
       type: Number,
       default: 0,
     },
+    petChestPointsSpent: {
+      type: Number,
+      default: 0,
+    },
+    petChestHistory: {
+      type: [
+        {
+          prizeId: { type: String, default: "" },
+          prizeName: { type: String, default: "" },
+          prizeImage: { type: String, default: "" },
+          rewardPoints: { type: Number, default: 0 },
+          rewardVnd: { type: Number, default: 0 },
+          openCostPoints: { type: Number, default: 0 },
+          deliveryStatus: {
+            type: String,
+            enum: ["pending", "shipped", "delivered"],
+            default: "pending",
+            index: true,
+          },
+          note: { type: String, default: "" },
+          openedAt: { type: Date, default: Date.now },
+          updatedAt: { type: Date, default: Date.now },
+        },
+      ],
+      default: [],
+    },
   },
   { timestamps: true },
 );

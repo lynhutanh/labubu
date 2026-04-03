@@ -1,4 +1,15 @@
-import { IsString, IsOptional, IsEnum, IsNumber, Min } from 'class-validator';
+import {
+  ArrayMinSize,
+  IsArray,
+  IsBoolean,
+  IsEnum,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Min,
+  ValidateNested,
+} from "class-validator";
+import { Type } from "class-transformer";
 
 export class CreatePetPayload {
   @IsString()
@@ -102,4 +113,76 @@ export class UpdatePetPayload {
   @IsEnum(['active', 'inactive'])
   @IsOptional()
   status?: string;
+}
+
+export class ChestPrizePayload {
+  @IsString()
+  name: string;
+
+  @IsNumber()
+  @Min(1)
+  rewardPoints: number;
+
+  @IsNumber()
+  @Min(0.000001)
+  weight: number;
+
+  @IsString()
+  @IsOptional()
+  image?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  active?: boolean;
+
+  @IsString()
+  @IsOptional()
+  id?: string;
+}
+
+export class UpdatePetChestConfigPayload {
+  @IsBoolean()
+  @IsOptional()
+  enabled?: boolean;
+
+  @IsNumber()
+  @Min(1)
+  openCostPoints: number;
+
+  @IsArray()
+  @ArrayMinSize(1)
+  @ValidateNested({ each: true })
+  @Type(() => ChestPrizePayload)
+  prizes: ChestPrizePayload[];
+}
+
+export class AdminPetChestHistorySearchPayload {
+  @IsString()
+  @IsOptional()
+  keyword?: string;
+
+  @IsEnum(["pending", "shipped", "delivered"])
+  @IsOptional()
+  deliveryStatus?: string;
+
+  @Type(() => Number)
+  @IsNumber()
+  @Min(1)
+  @IsOptional()
+  page?: number;
+
+  @Type(() => Number)
+  @IsNumber()
+  @Min(1)
+  @IsOptional()
+  limit?: number;
+}
+
+export class UpdatePetChestHistoryDeliveryPayload {
+  @IsEnum(["pending", "shipped", "delivered"])
+  deliveryStatus: "pending" | "shipped" | "delivered";
+
+  @IsString()
+  @IsOptional()
+  note?: string;
 }

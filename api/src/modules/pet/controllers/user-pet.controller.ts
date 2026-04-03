@@ -1,5 +1,5 @@
 import {
-  Controller, Get, Post, Param,
+  Controller, Get, Post, Param, Query,
   HttpCode, HttpStatus, UseGuards,
 } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
@@ -34,6 +34,13 @@ export class UserPetController {
     return DataResponse.ok(await this.petService.getTotalPoints(user._id));
   }
 
+  @Get("chest-config")
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async getChestConfig(@CurrentUser() user: any): Promise<DataResponse<any>> {
+    return DataResponse.ok(await this.petService.getChestConfigForUser(user._id));
+  }
+
   @Post("claim/:userPetId")
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -43,5 +50,28 @@ export class UserPetController {
   ): Promise<DataResponse<any>> {
     return DataResponse.ok(await this.petService.claimReward(user._id, userPetId));
   }
-}
 
+  @Post("chest/open")
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async openChest(@CurrentUser() user: any): Promise<DataResponse<any>> {
+    return DataResponse.ok(await this.petService.openChest(user._id));
+  }
+
+  @Get("chest/history")
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async getChestHistory(
+    @CurrentUser() user: any,
+    @Query("page") page?: string,
+    @Query("limit") limit?: string,
+  ): Promise<DataResponse<any>> {
+    return DataResponse.ok(
+      await this.petService.getChestHistory(
+        user._id,
+        Number(page) || 1,
+        Number(limit) || 5,
+      ),
+    );
+  }
+}

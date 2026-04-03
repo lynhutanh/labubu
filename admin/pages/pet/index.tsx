@@ -1,6 +1,7 @@
 import Head from "next/head";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
+import Link from "next/link";
 import {
   Plus, Trash2, Edit, Save, X, Image as ImageIcon, Award,
 } from "lucide-react";
@@ -232,13 +233,21 @@ export default function PetConfigPage() {
             >
               🐾 Quản lý Con Vật
             </h1>
-            <button
-              onClick={openCreateForm}
-              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-lg font-medium hover:shadow-lg transition-all"
-              style={{ boxShadow: "0 0 20px rgba(16,185,129,0.4)" }}
-            >
-              <Plus className="w-5 h-5" /> Tạo con vật
-            </button>
+            <div className="flex items-center gap-2">
+              <Link
+                href="/pet/chest"
+                className="flex items-center gap-2 px-4 py-2 bg-amber-500/20 border border-amber-500/40 text-amber-200 rounded-lg font-medium hover:bg-amber-500/30 transition-all"
+              >
+                🎁 Cấu hình rương
+              </Link>
+              <button
+                onClick={openCreateForm}
+                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-lg font-medium hover:shadow-lg transition-all"
+                style={{ boxShadow: "0 0 20px rgba(16,185,129,0.4)" }}
+              >
+                <Plus className="w-5 h-5" /> Tạo con vật
+              </button>
+            </div>
           </div>
         </header>
 
