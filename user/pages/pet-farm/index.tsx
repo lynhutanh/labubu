@@ -30,8 +30,6 @@ export default function PetFarmPage() {
   const [chestResult, setChestResult] = useState<{
     name: string;
     image?: string;
-    rewardPoints: number;
-    rewardVnd: number;
     remainingChestPoints: number;
   } | null>(null);
 
@@ -107,8 +105,6 @@ export default function PetFarmPage() {
       setChestResult({
         name: result.prize.name,
         image: result.prize.image,
-        rewardPoints: result.prize.rewardPoints,
-        rewardVnd: result.prize.rewardVnd,
         remainingChestPoints: result.remainingChestPoints,
       });
       await loadData();
@@ -1403,11 +1399,6 @@ export default function PetFarmPage() {
                             <div style={{ fontSize: 14, fontWeight: 700, color: "#f8fafc" }}>
                               {prize.name}
                             </div>
-                            {prize.rewardVnd > 0 && (
-                              <div style={{ fontSize: 12, color: "#cbd5e1" }}>
-                                +{prize.rewardVnd.toLocaleString("vi-VN")}đ
-                              </div>
-                            )}
                           </div>
                         </div>
                         <div style={{ fontSize: 12, color: "#fbbf24", fontWeight: 700 }}>
@@ -1431,9 +1422,6 @@ export default function PetFarmPage() {
                     <div style={{ fontSize: 13, color: "#a7f3d0" }}>Bạn vừa nhận:</div>
                     <div style={{ fontSize: 18, fontWeight: 900, color: "#ecfeff", marginTop: 2 }}>
                       {chestResult.name}
-                      {chestResult.rewardVnd > 0
-                        ? ` (+${chestResult.rewardVnd.toLocaleString("vi-VN")}đ)`
-                        : ""}
                     </div>
                     <div style={{ fontSize: 12, color: "#bbf7d0", marginTop: 2 }}>
                       Điểm mở rương còn lại: {chestResult.remainingChestPoints}
