@@ -68,8 +68,6 @@ export class PetFarmDto {
 export class PetChestPrizeDto {
   @Expose() id: string;
   @Expose() name: string;
-  @Expose() rewardPoints: number;
-  @Expose() rewardVnd: number;
   @Expose() weight: number;
   @Expose() image: string;
   @Expose() active: boolean;

@@ -38,8 +38,6 @@ export interface UpdatePetPayload extends Partial<CreatePetPayload> {}
 export interface PetChestPrize {
   id?: string;
   name: string;
-  rewardPoints: number;
-  rewardVnd?: number;
   weight: number;
   image?: string;
   active?: boolean;
@@ -69,8 +67,6 @@ export interface AdminPetChestHistoryItem {
   prizeId: string;
   prizeName: string;
   prizeImage: string;
-  rewardPoints: number;
-  rewardVnd: number;
   openCostPoints: number;
   deliveryStatus: PetChestDeliveryStatus;
   note: string;

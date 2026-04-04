@@ -1,4 +1,4 @@
-﻿import Head from "next/head";
+import Head from "next/head";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import Layout from "../../src/components/layout/Layout";
@@ -665,7 +665,7 @@ export default function PetChestPage() {
                       <span>{item.prizeName || "Phần quà"}</span>
                     </div>
                     <div className="pet-chest-prize-right">
-                      +{Number(item.rewardVnd || 0).toLocaleString("vi-VN")}đ
+                      Trúng thưởng
                     </div>
                     <div className="pet-chest-prize-time">
                       {formatHistoryTime(item.openedAt)}
@@ -712,7 +712,7 @@ export default function PetChestPage() {
                 className="pet-chest-win-popup"
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="pet-chest-win-title">Chúc mừng!</div>
+                <div className="pet-chest-win-title">Chúc mừng bạn đã nhận !</div>
                 <img
                   className="pet-chest-win-image"
                   src={
@@ -723,9 +723,6 @@ export default function PetChestPage() {
                   alt={result.prize.name}
                 />
                 <div className="pet-chest-win-name">{result.prize.name}</div>
-                <div className="pet-chest-win-amount">
-                  +{result.prize.rewardVnd.toLocaleString("vi-VN")}đ
-                </div>
                 <button
                   className="pet-chest-win-close"
                   onClick={() => setShowResultPopup(false)}

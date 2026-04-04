@@ -54,8 +54,6 @@ export interface LeaderboardEntry {
 export interface PetChestPrize {
   id: string;
   name: string;
-  rewardPoints: number;
-  rewardVnd: number;
   weight: number;
   image: string;
   active: boolean;
@@ -79,8 +77,6 @@ export interface OpenChestResult {
     id: string;
     name: string;
     image?: string;
-    rewardPoints: number;
-    rewardVnd: number;
   };
 }
 
@@ -88,8 +84,6 @@ export interface PetChestHistoryItem {
   prizeId: string;
   prizeName: string;
   prizeImage: string;
-  rewardPoints: number;
-  rewardVnd: number;
   openCostPoints: number;
   openedAt: string;
 }

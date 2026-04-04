@@ -224,7 +224,6 @@ export default function PetChestHistoryPage() {
                       <th className="text-left py-3 px-4">Thoi gian</th>
                       <th className="text-left py-3 px-4">User</th>
                       <th className="text-left py-3 px-4">Qua trung</th>
-                      <th className="text-left py-3 px-4">Gia tri</th>
                       <th className="text-left py-3 px-4">Trang thai gui</th>
                       <th className="text-center py-3 px-4">Hanh dong</th>
                     </tr>
@@ -268,16 +267,6 @@ export default function PetChestHistoryPage() {
                               <span className="text-white font-medium">
                                 {row.prizeName || "Phan qua"}
                               </span>
-                            </div>
-                          </td>
-                          <td className="py-3 px-4">
-                            <div className="text-xs">
-                              <p className="text-emerald-300 font-semibold">
-                                +{Number(row.rewardVnd || 0).toLocaleString("vi-VN")}d
-                              </p>
-                              <p className="text-purple-400">
-                                Cost: {Number(row.openCostPoints || 0)} diem
-                              </p>
                             </div>
                           </td>
                           <td className="py-3 px-4">

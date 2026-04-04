@@ -31,7 +31,6 @@ const PET_CHEST_CONFIG_KEY = "pet_chest_config";
 interface PetChestPrize {
   id: string;
   name: string;
-  rewardPoints: number;
   weight: number;
   image: string;
   active: boolean;
@@ -48,8 +47,6 @@ interface PetChestHistoryEntry {
   prizeId: string;
   prizeName: string;
   prizeImage: string;
-  rewardPoints: number;
-  rewardVnd: number;
   openCostPoints: number;
   deliveryStatus?: "pending" | "shipped" | "delivered";
   note?: string;
@@ -252,8 +249,6 @@ export class PetService {
                 prizeId: { $ifNull: ["$petChestHistory.prizeId", ""] },
                 prizeName: { $ifNull: ["$petChestHistory.prizeName", ""] },
                 prizeImage: { $ifNull: ["$petChestHistory.prizeImage", ""] },
-                rewardPoints: { $ifNull: ["$petChestHistory.rewardPoints", 0] },
-                rewardVnd: { $ifNull: ["$petChestHistory.rewardVnd", 0] },
                 openCostPoints: { $ifNull: ["$petChestHistory.openCostPoints", 0] },
                 deliveryStatus: {
                   $ifNull: ["$petChestHistory.deliveryStatus", "pending"],
@@ -348,8 +343,6 @@ export class PetService {
       prizeId: String(selected?.prizeId || ""),
       prizeName: String(selected?.prizeName || ""),
       prizeImage: String(selected?.prizeImage || ""),
-      rewardPoints: Math.max(0, Number(selected?.rewardPoints || 0)),
-      rewardVnd: Math.max(0, Number(selected?.rewardVnd || 0)),
       openCostPoints: Math.max(0, Number(selected?.openCostPoints || 0)),
       deliveryStatus: payload.deliveryStatus,
       note: String(payload.note || "").trim(),
@@ -451,7 +444,7 @@ export class PetService {
     const totalPoints = pointsInfo.totalPointsEarned;
     const user = await this.userModel
       .findById(userId)
-      .select("_id petChestPointsSpent petBalance")
+      .select("_id petChestPointsSpent")
       .lean();
 
     if (!user) {
@@ -470,13 +463,10 @@ export class PetService {
     }
 
     const selectedPrize = this.pickWeightedPrize(activePrizes);
-    const rewardVnd = selectedPrize.rewardPoints * REWARD_POINT_TO_VND;
     const historyEntry: PetChestHistoryEntry = {
       prizeId: selectedPrize.id,
       prizeName: selectedPrize.name,
       prizeImage: selectedPrize.image || "",
-      rewardPoints: selectedPrize.rewardPoints,
-      rewardVnd,
       openCostPoints: config.openCostPoints,
       deliveryStatus: "pending",
       note: "",
@@ -495,7 +485,6 @@ export class PetService {
       {
         $inc: {
           petChestPointsSpent: config.openCostPoints,
-          petBalance: rewardVnd,
         },
         $push: {
           petChestHistory: {
@@ -525,8 +514,6 @@ export class PetService {
         id: selectedPrize.id,
         name: selectedPrize.name,
         image: selectedPrize.image,
-        rewardPoints: selectedPrize.rewardPoints,
-        rewardVnd,
       },
     };
   }
@@ -569,8 +556,6 @@ export class PetService {
       prizeId: String(entry?.prizeId || ""),
       prizeName: String(entry?.prizeName || ""),
       prizeImage: String(entry?.prizeImage || ""),
-      rewardPoints: Math.max(0, Number(entry?.rewardPoints || 0)),
-      rewardVnd: Math.max(0, Number(entry?.rewardVnd || 0)),
       openCostPoints: Math.max(0, Number(entry?.openCostPoints || 0)),
       deliveryStatus: String(entry?.deliveryStatus || "pending"),
       note: String(entry?.note || ""),
@@ -879,7 +864,7 @@ export class PetService {
 
     const prizes = sourcePrizes
       .map((prize: any, index: number) => this.normalizeChestPrize(prize, index))
-      .filter((p) => p.name && p.rewardPoints > 0 && p.weight > 0);
+      .filter((p) => p.name && p.weight > 0);
 
     const openCostPoints = Math.max(
       1,
@@ -897,7 +882,6 @@ export class PetService {
     return {
       id: String(prize?.id || `prize_${Date.now()}_${index}`),
       name: String(prize?.name || "").trim(),
-      rewardPoints: Math.max(0, Math.floor(Number(prize?.rewardPoints) || 0)),
       weight: Math.max(0, Number(prize?.weight) || 0),
       image: String(prize?.image || ""),
       active: prize?.active !== false,
@@ -910,10 +894,7 @@ export class PetService {
       openCostPoints: config.openCostPoints,
       prizes: config.prizes.map(
         (p) =>
-          new PetChestPrizeDto({
-            ...p,
-            rewardVnd: p.rewardPoints * REWARD_POINT_TO_VND,
-          }),
+          new PetChestPrizeDto(p),
       ),
     });
   }

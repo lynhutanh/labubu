@@ -47,7 +47,6 @@ export default function PetChestConfigPage() {
           (config.prizes || []).map((p, index) => ({
             id: p.id || `prize_${index}`,
             name: p.name || "",
-            rewardPoints: p.rewardPoints || 0,
             weight: p.weight || 0,
             image: p.image || "",
             active: p.active !== false,
@@ -79,7 +78,6 @@ export default function PetChestConfigPage() {
       {
         id: `prize_${Date.now()}_${prev.length}`,
         name: "",
-        rewardPoints: 1,
         weight: 1,
         image: "",
         active: true,
@@ -141,7 +139,6 @@ export default function PetChestConfigPage() {
         prizes: prizes.map((p, index) => ({
           id: p.id || `prize_${Date.now()}_${index}`,
           name: p.name.trim(),
-          rewardPoints: Math.max(1, Math.floor(Number(p.rewardPoints) || 1)),
           weight: Number(p.weight) || 0,
           image: p.image || "",
           active: p.active !== false,
