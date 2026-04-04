@@ -205,27 +205,73 @@ export default function PetChestPage() {
         }
 
         .pet-chest-stat {
-          min-width: 102px;
-          border-radius: 12px;
-          padding: 8px 10px;
-          background: rgba(15, 23, 42, 0.58);
-          border: 1px solid rgba(148, 163, 184, 0.35);
-          color: #f8fafc;
+          position: relative;
+          width: 196px;
+          height: 90px;
           flex-shrink: 0;
         }
 
-        .pet-chest-stat .label {
-          display: block;
-          font-size: 10px;
-          color: #cbd5e1;
+        .pet-chest-stat-bg {
+          position: absolute;
+          inset: 0;
+          background-size: 100% 100%;
+          background-position: center;
+          background-repeat: no-repeat;
+          pointer-events: none;
         }
 
-        .pet-chest-stat .value {
+        .pet-chest-stat--points .pet-chest-stat-bg {
+          background-image: url("/images/backgrounddiemtichluy.png");
+        }
+
+        .pet-chest-stat--points {
+          --points-value-offset-y: 10px;
+        }
+
+        .pet-chest-stat--cost .pet-chest-stat-bg {
+          background-image: url("/images/backgroundgiamo1lan.png");
+        }
+
+        .pet-chest-stat-content {
+          position: relative;
+          z-index: 1;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: flex-start;
+          width: 100%;
+          height: 100%;
+          gap: 1px;
+          padding-top: 40px;
+        }
+
+        .pet-chest-stat-label {
           display: block;
-          margin-top: 2px;
-          font-size: 16px;
+          font-size: 11px;
+          font-weight: 700;
+          line-height: 1.1;
+          color: #ffffff;
+          text-shadow: 0 1px 4px rgba(0, 0, 0, 0.55);
+        }
+
+        .pet-chest-stat-value {
+          display: block;
+          margin-top: 6px;
+          font-size: 18px;
           font-weight: 900;
           color: #fde68a;
+          line-height: 1;
+          text-shadow: 0 2px 6px rgba(0, 0, 0, 0.55);
+        }
+
+        .pet-chest-stat-content--points {
+          padding-top: 40px;
+        }
+
+        .pet-chest-stat-value--points {
+          margin-top: 0;
+          display: inline-block;
+          transform: translateY(var(--points-value-offset-y));
         }
 
         .pet-chest-center {
@@ -481,25 +527,43 @@ export default function PetChestPage() {
             margin-bottom: 20px;
             gap: 8px;
             flex-wrap: nowrap;
-            min-height: 64px;
+            min-height: 96px;
           }
 
           .pet-chest-topbar-icon {
-            width: 88px;
-            height: 88px;
-          }
-
-          .pet-chest-stat .value {
-            font-size: 14px;
+            width: 120px;
+            height: 120px;
           }
 
           .pet-chest-stat {
-            min-width: 82px;
-            padding: 6px 7px;
+            width: 156px;
+            height: 74px;
           }
 
-          .pet-chest-stat .label {
+          .pet-chest-stat-content {
+            padding-top: 30px;
+          }
+
+          .pet-chest-stat-label {
             font-size: 9px;
+          }
+
+          .pet-chest-stat-value {
+            font-size: 15px;
+            margin-top: 5px;
+          }
+
+          .pet-chest-stat-content--points {
+            padding-top: 30px;
+          }
+
+          .pet-chest-stat--points {
+            --points-value-offset-y: 10px;
+          }
+
+          .pet-chest-stat-value--points {
+            margin-top: 0;
+            transform: translateY(var(--points-value-offset-y));
           }
 
           .pet-chest-open-btn {
@@ -565,13 +629,19 @@ export default function PetChestPage() {
           </div>
 
           <div className="pet-chest-stats">
-            <div className="pet-chest-stat">
-              <span className="label">Điểm tích lũy</span>
-              <span className="value">{config?.availableChestPoints ?? 0}</span>
+            <div className="pet-chest-stat pet-chest-stat--points">
+              <div className="pet-chest-stat-bg" />
+              <div className="pet-chest-stat-content pet-chest-stat-content--points">
+                <span className="pet-chest-stat-value pet-chest-stat-value--points">
+                  {config?.availableChestPoints ?? 0}
+                </span>
+              </div>
             </div>
-            <div className="pet-chest-stat">
-              <span className="label">Giá mở 1 lần</span>
-              <span className="value">{config?.openCostPoints ?? 0}</span>
+            <div className="pet-chest-stat pet-chest-stat--cost">
+              <div className="pet-chest-stat-bg" />
+              <div className="pet-chest-stat-content">
+                <span className="pet-chest-stat-value">{config?.openCostPoints ?? 0}</span>
+              </div>
             </div>
           </div>
 
