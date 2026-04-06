@@ -15,14 +15,14 @@ const ITEMS: FloatingItem[] = [
   {
     id: "pet-farm",
     image: "/lgodaorong.png",
-    alt: "Đảo rồng",
+    alt: "Dao rong",
     href: "/pet-farm",
     hiddenOnPaths: ["/pet-farm"],
   },
   {
     id: "spin",
     image: "/vongquay.png",
-    alt: "Vòng quay",
+    alt: "Vong quay",
     href: "/spin",
     hiddenOnPaths: ["/spin"],
   },
@@ -35,29 +35,14 @@ const ITEMS: FloatingItem[] = [
   },
 ];
 
-const INTERVAL_MS = 7000;
-
 export default function GameFloating() {
   const router = useRouter();
   const [dismissed, setDismissed] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [fading, setFading] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const [availableItems, setAvailableItems] = useState<FloatingItem[]>(ITEMS);
 
-  useEffect(() => {
-    setMounted(true);
-    if (typeof window !== "undefined") {
-      const d = sessionStorage.getItem("game_floating_dismissed");
-      if (d === "1") {
-        setDismissed(true);
-        return;
-      }
-    }
-    checkAvailability();
-  }, []);
-
-  const checkAvailability = async () => {
+  const checkAvailability = useCallback(async () => {
     const available: FloatingItem[] = [ITEMS[0]];
 
     try {
@@ -75,40 +60,49 @@ export default function GameFloating() {
     }
 
     setAvailableItems(available);
-  };
+  }, []);
 
   useEffect(() => {
-    if (dismissed || availableItems.length <= 1) return;
+    setMounted(true);
+    if (typeof window !== "undefined") {
+      const d = sessionStorage.getItem("game_floating_dismissed");
+      if (d === "1") {
+        setDismissed(true);
+        return;
+      }
+    }
+    void checkAvailability();
+  }, [checkAvailability]);
 
-    const timer = setInterval(() => {
-      setFading(true);
-      setTimeout(() => {
-        setActiveIndex((prev) => (prev + 1) % availableItems.length);
-        setFading(false);
-      }, 400);
-    }, INTERVAL_MS);
+  useEffect(() => {
+    setExpanded(false);
+  }, [router.pathname]);
 
-    return () => clearInterval(timer);
-  }, [dismissed, availableItems.length]);
+  const handleDismiss = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    setDismissed(true);
+    sessionStorage.setItem("game_floating_dismissed", "1");
+  }, []);
 
-  const handleDismiss = useCallback(
-    (e: React.MouseEvent) => {
+  const handleToggleMenu = useCallback(() => {
+    setExpanded((prev) => !prev);
+  }, []);
+
+  const handleItemClick = useCallback(
+    (e: React.MouseEvent, href: string) => {
       e.stopPropagation();
-      setDismissed(true);
-      sessionStorage.setItem("game_floating_dismissed", "1");
+      setExpanded(false);
+      router.push(href);
     },
-    [],
+    [router],
   );
-
-  const handleClick = useCallback(() => {
-    const item = availableItems[activeIndex];
-    if (item) router.push(item.href);
-  }, [availableItems, activeIndex, router]);
 
   if (!mounted || dismissed || !availableItems.length) return null;
 
-  const current = availableItems[activeIndex % availableItems.length];
-  if (current.hiddenOnPaths.includes(router.pathname)) return null;
+  const visibleItems = availableItems.filter(
+    (item) => !item.hiddenOnPaths.includes(router.pathname),
+  );
+  if (!visibleItems.length) return null;
 
   return (
     <>
@@ -118,7 +112,6 @@ export default function GameFloating() {
           bottom: 130px;
           right: 20px;
           z-index: 9999;
-          cursor: pointer;
           animation: gameFloat 3s ease-in-out infinite;
         }
 
@@ -138,20 +131,27 @@ export default function GameFloating() {
           height: 80px;
         }
 
+        .game-floating-trigger {
+          border: none;
+          background: transparent;
+          padding: 0;
+          width: 100%;
+          height: 100%;
+          cursor: pointer;
+        }
+
         .game-floating-icon {
           width: 80px;
           height: 80px;
-          border-radius: 50%;
-          object-fit: cover;
+          border-radius: 0;
+          object-fit: contain;
           filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.4));
-          transition: opacity 0.4s ease, transform 0.4s ease;
-          opacity: 1;
+          transition: transform 0.25s ease;
           transform: scale(1);
         }
 
-        .game-floating-icon.is-fading {
-          opacity: 0;
-          transform: scale(0.7);
+        .game-floating.is-expanded .game-floating-icon {
+          transform: scale(1.06);
         }
 
         .game-floating-close {
@@ -162,8 +162,8 @@ export default function GameFloating() {
           height: 26px;
           border-radius: 50%;
           background: rgba(0, 0, 0, 0.7);
-          color: white;
-          border: 2px solid white;
+          color: #fff;
+          border: 2px solid #fff;
           font-size: 14px;
           font-weight: bold;
           cursor: pointer;
@@ -180,24 +180,48 @@ export default function GameFloating() {
           background: rgba(0, 0, 0, 0.9);
         }
 
-        .game-floating-dots {
+        .game-floating-menu {
+          position: absolute;
+          right: 6px;
+          bottom: calc(100% + 12px);
           display: flex;
-          gap: 4px;
-          justify-content: center;
-          margin-top: 6px;
+          flex-direction: column;
+          gap: 8px;
+          opacity: 0;
+          transform: translateY(8px) scale(0.95);
+          pointer-events: none;
+          transition:
+            opacity 0.2s ease,
+            transform 0.2s ease;
         }
 
-        .game-floating-dot {
-          width: 6px;
-          height: 6px;
-          border-radius: 50%;
-          background: rgba(255, 255, 255, 0.35);
-          transition: background 0.3s, transform 0.3s;
+        .game-floating-menu.is-open {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+          pointer-events: auto;
         }
 
-        .game-floating-dot.is-active {
-          background: #fbbf24;
-          transform: scale(1.3);
+        .game-floating-item {
+          border: none;
+          background: transparent;
+          padding: 0;
+          width: 74px;
+          height: 74px;
+          cursor: pointer;
+          border-radius: 0;
+          filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
+          transition: transform 0.2s ease;
+        }
+
+        .game-floating-item:hover {
+          transform: scale(1.08);
+        }
+
+        .game-floating-item img {
+          width: 100%;
+          height: 100%;
+          border-radius: 0;
+          object-fit: contain;
         }
 
         @media (max-width: 768px) {
@@ -205,42 +229,69 @@ export default function GameFloating() {
             bottom: 140px;
             right: 12px;
           }
+
           .game-floating-inner {
             width: 64px;
             height: 64px;
           }
+
           .game-floating-icon {
             width: 64px;
             height: 64px;
           }
-          .game-floating-dot {
-            width: 5px;
-            height: 5px;
+
+          .game-floating-menu {
+            right: 4px;
+            bottom: calc(100% + 10px);
+            gap: 7px;
+          }
+
+          .game-floating-item {
+            width: 62px;
+            height: 62px;
           }
         }
       `}</style>
 
-      <div className="game-floating" onClick={handleClick}>
-        <div className="game-floating-inner">
-          <button className="game-floating-close" onClick={handleDismiss}>
-            ✕
-          </button>
-          <img
-            src={current.image}
-            alt={current.alt}
-            className={`game-floating-icon ${fading ? "is-fading" : ""}`}
-          />
+      <div className={`game-floating ${expanded ? "is-expanded" : ""}`}>
+        <div className={`game-floating-menu ${expanded ? "is-open" : ""}`}>
+          {visibleItems.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              className="game-floating-item"
+              onClick={(e) => handleItemClick(e, item.href)}
+              aria-label={item.alt}
+              title={item.alt}
+            >
+              <img src={item.image} alt={item.alt} />
+            </button>
+          ))}
         </div>
-        {availableItems.length > 1 && (
-          <div className="game-floating-dots">
-            {availableItems.map((item, i) => (
-              <span
-                key={item.id}
-                className={`game-floating-dot ${i === activeIndex % availableItems.length ? "is-active" : ""}`}
-              />
-            ))}
-          </div>
-        )}
+
+        <div className="game-floating-inner">
+          <button
+            type="button"
+            className="game-floating-close"
+            onClick={handleDismiss}
+            aria-label="Dong su kien"
+          >
+            x
+          </button>
+          <button
+            type="button"
+            className="game-floating-trigger"
+            onClick={handleToggleMenu}
+            aria-expanded={expanded}
+            aria-label="Mo danh sach su kien"
+          >
+            <img
+              src="/images/eventicon.png"
+              alt="Su kien"
+              className="game-floating-icon"
+            />
+          </button>
+        </div>
       </div>
     </>
   );
