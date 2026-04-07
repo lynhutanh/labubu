@@ -112,16 +112,24 @@ export default function GameFloating() {
           bottom: 130px;
           right: 20px;
           z-index: 9999;
-          animation: gameFloat 3s ease-in-out infinite;
+          animation: gameFloat 4s ease-in-out infinite;
         }
 
         @keyframes gameFloat {
-          0%,
-          100% {
-            transform: translateY(0) rotate(-2deg);
+          0% {
+            transform: translateY(0) rotate(0deg);
+          }
+          25% {
+            transform: translateY(-8px) rotate(2deg);
           }
           50% {
-            transform: translateY(-10px) rotate(2deg);
+            transform: translateY(-3px) rotate(-1.5deg);
+          }
+          75% {
+            transform: translateY(-10px) rotate(1.5deg);
+          }
+          100% {
+            transform: translateY(0) rotate(0deg);
           }
         }
 
