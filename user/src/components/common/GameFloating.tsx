@@ -112,7 +112,6 @@ export default function GameFloating() {
           bottom: 130px;
           right: 20px;
           z-index: 9999;
-          animation: gameFloat 4s ease-in-out infinite;
         }
 
         @keyframes gameFloat {
@@ -137,6 +136,7 @@ export default function GameFloating() {
           position: relative;
           width: 80px;
           height: 80px;
+          animation: gameFloat 4s ease-in-out infinite;
         }
 
         .game-floating-trigger {
@@ -218,11 +218,11 @@ export default function GameFloating() {
           cursor: pointer;
           border-radius: 0;
           filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
-          transition: transform 0.2s ease;
+          transition: filter 0.2s ease;
         }
 
         .game-floating-item:hover {
-          transform: scale(1.08);
+          filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.6)) brightness(1.1);
         }
 
         .game-floating-item img {
@@ -231,6 +231,29 @@ export default function GameFloating() {
           border-radius: 0;
           object-fit: contain;
         }
+
+        @keyframes itemWobble0 {
+          0% { transform: translateY(0) rotate(0deg); }
+          30% { transform: translateY(-6px) rotate(2deg); }
+          60% { transform: translateY(-2px) rotate(-1.5deg); }
+          100% { transform: translateY(0) rotate(0deg); }
+        }
+        @keyframes itemWobble1 {
+          0% { transform: translateY(0) rotate(0deg); }
+          25% { transform: translateY(-8px) rotate(-2.5deg); }
+          55% { transform: translateY(-3px) rotate(1.5deg); }
+          100% { transform: translateY(0) rotate(0deg); }
+        }
+        @keyframes itemWobble2 {
+          0% { transform: translateY(0) rotate(0deg); }
+          35% { transform: translateY(-5px) rotate(1.8deg); }
+          65% { transform: translateY(-9px) rotate(-2deg); }
+          100% { transform: translateY(0) rotate(0deg); }
+        }
+
+        .game-floating-item-0 { animation: itemWobble0 2.8s ease-in-out infinite; }
+        .game-floating-item-1 { animation: itemWobble1 3.2s ease-in-out infinite; }
+        .game-floating-item-2 { animation: itemWobble2 3.6s ease-in-out infinite; }
 
         @media (max-width: 768px) {
           .game-floating {
@@ -263,11 +286,11 @@ export default function GameFloating() {
 
       <div className={`game-floating ${expanded ? "is-expanded" : ""}`}>
         <div className={`game-floating-menu ${expanded ? "is-open" : ""}`}>
-          {visibleItems.map((item) => (
+          {visibleItems.map((item, idx) => (
             <button
               key={item.id}
               type="button"
-              className="game-floating-item"
+              className={`game-floating-item game-floating-item-${idx % 3}`}
               onClick={(e) => handleItemClick(e, item.href)}
               aria-label={item.alt}
               title={item.alt}
