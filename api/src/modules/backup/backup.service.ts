@@ -18,11 +18,11 @@ const OBJECT_ID_FIELDS = new Set([
 export class BackupService {
   constructor(
     @Inject(MONGO_DB_PROVIDER)
-    private readonly mongoose: typeof mongoose,
+    private readonly mongooseInstance: typeof mongoose,
   ) {}
 
   async exportAllData(): Promise<Record<string, any>> {
-    const db = this.mongoose.connection.db;
+    const db = this.mongooseInstance.connection.db;
     const collectionInfos = await db.listCollections().toArray();
     const collectionNames = collectionInfos.map((c) => c.name);
 
@@ -65,7 +65,7 @@ export class BackupService {
       );
     }
 
-    const db = this.mongoose.connection.db;
+    const db = this.mongooseInstance.connection.db;
     const result: Record<string, number> = {};
 
     for (const [name, docs] of Object.entries(data.collections) as [string, any[]][]) {
