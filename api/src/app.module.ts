@@ -25,6 +25,7 @@ import { MemberRankModule } from "./modules/member-rank/member-rank.module";
 import { SpinModule } from "./modules/spin/spin.module";
 import { SlotMachineModule } from "./modules/slot-machine/slot-machine.module";
 import { PetModule } from "./modules/pet/pet.module";
+import { BackupModule } from "./modules/backup/backup.module";
 import app from "./config/app";
 import file from "./config/file";
 import email from "./config/email";
@@ -115,6 +116,7 @@ import { CoreQueueModule, MongoDBModule } from "./kernel";
     SpinModule,
     SlotMachineModule,
     PetModule,
+    BackupModule,
   ],
   controllers: [AppController],
   providers: [AppService],

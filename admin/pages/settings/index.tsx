@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef, type ChangeEvent } from "react";
 import { motion } from "framer-motion";
 import {
   Globe,
@@ -8,6 +8,9 @@ import {
   Truck,
   Lock,
   Users,
+  Database,
+  Download,
+  Upload,
 } from "lucide-react";
 import { settingsService } from "src/services";
 import {
@@ -68,11 +71,21 @@ const getTabConfig = (): TabConfig[] => [
     color: "from-pink-500 to-rose-500",
     description: "Cấu hình ưu đãi/giới hạn dùng điểm nuôi thú.",
   },
+  {
+    key: "backup",
+    title: "Sao lưu",
+    icon: Database,
+    color: "from-indigo-500 to-blue-500",
+    description: "Tải bản sao lưu toàn bộ dữ liệu hệ thống.",
+  },
 ];
 
 export default function SettingsPage() {
   const [updating, setUpdating] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [backingUp, setBackingUp] = useState(false);
+  const [restoring, setRestoring] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedTab, setSelectedTab] = useState("site");
   const [list, setList] = useState<ISetting[]>([]);
   const [formData, setFormData] = useState<Record<string, any>>({});
@@ -230,7 +243,102 @@ export default function SettingsPage() {
                 <p className="text-purple-300 mt-1">{currentTabInfo?.description}</p>
               </div>
 
-              {loading ? (
+              {selectedTab === "backup" ? (
+                <div className="flex flex-col items-center py-16 gap-8">
+                  <div className="w-20 h-20 rounded-full bg-gradient-to-r from-indigo-500 to-blue-500 flex items-center justify-center">
+                    <Database className="w-10 h-10 text-white" />
+                  </div>
+
+                  {/* Backup */}
+                  <div className="text-center">
+                    <p className="text-purple-200 text-lg mb-1">Tải về toàn bộ dữ liệu hệ thống</p>
+                    <p className="text-purple-400 text-sm">File backup sẽ được lưu dưới dạng JSON</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        setBackingUp(true);
+                        await settingsService.downloadBackup();
+                        setMessage({ type: "success", text: "Tải bản sao lưu thành công!" });
+                      } catch (error) {
+                        console.error("Backup failed:", error);
+                        setMessage({ type: "error", text: "Không thể tải bản sao lưu" });
+                      } finally {
+                        setBackingUp(false);
+                      }
+                    }}
+                    disabled={backingUp}
+                    className={`
+                      inline-flex items-center gap-2 px-8 py-3 rounded-lg font-medium transition-all duration-200 shadow-lg
+                      ${backingUp
+                        ? "bg-white/10 text-purple-400 cursor-not-allowed border border-purple-500/20"
+                        : "bg-gradient-to-r from-indigo-500 to-blue-600 text-white hover:opacity-90"
+                      }
+                    `}
+                    style={{
+                      boxShadow: backingUp ? "none" : "0 0 25px rgba(99, 102, 241, 0.5)",
+                    }}
+                  >
+                    <Download className="w-5 h-5" />
+                    {backingUp ? "Đang tải..." : "Tải bản sao lưu"}
+                  </button>
+
+                  {/* Restore */}
+                  <div className="w-full border-t border-purple-500/30 pt-8 flex flex-col items-center gap-4">
+                    <div className="text-center">
+                      <p className="text-purple-200 text-lg mb-1">Khôi phục dữ liệu từ file backup</p>
+                      <p className="text-red-400 text-sm">⚠️ Dữ liệu hiện tại sẽ bị ghi đè hoàn toàn</p>
+                    </div>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".json"
+                      className="hidden"
+                      onChange={async (e: ChangeEvent<HTMLInputElement>) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        const confirmed = window.confirm(
+                          "⚠️ Toàn bộ dữ liệu hiện tại sẽ bị GHI ĐÈ bởi file backup.\n\nBạn có chắc chắn muốn khôi phục?"
+                        );
+                        if (!confirmed) {
+                          if (fileInputRef.current) fileInputRef.current.value = "";
+                          return;
+                        }
+                        try {
+                          setRestoring(true);
+                          await settingsService.restoreBackup(file);
+                          setMessage({ type: "success", text: "Khôi phục dữ liệu thành công!" });
+                        } catch (error) {
+                          console.error("Restore failed:", error);
+                          setMessage({ type: "error", text: "Không thể khôi phục dữ liệu" });
+                        } finally {
+                          setRestoring(false);
+                          if (fileInputRef.current) fileInputRef.current.value = "";
+                        }
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={restoring}
+                      className={`
+                        inline-flex items-center gap-2 px-8 py-3 rounded-lg font-medium transition-all duration-200 shadow-lg
+                        ${restoring
+                          ? "bg-white/10 text-purple-400 cursor-not-allowed border border-purple-500/20"
+                          : "bg-gradient-to-r from-orange-500 to-red-500 text-white hover:opacity-90"
+                        }
+                      `}
+                      style={{
+                        boxShadow: restoring ? "none" : "0 0 25px rgba(239, 68, 68, 0.4)",
+                      }}
+                    >
+                      <Upload className="w-5 h-5" />
+                      {restoring ? "Đang khôi phục..." : "Khôi phục dữ liệu"}
+                    </button>
+                  </div>
+                </div>
+              ) : loading ? (
                 <div className="flex justify-center items-center py-16">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-400"></div>
                   <span className="ml-3 text-purple-200">Đang tải cài đặt...</span>
